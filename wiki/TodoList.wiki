@@ -1,8 +1,4 @@
-#summary One-sentence summary of this page.
-
-= Introduction =
-
-The to do list
+#summary The list of features or fixes which we'd like work on
 
 
 = svmap =
