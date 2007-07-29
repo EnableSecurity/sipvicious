@@ -23,8 +23,6 @@ __GPL__ = """
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.1'
 
-# TODO: check why port ranges are so slow
-
 import socket
 import select
 
@@ -114,6 +112,7 @@ class DrinkOrSip:
                 self.selecttime
                 )
             if r:
+                print "XXX"
                 # we got stuff to read off the socket
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
