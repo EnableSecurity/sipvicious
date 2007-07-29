@@ -20,16 +20,6 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
-# TODO: 
-#       check when was the last response - if it was more than a few seconds ago
-#               then inform the end user and maybe reduce speed
-#       allow end user to scan multiple users
-#       allow intelligent scan - sequentially perform the followig attacks:
-#            - username and modifications of that as password
-#            - number bruteforce
-#            - dictionary attack
-#            - bruteforce
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.1'
 
