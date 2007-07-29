@@ -8,9 +8,9 @@ Welcome to SIPVicious security tools.
 This stuff is obviously still very betaish.
 
 The 3 tools that you should be looking at are:
- - svmap
- - svwar
- - svcrack
+  * svmap
+  * svwar
+  * svcrack
 
 = The tools =
 svmap - this is a sip scanner. When launched against
