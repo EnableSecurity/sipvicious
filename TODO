@@ -1,5 +1,5 @@
 svmap:
-  * optimization: check why scanning port ranges are so slow
+  * optimization: check why scanning port ranges is so slow
 
 svwar:
   * none
