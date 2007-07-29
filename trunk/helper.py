@@ -213,7 +213,7 @@ def makeRedirect(previousHeaders,rediraddr):
     return(r)
     
 
-def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,contact=None,compact=False):    
+def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None):
     uri = 'sip:%s' % dsthost    
     headers = dict()
     finalheaders = dict()
@@ -239,12 +239,6 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
             headers['Contact'] = contact
     headers['CSeq'] = '%s %s' % (cseq,method)
     headers['Max-Forwards'] = 70 
-    # the following are not needed yet. the less data the merrier
-    #headers['Contact'] = "<%s:46992;rinstance=bb037cfd9a909bc>" % uri    
-    #headers['Expires'] = '3600'
-    #headers['Allow'] = 'INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, NOTIFY, MESSAGE, SUBSCRIBE, INFO'
-    #finalheaders['Content-Length'] = 0
-    #finalheaders['User-Agent'] = 'SIPvicious 0.1'
     if auth is not None:
         response = challengeResponse(auth['username'],auth['realm'],auth['password'],method,uri,auth['nonce'])        
         if auth['proxy']:

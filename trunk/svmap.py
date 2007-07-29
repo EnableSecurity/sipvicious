@@ -112,14 +112,11 @@ class DrinkOrSip:
                 self.selecttime
                 )
             if r:
-                print "XXX"
                 # we got stuff to read off the socket
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
-                    #print buff
                 except socket.error:
                     continue
-                #print buff
                 self.getResponse(buff,srcaddr)
             else:
                 # no stuff to read .. its our turn to send back something

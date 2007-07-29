@@ -89,13 +89,13 @@ class ASipOfRedWine:
                                     '"%s"<sip:%s@%s>' % (extension,extension,self.dsthost),
                                     self.dsthost,
                                     self.dstport,
-                                    cid,
-                                    self.localhost,
-                                    branchunique,
-                                    cseq,
-                                    auth,
-                                    localtag,
-                                    self.compact
+                                    callid=cid,
+                                    srchost=self.localhost,
+                                    branchunique=branchunique,
+                                    cseq=cseq,
+                                    auth=auth,
+                                    localtag=localtag,
+                                    compact=self.compact
                                   )
         return register
 
@@ -260,7 +260,8 @@ if __name__ == '__main__':
         crackargs = dictionary
     else:
         crackmode = 1
-        crackargs = (options.range[0],options.range[1],options.zeropadding)
+        rangelist = range(options.range[0],options.range[1])
+        crackargs = (rangelist,options.zeropadding)
     sipvicious = ASipOfRedWine(
                     host,
                     username=options.username,
