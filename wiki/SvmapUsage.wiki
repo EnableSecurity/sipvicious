@@ -1,4 +1,5 @@
 #summary How to use svmap.
+#labels Featured
 
 = Svmap usage =
 
