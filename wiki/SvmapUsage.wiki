@@ -8,7 +8,7 @@ Svmap is a free scanner for auditing of sip devices and PBX servers. The tool is
 usage: svmap.py [options]
 
 options:
-  --version             show program's version number and exit
+  --version             show program`s version number and exit
   -h, --help            show this help message and exit
   -o output.csv, --output=output.csv
                         Output results to a specified csv file
@@ -35,4 +35,3 @@ Add your content here.  Format your content with:
   * Text in *bold* or _italic_
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
-
