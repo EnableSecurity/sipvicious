@@ -39,3 +39,18 @@ This also serves the purpose of being compatible with the input option.
 The input option accepts csv files with the same format as the output option. It serves the purpose of being able to scan specific devices on specific ports. This allows security testers to scan the same devices at different times using different methods. 
 
 One particular usage example is to scan for SIP devices using default options. Then at a given time scan for the SIP devices found in the previous scan using the INVITE method, which can get all the scanned devices to ring at the same time. 
+
+== Destination port ==
+By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. For example, X-lite is known to listen on "random" high ports. In that case, you can use ranges of ports to find out the port on which the SIP device is listening on. 
+
+== Source port ==
+By default, svmap listens on udp port 5060. However there are times when that port is already taken and svmap cannot bind on the default port. In that case, one can make use of the -P option to specify another udp port to bind to. 
+
+== Timeout or Select time ==
+This option allows you to specify the timeout for the select() function. If the network is slow, then it is recommended that you set this to something higher than the default. The default is 0.005. Try with 0.01 first, and start increasing. 
+
+== Compact mode ==
+SIP supports compact mode, where some headers can be written in short form. By default this is disabled because some devices might not support it. 
+
+== Method ==
+By default, svmap uses the OPTIONS method. However some devices might not support this method (even though they should). You may specify a different method to scan with, such as REGISTER and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
