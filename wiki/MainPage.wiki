@@ -15,7 +15,7 @@ The 3 tools that you should be looking at are:
 = The tools =
 
 == svmap == 
-This is a sip scanner. When launched against ranges of ip address space, it will identify any SIP servers which it finds on the way. Also has the option to scan hosts  on ranges of ports.
+This is a sip scanner. When launched against ranges of ip address space, it will identify any SIP servers which it finds on the way. Also has the option to scan hosts  on ranges of ports. For usage instructions check out SvmapUsage.
 
 
 == svwar == 
