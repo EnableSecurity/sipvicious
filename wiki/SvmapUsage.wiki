@@ -4,8 +4,8 @@
 
 Svmap is a free scanner for auditing of sip devices and PBX servers. The tool is flexible enough to allow you to scan ranges of ip addresses as well as ranges of ports for SIP. It accepts comma delimited files, and can output to comma delimited files as well. Can be used to launch different types of scans, including ones that set
 
-{{{
-usage: svmap.py [options]
+
+^usage: svmap.py [options]
 
 options:
   --version             show program`s version number and exit
@@ -25,9 +25,7 @@ options:
                         possibly less compatable
   -m METHOD, --method=METHOD
                         Specify the request method - by default this is
-                        OPTIONS.
-
-}}}
+                        OPTIONS.^
 
 = Details =
 
