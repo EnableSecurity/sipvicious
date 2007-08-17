@@ -1,5 +1,7 @@
 #summary The list of features or fixes which we'd like work on
 
+= general = 
+  * verbose levels or use logging module better ;)
 
 = svmap =
   * optimization: check why scanning port ranges is so slow
