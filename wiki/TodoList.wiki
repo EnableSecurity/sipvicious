@@ -5,6 +5,7 @@
 
 = svmap =
   * optimization: check why scanning port ranges is so slow
+  * optimization: check why windows is slow while other unix-like OSes are fine
   * work more on fingerprinting
 
 = svwar =
