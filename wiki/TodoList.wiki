@@ -1,16 +1,16 @@
 #summary The list of features or fixes which we'd like work on
 
 = general = 
-  * verbose levels or use logging module better ;)
+  * feature: verbose levels or use logging module better ;)
 
 = svmap =
   * optimization: check why scanning port ranges is so slow
   * optimization: check why windows is slow while other unix-like OSes are fine
-  * work more on fingerprinting
+  * feature: work more on fingerprinting
 
 = svwar =
-  * scan multiple hosts at the same time
-  * might make sense to integrate this with svmap
+  * feature: scan multiple hosts at the same time
+  * feature: might make sense to integrate this with svmap
 
 = svcrack = 
   * optimization: check when was the last response - if it were more than a few seconds ago then inform the end user and maybe reduce speed
