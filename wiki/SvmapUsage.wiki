@@ -21,7 +21,7 @@ options:
                         Source port for our packets
   -t SELECTTIME, --timeout=SELECTTIME
                         Timeout for the select() function. Change this if
-                        you're loosing packets
+                        you're losing packets
   -c, --enablecompact   enable compact mode. Makes packets smaller but
                         possibly less compatable
   -m METHOD, --method=METHOD
