@@ -220,7 +220,7 @@ if __name__ == '__main__':
                   help="username to try crack", metavar="USERNAME")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
                       default=0.005,
-                  help="timeout for the select() function. Change this if you're loosing packets",
+                  help="timeout for the select() function. Change this if you're losing packets",
                   metavar="SELECTTIME")        
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
                   help="specify a dictionary file with passwords",

@@ -187,7 +187,7 @@ if __name__ == '__main__':
                   help="Source port for our packets", metavar="PORT")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
                       default=0.005,
-                    help="Timeout for the select() function. Change this if you're loosing packets",
+                    help="Timeout for the select() function. Change this if you're losing packets",
                   metavar="SELECTTIME")        
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
                   help="enable compact mode. Makes packets smaller but possibly less compatable",
