@@ -30,14 +30,14 @@ def getRange(rangestr):
         _tmp3 = _tmp2.split('-',1)
         if len(_tmp3) > 1:        
             if not (_tmp3[0].isdigit() or _tmp3[1].isdigit()):
-                raise ValueError, "the ranges need to be made of digits"                
+                raise ValueError, "the ranges need to be digits"                
                 return            
             startport,endport = map(int,[_tmp3[0],_tmp3[1]])
             endport += 1
             numericrange.extend(range(startport,endport))
         else:
             if not _tmp3[0].isdigit():
-                raise ValueError, "the ranges need to be made of digits"                
+                raise ValueError, "the ranges need to be digits"                
                 return
             numericrange.append(int(_tmp3[0]))
     return numericrange
@@ -282,3 +282,15 @@ def reportBugToAuthor(trace):
         urlopen('http://sipvicious.org/bugreport/r.php',data)
     except URLError,err:
         print err
+
+def scanlist(iprange,portrange,methods):
+    for ip in iprange.iteraddresses():
+        for port in portrange:
+            for method in methods:
+                yield(ip,port,method)
+
+def scanfromfile(csv,methods):
+    for row in reader:            
+        (dstip,dstport,srcip,srcport,uaname) = row
+        for method in methods:
+            yield(dstip,int(dstport),method)
