@@ -29,7 +29,29 @@ options:
                         OPTIONS.
 }}}
 
-= Details =
+= Target IP addresses =
+
+To specify a range of IP address, one can make use of the CIDR notation. For example to scan the 1.1.1.0 subnet one would run the following command:
+{{{
+./svmap 1.1.1.1/24
+}}}
+
+You can also specify a name instead of an IP address:
+{{{
+./svmap sipvicious.org
+}}}
+
+.. and also use CIDR notation with the name:
+{{{
+./svmap sipvicious.org/24
+}}}
+
+Another way of specifying a custom range is to make use of <->, for example:
+{{{
+./svmap "1.1.1.50<->1.1.160"
+}}}
+
+= Options =
 
 == Output ==
 The purpose of having an output file to csv format is to be able to import the results in spreadsheet and database applications with ease. A security administrator or penetration tester might want to present results in graphs.
