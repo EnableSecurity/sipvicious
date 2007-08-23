@@ -100,7 +100,6 @@ class DrinkOrSip:
     def start(self):
         from helper import makeRequest
         import socket        
-        count = 0
         while 1:
             r, w, e = select.select(
                 self.rlist,
@@ -122,15 +121,11 @@ class DrinkOrSip:
                     try:
                         # having the final sip 
                         # print "ok scan complete .. making sure that no packets get lost"
-                        buff,srcaddr = self.sock.recvfrom(8192)
+                        while 1:
+                            buff,srcaddr = self.sock.recvfrom(8192)
+                            self.getResponse(buff,srcaddr)
                     except socket.error:
                         break
-                    self.getResponse(buff,srcaddr)
-                    if self.outputcsv is not None:
-                        self.outputcsv.close()
-                    break
-
-                count += 1
                 try:
                     nextscan = self.scaniter.next()
                 except StopIteration:
