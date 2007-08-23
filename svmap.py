@@ -33,7 +33,7 @@ reportBack = False
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=True,
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
-                 socktimeout=3,localhost='localhost',localport=5060):
+                 socktimeout=3,localhost=None,localport=5060):
         import logging
         #logging.basicConfig(level=logging.DEBUG)
         self.log = logging.getLogger('DrinkOrSip')
@@ -52,18 +52,17 @@ class DrinkOrSip:
         self.xlist = list()
         self.scaniter = scaniter
         self.selecttime = selecttime
-        self.localhost = localhost
+        self.localport = localport
+        if localhost is None:
+            self.localhost = socket.gethostbyname(socket.gethostname())
+        else:
+            self.localhost = localhost
         self.log.debug("Local: %s:%s" % (self.localhost,localport) )       
         self.compact = compact
         self.log.debug("Compact mode: %s" % self.compact)
         self.fromname = fromname        
         self.fromaddr = fromaddr
         self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
-        # bind to 5060 - the reason is to maximize compatability with
-        # devices that disregard the source port and send replies back
-        # to port 5060
-        self.log.debug("Binding just about now")
-        self.sock.bind(('',localport))
         self.nomoretoscan = False
         if outputcsv is not None:
             import csv
@@ -99,7 +98,16 @@ class DrinkOrSip:
                 
     def start(self):
         from helper import makeRequest
-        import socket        
+        import socket
+        # bind to 5060 - the reason is to maximize compatability with
+        # devices that disregard the source port and send replies back
+        # to port 5060
+        self.log.debug("binding to %s:%s" % (self.localhost,self.localport))
+        try:            
+            self.sock.bind((self.localhost,self.localport))
+        except socket.error:
+            self.log.error("could not bind to %s:%s - some process might already be listening on this port" % (self.localhost,self.localport))
+            return
         while 1:
             r, w, e = select.select(
                 self.rlist,
@@ -181,6 +189,8 @@ if __name__ == '__main__':
                   help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
                   help="Source port for our packets", metavar="PORT")
+    parser.add_option("-l", "--localip", dest="localhost", default='localhost',
+                  help="IP Address to bind to. Specify this if you have multiple interfaces", metavar="IP")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
                       default=0.005,
                     help="Timeout for the select() function. Change this if you're losing packets",
@@ -225,7 +235,8 @@ if __name__ == '__main__':
                     selecttime=options.selecttime,
                     compact=options.enablecompact,
                     localport=options.localport,                    
-                    outputcsv=options.outputcsv,                    
+                    outputcsv=options.outputcsv,
+                    localhost=options.localhost
                     )
     
     start_time = datetime.now()
