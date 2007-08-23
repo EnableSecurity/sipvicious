@@ -290,7 +290,7 @@ def scanlist(iprange,portrange,methods):
                 yield(ip,port,method)
 
 def scanfromfile(csv,methods):
-    for row in reader:            
+    for row in csv:            
         (dstip,dstport,srcip,srcport,uaname) = row
         for method in methods:
             yield(dstip,int(dstport),method)
