@@ -31,12 +31,13 @@ from struct import pack,unpack
 reportBack = False
 
 class DrinkOrSip:
-    def __init__(self,scaniter,selecttime=0.005,compact=True,
+    def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
-                 socktimeout=3,localhost=None,localport=5060):
+                 socktimeout=3,externalip=None,localport=5060):
         import logging
         #logging.basicConfig(level=logging.DEBUG)
         self.log = logging.getLogger('DrinkOrSip')
+        self.bindingip = bindingip
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -53,11 +54,11 @@ class DrinkOrSip:
         self.scaniter = scaniter
         self.selecttime = selecttime
         self.localport = localport
-        if localhost is None:
-            self.localhost = socket.gethostbyname(socket.gethostname())
+        if externalip is None:
+            self.externalip = socket.gethostbyname(socket.gethostname())
         else:
-            self.localhost = localhost
-        self.log.debug("Local: %s:%s" % (self.localhost,localport) )       
+            self.externalip = externalip
+        self.log.debug("External ip: %s:%s" % (self.externalip,localport) )       
         self.compact = compact
         self.log.debug("Compact mode: %s" % self.compact)
         self.fromname = fromname        
@@ -102,11 +103,15 @@ class DrinkOrSip:
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
         # to port 5060
-        self.log.debug("binding to %s:%s" % (self.localhost,self.localport))
+        if self.bindingip == '':
+            bindingip = 'any'
+        else:
+            bindingip = self.bindingip
+        self.log.debug("binding to %s:%s" % (bindingip,self.localport))
         try:            
-            self.sock.bind((self.localhost,self.localport))
+            self.sock.bind((self.bindingip,self.localport))
         except socket.error:
-            self.log.error("could not bind to %s:%s - some process might already be listening on this port" % (self.localhost,self.localport))
+            self.log.error("could not bind to %s:%s - some process might already be listening on this port" % (self.bindingip,self.localport))
             return
         while 1:
             r, w, e = select.select(
@@ -158,7 +163,7 @@ class DrinkOrSip:
                                 dsthost[0],
                                 dsthost[1],
                                 callid,
-                                self.localhost,
+                                self.externalip,
                                 branchunique,
                                 compact=self.compact,
                                 localtag=localtag,
@@ -189,8 +194,10 @@ if __name__ == '__main__':
                   help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
                   help="Source port for our packets", metavar="PORT")
-    parser.add_option("-l", "--localip", dest="localhost", default='localhost',
-                  help="IP Address to bind to. Specify this if you have multiple interfaces", metavar="IP")
+    parser.add_option("-x", "--externalip", dest="externalip", default='localhost',
+                  help="IP Address to use as the external ip. Specify this if you have multiple interfaces or if you are behind NAT", metavar="IP")
+    parser.add_option("-b", "--bindingip", dest="bindingip", default='',
+                  help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
                       default=0.005,
                     help="Timeout for the select() function. Change this if you're losing packets",
@@ -236,7 +243,8 @@ if __name__ == '__main__':
                     compact=options.enablecompact,
                     localport=options.localport,                    
                     outputcsv=options.outputcsv,
-                    localhost=options.localhost
+                    externalip=options.externalip,
+                    bindingip=options.bindingip
                     )
     
     start_time = datetime.now()
