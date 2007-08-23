@@ -149,20 +149,22 @@ class TakeASip:
         except socket.error,err:
             print "socket error: %s" % err
             return
+        gotbadresponse=False
         try:
-            _tmp = True
-            while _tmp:
+            while 1:
                 buff,srcaddr = self.sock.recvfrom(8192)
-                if not buff.startswith(self.TRYING) \
-                    and not buff.startswith(self.RINGING) \
-                    and not buff.startswith(self.UNAVAILABLE):
-                    _tmp=False
-            self.BADUSER = buff.splitlines()[0]            
+                if buff.startswith(self.TRYING) \
+                    or buff.startswith(self.RINGING) \
+                    or buff.startswith(self.UNAVAILABLE):
+                    gotbadresponse=True
+                else:
+                    self.BADUSER = buff.splitlines()[0]
+                    break
         except socket.timeout:
-            if _tmp is True:
-                print "got a response but did not manage to grab an appropiate header"
+            if gotbadresponse:
+                print "The response we got was not good: %s" % buff
             else:
-                print "no server response"
+                print "No server response - are you sure that this PBX is listening? run svmap.py against it to find out"
             return
         except (AttributeError,ValueError,IndexError):
             print "bad response .. bailing out"

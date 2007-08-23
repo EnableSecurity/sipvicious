@@ -28,14 +28,15 @@ import select
 
 import random
 from struct import pack,unpack
-reportBack = True
+reportBack = False
 
 class DrinkOrSip:
-    def __init__(self,hosts,selecttime=0.005,compact=True,method='OPTIONS',
+    def __init__(self,scaniter,selecttime=0.005,compact=True,
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
                  socktimeout=3,localhost='localhost',localport=5060):
         import logging
-        self.log = logging.getLogger('DrinkOrSip')        
+        #logging.basicConfig(level=logging.DEBUG)
+        self.log = logging.getLogger('DrinkOrSip')
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -49,7 +50,7 @@ class DrinkOrSip:
         self.wlist = list()
         # error handles
         self.xlist = list()
-        self.hosts = hosts
+        self.scaniter = scaniter
         self.selecttime = selecttime
         self.localhost = localhost
         self.log.debug("Local: %s:%s" % (self.localhost,localport) )       
@@ -58,15 +59,12 @@ class DrinkOrSip:
         self.fromname = fromname        
         self.fromaddr = fromaddr
         self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
-        self.initiallength = len(self.hosts)
-        self.log.debug("Number of hosts: %s" % self.initiallength)
-        self.method = method
-        self.log.debug("Method: %s" % self.method)
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
         # to port 5060
         self.log.debug("Binding just about now")
         self.sock.bind(('',localport))
+        self.nomoretoscan = False
         if outputcsv is not None:
             import csv
             self.outputcsv = csv.writer(open(outputcsv,'wb'))
@@ -101,8 +99,7 @@ class DrinkOrSip:
                 
     def start(self):
         from helper import makeRequest
-        import socket
-        print "sending %s packets" % self.initiallength
+        import socket        
         count = 0
         while 1:
             r, w, e = select.select(
@@ -120,7 +117,7 @@ class DrinkOrSip:
                 self.getResponse(buff,srcaddr)
             else:
                 # no stuff to read .. its our turn to send back something
-                if len(self.hosts) < 1:
+                if self.nomoretoscan:
                     # no more hosts to scan
                     try:
                         # having the final sip 
@@ -133,24 +130,26 @@ class DrinkOrSip:
                         self.outputcsv.close()
                     break
 
-                #if count == (self.initiallength / 100):
-                #    count = 0
-                #    print '%s%% done' % int(round(((self.initiallength - float(len(self.hosts))) / self.initiallength) * 100))
                 count += 1
-                dsthost = self.hosts.pop()
-                #dsthostA = 'foo@' + dsthost
+                try:
+                    nextscan = self.scaniter.next()
+                except StopIteration:
+                    self.nomoretoscan = True
+                    continue
+                dstip,dstport,method = nextscan
+                dsthost = (dstip,dstport)
                 branchunique = '%s' % random.getrandbits(32)
                 localtag = '%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]) 
-                cseq = 1                
+                cseq = 1
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
                 toaddr = fromaddr
                 callid = '%s' % random.getrandbits(80)
                 contact = None
-                if self.method == 'INVITE' or self.method == 'OPTIONS':
+                if method == 'INVITE' or method == 'OPTIONS':
                     contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
 
                 data = makeRequest(
-                                self.method,
+                                method,
                                 fromaddr,
                                 toaddr,
                                 dsthost[0],
@@ -162,9 +161,9 @@ class DrinkOrSip:
                                 localtag=localtag,
                                 contact=contact
                                 )
-                try:                    
-                    self.sock.sendto(data,dsthost)
-                    
+                try:
+                    self.log.debug("sending packet to %s:%s" % dsthost)
+                    self.sock.sendto(data,dsthost)                    
                 except socket.error,err:
                     print "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err)
 
@@ -177,6 +176,8 @@ if __name__ == '__main__':
     usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24"
 
     parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
+    parser.add_option('-v', '--verbose', dest="verbose", action="count",
+                      help="Increase verbosity")
     parser.add_option("-o", "--output", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")    
     parser.add_option("-i", "--input", dest="inputcsv",
@@ -199,35 +200,36 @@ if __name__ == '__main__':
                   )
     (options, args) = parser.parse_args()
     from ip4range import IP4Range
-    from helper import getRange
+    from helper import getRange, scanfromfile, scanlist
+    logginglevel = 40
+    if options.verbose is not None:
+        for somecount in xrange(options.verbose):
+            if logginglevel > 10:
+                logginglevel = logginglevel-10
+    import logging
+    logging.basicConfig(level=logginglevel)
+    
     hosts = list()
     if options.inputcsv is None:
         if len(args) < 1:
             parser.print_help()
-            exit(1)
-    
+            exit(1)    
         try:
             iprange = IP4Range(*args)
         except ValueError,err:
             print err
             exit(1)        
         portrange = getRange(options.port)
-        for val in iprange:
-            for port in portrange:            
-                    hosts.append((val,int(port)))
-        hosts.reverse()
+        scaniter = scanlist(iprange,portrange,[options.method])
     else:
         import csv
         reader = csv.reader(open(options.inputcsv,'rb'))
-        for row in reader:            
-            (dstip,dstport,srcip,srcport,uaname) = row
-            hosts.append((dstip,int(dstport)))
+        scaniter = scanfromfile(reader,[options.method])
     sipvicious = DrinkOrSip(
-                    hosts,                    
+                    scaniter,                    
                     selecttime=options.selecttime,
                     compact=options.enablecompact,
-                    localport=options.localport,
-                    method=options.method,
+                    localport=options.localport,                    
                     outputcsv=options.outputcsv,                    
                     )
     
@@ -237,14 +239,15 @@ if __name__ == '__main__':
         sipvicious.start()
     except KeyboardInterrupt:
         print 'caught your control^c - quiting'
-    except:
-        if reportBack:
-            import traceback
-            from helper import reportBugToAuthor
-            print "Got unhandled exception : sending report to author"
-            reportBugToAuthor(traceback.format_exc())
-        else:
-            print "Unhandled exception - please enable the 'report bug to author option'"
+#    except Exception, err:
+#        if reportBack:
+#            import traceback
+#            from helper import reportBugToAuthor
+#            print "Got unhandled exception : sending report to author"
+#            reportBugToAuthor(traceback.format_exc())
+#        else:
+#            print "Unhandled exception - please enable the 'report bug to author option'"
+#            print err 
     end_time = datetime.now()
     total_time = end_time - start_time
     print "Total time:", total_time
