@@ -48,7 +48,7 @@ You can also specify a name instead of an IP address:
 
 Another way of specifying a custom range is to make use of <->, for example:
 {{{
-./svmap "1.1.1.50<->1.1.160"
+./svmap "1.1.1.50<->1.1.1.60"
 }}}
 
 = Options =
