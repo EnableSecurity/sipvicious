@@ -1,0 +1,13 @@
+#summary How to use svwar
+
+= Introduction =
+
+Svwar is a free SIP PBX extension line scanner. In concept it works similar to traditional wardialers - guessing a range of extensions or a given list of extensions.
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
