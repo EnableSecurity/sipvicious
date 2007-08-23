@@ -77,3 +77,26 @@ SIP supports compact mode, where some headers can be written in short form. By d
 
 == Method ==
 By default, svmap uses the OPTIONS method. However some devices might not support this method (even though they should). You may specify a different method to scan with, such as REGISTER and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
+
+
+= Examples =
+
+Scan a subnet:
+{{{
+./svmap 10.0.0.1/24
+}}}
+
+Scan a subnet running compact mode on port range 1024-2080:
+{{{
+./svmap 10.0.0.1/24 -p1024-2080 -c
+}}}
+
+Scan a subnet and log the results to a csv file:
+{{{
+./svmap -o scan.csv 10.0.0.1/24
+}}}
+
+Scan a list of previously scanned hosts and make use of the INVITE method:
+{{{
+./svmap -i scan.csv -m INVITE
+}}}
