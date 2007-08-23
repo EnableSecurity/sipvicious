@@ -88,6 +88,7 @@ class DrinkOrSip:
                 uaname = res['name'][0]                
             else:
                 uaname = 'unknown'
+                self.log.debug(`buff`)
             self.log.debug("Uaname: %s" % uaname)
             #print buff
             originaldst = getTag(buff)
