@@ -214,7 +214,7 @@ if __name__ == '__main__':
                   metavar="RANGE")
     parser.add_option("-z", "--zeropadding", dest="zeropadding", type="int",
                   help="""the number of zeros used to padd the username.
-                  the options "-r 1 9999 -z 4" would give 0001 0002 0003 ... 9999""",
+                  the options "-e 1-9999 -z 4" would give 0001 0002 0003 ... 9999""",
                   default=0,
                   metavar="PADDING")
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
