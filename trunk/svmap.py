@@ -116,7 +116,7 @@ class DrinkOrSip:
         try:            
             self.sock.bind((self.bindingip,self.localport))
         except socket.error:
-            self.log.error("could not bind to %s:%s - some process might already be listening on this port" % (self.bindingip,self.localport))
+            self.log.error("could not bind to %s:%s - some process might already be listening on this port. Make use of the -P option." % (self.bindingip,self.localport))
             return
         while 1:
             r, w, e = select.select(
