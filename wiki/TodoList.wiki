@@ -2,6 +2,7 @@
 
 = general = 
   * feature: verbose levels or use logging module better ;)
+  * bug fix: review all code for logic bugs and consistency between tools
 
 = svmap =
   * optimization: check why windows is slow while other unix-like OSes are fine
