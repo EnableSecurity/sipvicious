@@ -2,7 +2,7 @@
 
 = general = 
   * feature: verbose levels or use logging module better ;)
-  * bug fix: review all code for logic bugs and consistency between tools
+  * bug fix: review all code for logic bugs and consistency between tools before release 0.2
 
 = svmap =
   * optimization: check why windows is slow while other unix-like OSes are fine
@@ -13,7 +13,7 @@
 = svwar =
   * feature: scan multiple hosts at the same time
   * feature: might make sense to integrate this with svmap
-  * bug fix: listen for responses after done scanning
+  * done - bug fix: listen for responses after done scanning 
 
 = svcrack = 
   * optimization: check when was the last response - if it were more than a few seconds ago then inform the end user and maybe reduce speed
