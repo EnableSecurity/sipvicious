@@ -13,6 +13,7 @@
 = svwar =
   * feature: scan multiple hosts at the same time
   * feature: might make sense to integrate this with svmap
+  * bug fix: listen for responses after done scanning
 
 = svcrack = 
   * optimization: check when was the last response - if it were more than a few seconds ago then inform the end user and maybe reduce speed
