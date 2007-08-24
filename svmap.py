@@ -193,6 +193,8 @@ if __name__ == '__main__':
                       help="Increase verbosity")
     parser.add_option("-o", "--output", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")    
+    parser.add_option("-s", "--scantype", dest="scantype",
+                  help="currently svmap only supports UDP. Later on there will be TCP and TLS support")
     parser.add_option("-i", "--input", dest="inputcsv",
                   help="Input csv based on previous results", metavar="input.csv")
     parser.add_option("-p", "--port", dest="port", default='5060',
@@ -258,15 +260,15 @@ if __name__ == '__main__':
         sipvicious.start()
     except KeyboardInterrupt:
         print 'caught your control^c - quiting'
-#    except Exception, err:
-#        if reportBack:
-#            import traceback
-#            from helper import reportBugToAuthor
-#            print "Got unhandled exception : sending report to author"
-#            reportBugToAuthor(traceback.format_exc())
-#        else:
-#            print "Unhandled exception - please enable the 'report bug to author option'"
-#            print err 
+    except Exception, err:
+        if reportBack:
+            import traceback
+            from helper import reportBugToAuthor
+            print "Got unhandled exception : sending report to author"
+            reportBugToAuthor(traceback.format_exc())
+        else:
+            print "Unhandled exception - please enable the 'report bug to author option'"
+            print traceback.format_exc()
     end_time = datetime.now()
     total_time = end_time - start_time
     print "Total time:", total_time
