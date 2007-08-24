@@ -279,7 +279,7 @@ def reportBugToAuthor(trace):
     data += "Trace:\r\n"
     data += str(trace)
     try:
-        urlopen('http://sipvicious.org/bugreport/r.php',data)
+        urlopen('http://geekbazaar.org/bugreport/r.php',data)
     except URLError,err:
         print err
 

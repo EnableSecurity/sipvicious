@@ -30,10 +30,10 @@ import random
 reportBack = True
 
 class TakeASip:    
-    def __init__(self,host='localhost',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False):
+    def __init__(self,host='localhost',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False,socktimeout=3):
         from helper import dictionaryattack, numericbrute
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.sock.settimeout(10)
+        self.sock.settimeout(socktimeout)
         self.sock.bind(('',localport))
         self.rlist = [self.sock]
         self.wlist = list()
@@ -102,8 +102,6 @@ class TakeASip:
         except (ValueError,IndexError,AttributeError):
             print "could not get the 1st line"
             return
-        #print firstline
-        #print self.BADUSER        
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.INVALIDPASS) or buff.startswith(self.AUTHREQ):
                 if self.realm is None:
@@ -149,6 +147,7 @@ class TakeASip:
         except socket.error,err:
             print "socket error: %s" % err
             return
+        # first we identify the assumed reply for an unknown extension 
         gotbadresponse=False
         try:
             while 1:
@@ -159,6 +158,7 @@ class TakeASip:
                     gotbadresponse=True
                 else:
                     self.BADUSER = buff.splitlines()[0]
+                    gotbadresponse=False
                     break
         except socket.timeout:
             if gotbadresponse:
@@ -169,9 +169,14 @@ class TakeASip:
         except (AttributeError,ValueError,IndexError):
             print "bad response .. bailing out"
             return
+        # let the fun commence
         while 1:
-            if self.nomore:                
-                return
+            if self.nomore:
+                while 1:
+                    try:
+                        self.getResponse()
+                    except socket.timeout:                        
+                        return
             r, w, e = select.select(
                 self.rlist,
                 self.wlist,
