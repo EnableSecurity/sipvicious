@@ -92,8 +92,12 @@ class DrinkOrSip:
             self.log.debug("Uaname: %s" % uaname)
             #print buff
             originaldst = getTag(buff)
-            dstip = socket.inet_ntoa(pack('!L',int(originaldst[:8],16)))
-            dstport = int(originaldst[8:12],16)
+            try:
+                dstip = socket.inet_ntoa(pack('!L',int(originaldst[:8],16)))
+                dstport = int(originaldst[8:12],16)
+            except (TypeError,socket.error):
+                self.log.debug("original destination could not be decoded: %s" % (originaldst))
+                dstip,dstport = 'unknown','unknown'
             print '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname)
             if self.outputcsv is not None:
                 self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
