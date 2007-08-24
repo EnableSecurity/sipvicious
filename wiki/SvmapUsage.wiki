@@ -78,6 +78,17 @@ SIP supports compact mode, where some headers can be written in short form. By d
 == Method ==
 By default, svmap uses the OPTIONS method. However some devices might not support this method (even though they should). You may specify a different method to scan with, such as REGISTER and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
 
+= New options in the SVN version =
+Please note that these options are not yet in the release.
+
+== External IP ==
+This option allows you to specify the external IP address which is used in the SIP request itself.
+
+== Binding IP ==
+This option allows you to specify the IP to bind to.
+
+== Verbose ==
+At the moment -vvv gives you debugging info. Good for .. you know .. debugging ;) I'll add more to this. 
 
 = Examples =
 
