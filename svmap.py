@@ -65,6 +65,7 @@ class DrinkOrSip:
         self.fromaddr = fromaddr
         self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
         self.nomoretoscan = False
+        self.originallocalport = self.localport
         if outputcsv is not None:
             import csv
             self.outputcsv = csv.writer(open(outputcsv,'wb'))
@@ -124,11 +125,19 @@ class DrinkOrSip:
         else:
             bindingip = self.bindingip
         self.log.debug("binding to %s:%s" % (bindingip,self.localport))
-        try:            
-            self.sock.bind((self.bindingip,self.localport))
-        except socket.error:
-            self.log.error("could not bind to %s:%s - some process might already be listening on this port. Make use of the -P option." % (self.bindingip,self.localport))
-            return
+        while 1:
+            if self.localport > 65535:
+                self.log.critical("Could not bind to any port")
+                return
+            try:            
+                self.sock.bind((self.bindingip,self.localport))
+                break
+            except socket.error:
+                self.log.debug("could not bind to %s" % self.localport)
+                self.localport += 1            
+        if self.originallocalport != self.localport:
+            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
+            self.log.info("Make use of the -P option to specify a port to bind to yourself")
         while 1:
             r, w, e = select.select(
                 self.rlist,
