@@ -33,7 +33,7 @@ reportBack = False
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
-                 socktimeout=3,externalip=None,localport=5060):
+                 socktimeout=3,externalip=None,localport=5060,resolvehosts=False):
         import logging        
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
@@ -52,6 +52,7 @@ class DrinkOrSip:
         self.xlist = list()
         self.scaniter = scaniter
         self.selecttime = selecttime
+        self.resolvehosts = resolvehosts
         self.localport = localport
         if externalip is None:
             self.externalip = socket.gethostbyname(socket.gethostname())
@@ -97,9 +98,20 @@ class DrinkOrSip:
             except (TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
                 dstip,dstport = 'unknown','unknown'
-            self.log.info( '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname))
+            dsthost = None
+            if self.resolvehosts:
+                try:                    
+                    dsthost = socket.gethostbyaddr(srcip)[0]
+                    self.log.debug('resolved %s to %s' % (srcip,dsthost))
+                except socket.herror:
+                    self.log.debug('could not resolve %s' % (dsthost))
+                    dsthost = 'NA'
+                resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname,dsthost)
+            else:
+                resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
+            self.log.info( resultstr )
             if self.outputcsv is not None:
-                self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
+                self.outputcsv.writerow((dstip,dstport,dsthost,srcip,srcport,uaname))
                 
     def start(self):
         from helper import makeRequest
@@ -195,10 +207,15 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                       default=False,
                       help="Quiet mode")
-    parser.add_option("-o", "--output", dest="outputcsv",
-                  help="Output results to a specified csv file", metavar="output.csv")    
+    parser.add_option("-o", "--outputcsv", dest="outputcsv",
+                  help="Output results to a specified csv file", metavar="output.csv")
+    parser.add_option("-X", "--outputxml", dest="outputxml",
+                  help="Output results to a specified xml file", metavar="output.xml")    
     parser.add_option("-s", "--scantype", dest="scantype",
                   help="currently svmap only supports UDP. Later on there will be TCP and TLS support")
+    parser.add_option("-r", "--resolve", dest="resolvehosts", action="store_true",
+                      default=False,
+                  help="Perform reverse DNS resolution for hosts that reply")
     parser.add_option("-i", "--input", dest="inputcsv",
                   help="Input csv based on previous results", metavar="input.csv")
     parser.add_option("-p", "--port", dest="port", default='5060',
@@ -261,7 +278,8 @@ if __name__ == '__main__':
                     localport=options.localport,                    
                     outputcsv=options.outputcsv,
                     externalip=options.externalip,
-                    bindingip=options.bindingip
+                    bindingip=options.bindingip,
+                    resolvehosts=options.resolvehosts
                     )
     
     start_time = datetime.now()
