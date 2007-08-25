@@ -10,9 +10,9 @@
 = svmap =
   * optimization: check why windows is slow while other unix-like OSes are fine
   * feature: work more on fingerprinting
-  * feature: dns resolution on results
+  * feature: dns resolution on results (done)
   * feature: -iR option ;)
-  * feature: ip range helper:
+  * feature: ip range helper (done):
       * support 1.1.1.1-20, 1.1.1.1-1.1.2.30 and 1.1.1.1/24 ranges
       * support multiple ranges: ./svmap 1.1.1.1/24 1.1.2.1-20
 
