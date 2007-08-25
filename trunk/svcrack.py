@@ -21,7 +21,7 @@ __GPL__ = """
 """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.1'
+__version__ = '0.1-svn'
 
 import socket
 import select
