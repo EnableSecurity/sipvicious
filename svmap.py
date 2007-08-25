@@ -243,6 +243,7 @@ if __name__ == '__main__':
                   )
     (options, args) = parser.parse_args()
     from ip4range import IP4Range
+    from iphelper import getranges
     from helper import getRange, scanfromfile, scanlist
     logginglevel = 20
     if options.verbose is not None:
@@ -258,9 +259,19 @@ if __name__ == '__main__':
     if options.inputcsv is None:
         if len(args) < 1:
             parser.print_help()
-            exit(1)    
+            exit(1)
+        targets = list()
+        for arg in args:
+            res = getranges(arg)
+            if res is not None:
+                minip,maxip = res
+                target = '%s<->%s' % (minip,maxip)
+            else:
+                target = arg
+            targets.append(target)
+        logging.debug('scanning %s' % ' '.join(targets))
         try:
-            iprange = IP4Range(*args)
+            iprange = IP4Range(*targets)
         except ValueError,err:
             logging.error(err)
             exit(1)
