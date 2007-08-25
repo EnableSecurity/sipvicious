@@ -34,8 +34,7 @@ class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
                  socktimeout=3,externalip=None,localport=5060):
-        import logging
-        #logging.basicConfig(level=logging.DEBUG)
+        import logging        
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         # we do UDP
@@ -77,7 +76,7 @@ class DrinkOrSip:
         srcip,srcport = srcaddr                
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
-            or buff.startswith('REGISTER ') :
+            or buff.startswith('REGISTER '): 
             self.log.info("Looks like we received our own packet")
             self.log.debug(repr(buff))            
             return
@@ -98,7 +97,7 @@ class DrinkOrSip:
             except (TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
                 dstip,dstport = 'unknown','unknown'
-            print '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname)
+            self.log.info( '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname))
             if self.outputcsv is not None:
                 self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
                 
@@ -129,16 +128,17 @@ class DrinkOrSip:
                 # we got stuff to read off the socket
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
+                    self.log.debug('got data from %s:%s' % srcaddr)
                 except socket.error:
                     continue
                 self.getResponse(buff,srcaddr)
             else:
                 # no stuff to read .. its our turn to send back something
-                if self.nomoretoscan:
-                    # no more hosts to scan
+                if self.nomoretoscan:                    
                     try:
                         # having the final sip 
-                        # print "ok scan complete .. making sure that no packets get lost"
+                        self.log.debug("Making sure that no packets get lost")
+                        self.log.debug("Come to daddy")
                         while 1:
                             buff,srcaddr = self.sock.recvfrom(8192)
                             self.getResponse(buff,srcaddr)
@@ -147,6 +147,7 @@ class DrinkOrSip:
                 try:
                     nextscan = self.scaniter.next()
                 except StopIteration:
+                    self.log.debug('no more hosts to scan')
                     self.nomoretoscan = True
                     continue
                 dstip,dstport,method = nextscan
@@ -160,7 +161,6 @@ class DrinkOrSip:
                 contact = None
                 if method == 'INVITE' or method == 'OPTIONS':
                     contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
-
                 data = makeRequest(
                                 method,
                                 fromaddr,
@@ -178,7 +178,8 @@ class DrinkOrSip:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.sock.sendto(data,dsthost)                    
                 except socket.error,err:
-                    print "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err)
+                    self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
+                    pass
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -191,6 +192,9 @@ if __name__ == '__main__':
     parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
+    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
+                      default=False,
+                      help="Quiet mode")
     parser.add_option("-o", "--output", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")    
     parser.add_option("-s", "--scantype", dest="scantype",
@@ -217,18 +221,23 @@ if __name__ == '__main__':
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
                   )
+    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
+                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
+                  )
     (options, args) = parser.parse_args()
     from ip4range import IP4Range
     from helper import getRange, scanfromfile, scanlist
-    logginglevel = 40
+    logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
             if logginglevel > 10:
                 logginglevel = logginglevel-10
+    if options.quiet:
+        logginglevel = 50
     import logging
     logging.basicConfig(level=logginglevel)
-    
-    hosts = list()
+    logging.debug('started logging')
+
     if options.inputcsv is None:
         if len(args) < 1:
             parser.print_help()
@@ -236,8 +245,9 @@ if __name__ == '__main__':
         try:
             iprange = IP4Range(*args)
         except ValueError,err:
-            print err
-            exit(1)        
+            logging.error(err)
+            exit(1)
+        logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         scaniter = scanlist(iprange,portrange,[options.method])
     else:
@@ -255,20 +265,22 @@ if __name__ == '__main__':
                     )
     
     start_time = datetime.now()
-    print "start your engines"
+    logging.info( "start your engines" )
     try:
         sipvicious.start()
     except KeyboardInterrupt:
-        print 'caught your control^c - quiting'
+        logging.warn( 'caught your control^c - quiting' )
+        pass
     except Exception, err:
-        if reportBack:
-            import traceback
-            from helper import reportBugToAuthor
-            print "Got unhandled exception : sending report to author"
+        import traceback
+        from helper import reportBugToAuthor                
+        if options.reportBack:
+            logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
         else:
-            print "Unhandled exception - please enable the 'report bug to author option'"
-            print traceback.format_exc()
+            logging.critical( "Unhandled exception - please enable the 'report bug to author option'")
+            pass
+        logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
-    print "Total time:", total_time
+    logging.info("Total time: %s" %  total_time)
