@@ -19,7 +19,6 @@
 
 = svwar =
   * feature: scan multiple hosts at the same time
-  * feature: might make sense to integrate this with svmap
   * done - bug fix: listen for responses after done scanning 
 
 = svcrack = 
