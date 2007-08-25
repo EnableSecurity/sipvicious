@@ -307,7 +307,7 @@ if __name__ == '__main__':
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
         else:
-            logging.critical( "Unhandled exception - please enable the 'report bug to author option'")
+            logging.critical( "Unhandled exception - please run same command with the -R option")
             pass
         logging.exception( "Exception" )            
     end_time = datetime.now()
