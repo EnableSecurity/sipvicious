@@ -198,10 +198,10 @@ if __name__ == '__main__':
     from datetime import datetime
     from sys import exit
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
-    usage += "example: %prog -l '10.0.0.1<->10.0.0.255' "
-    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24"
-
-    parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
+    usage += "example: %prog -l '10.0.0.1-10.0.0.255' "
+    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
+    usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*"
+    parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
