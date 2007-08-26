@@ -20,6 +20,7 @@
 = svwar =
   * feature: scan multiple hosts at the same time
   * bug fix: listen for responses after done scanning *(done)*
+  * feature: output capabilities
 
 = svcrack = 
   * optimization: check when was the last response - if it were more than a few seconds ago then inform the end user and maybe reduce speed
@@ -29,3 +30,4 @@
         * numeric bruteforce
         * dictionary attack
         * alphanumeric bruteforce
+  * feature: output capabilities
