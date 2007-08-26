@@ -88,7 +88,24 @@ This option allows you to specify the external IP address which is used in the S
 This option allows you to specify the IP to bind to.
 
 == Verbose ==
-At the moment -vvv gives you debugging info. Good for .. you know .. debugging ;) I'll add more to this. 
+At the moment -v gives you debugging info. Good for .. you know .. debugging ;)
+
+== Quiet ==
+Quiet mode does not print anything except for critical errors. Be sure to specify an output file if you want to make use of svmap at all.
+
+== IP Resoluton ==
+The resolve option allows svmap to resolve the ip address of SIP devices and software. Handy when trying to identify what each SIP host does.
+
+== Report Back ==
+This option allows the end user to send a bug report to the author
+
+== Scan Type == 
+Currently this option is useless since only UDP is supported. However we plan to implement TCP and TLS scanning later on.
+
+== XML output ==
+XML output is an upcoming option
+
+
 
 = Examples =
 
