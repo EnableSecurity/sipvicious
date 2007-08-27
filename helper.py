@@ -289,6 +289,32 @@ def scanlist(iprange,portrange,methods):
             for method in methods:
                 yield(ip,port,method)
 
+def scanrandom(portrange,methods,scanspecialips=False):
+    import random
+    from iphelper import numToDottedQuad
+    while 1:
+        if not scanspecialips:
+            # takes into consideration private and reserved address space
+            randomchoice = random.choice([
+                [16777216,167772159],
+                [184549376,234881023],
+                [251658240,2130706431],
+                [2147549184L,2851995647L],
+                [2852061184L,2886729727L],
+                [2886795264L,3221159935L],
+                [3221226240L,3227017983L],
+                [3227018240L,3232235519L],
+                [3232301056L,3323068415L],
+                [3323199488L,3758096127L]
+                ])
+        else:
+            randomchoice = [0,4294967295L]
+        randint = random.randint(*randomchoice)
+        for port in portrange:
+            for method in methods:
+                ip = numToDottedQuad(randint)
+                yield(ip,port,method)        
+            
 def scanfromfile(csv,methods):
     for row in csv:            
         (dstip,dstport,srcip,srcport,uaname) = row
