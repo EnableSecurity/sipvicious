@@ -96,7 +96,7 @@ class DrinkOrSip:
             try:
                 dstip = socket.inet_ntoa(pack('!L',int(originaldst[:8],16)))
                 dstport = int(originaldst[8:12],16)
-            except (TypeError,socket.error):
+            except (ValueError,TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
                 dstip,dstport = 'unknown','unknown'
             dsthost = None
@@ -225,6 +225,9 @@ if __name__ == '__main__':
     parser.add_option("-r", "--resolve", dest="resolvehosts", action="store_true",
                       default=False,
                   help="Perform reverse DNS resolution for hosts that reply")
+    parser.add_option("--randomscan", dest="randomscan", action="store_true",
+                      default=False,
+                  help="Scan random IP addresses")
     parser.add_option("-i", "--input", dest="inputcsv",
                   help="Input csv based on previous results", metavar="input.csv")
     parser.add_option("-p", "--port", dest="port", default='5060',
@@ -253,7 +256,7 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     from ip4range import IP4Range
     from iphelper import getranges
-    from helper import getRange, scanfromfile, scanlist
+    from helper import getRange, scanfromfile, scanlist, scanrandom
     logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
@@ -265,7 +268,16 @@ if __name__ == '__main__':
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
 
-    if options.inputcsv is None:
+    if options.inputcsv is not None:
+        import csv
+        reader = csv.reader(open(options.inputcsv,'rb'))
+        scaniter = scanfromfile(reader,[options.method])
+    elif options.randomscan:
+        logging.debug('making use of random scan')
+        logging.debug('parsing range of ports: %s' % options.port)
+        portrange = getRange(options.port)        
+        scaniter = scanrandom(portrange,[options.method])
+    else:
         if len(args) < 1:
             parser.print_help()
             exit(1)
@@ -287,10 +299,6 @@ if __name__ == '__main__':
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         scaniter = scanlist(iprange,portrange,[options.method])
-    else:
-        import csv
-        reader = csv.reader(open(options.inputcsv,'rb'))
-        scaniter = scanfromfile(reader,[options.method])
     sipvicious = DrinkOrSip(
                     scaniter,                    
                     selecttime=options.selecttime,
