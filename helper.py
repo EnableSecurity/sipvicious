@@ -289,9 +289,16 @@ def scanlist(iprange,portrange,methods):
             for method in methods:
                 yield(ip,port,method)
 
-def scanrandom(portrange,methods,scanspecialips=False):
+def scanrandom(portrange,methods,resume=False,scanspecialips=False):
     import random
     from iphelper import numToDottedQuad
+    import anydbm
+    import logging
+    log = logging.getLogger('scanrandom')
+    mode = 'c'
+    if resume:
+        mode = 'w'    
+    database = anydbm.open('.sipvicious_random',mode)    
     while 1:
         if not scanspecialips:
             # takes into consideration private and reserved address space
@@ -310,11 +317,14 @@ def scanrandom(portrange,methods,scanspecialips=False):
         else:
             randomchoice = [0,4294967295L]
         randint = random.randint(*randomchoice)
-        for port in portrange:
-            for method in methods:
-                ip = numToDottedQuad(randint)
-                yield(ip,port,method)        
-            
+        ip = numToDottedQuad(randint)
+        if ip not in database:
+            database[ip] = ''
+            for port in portrange:
+                for method in methods:                    
+                    yield(ip,port,method)
+        else:
+            log.debug( 'found dup %s' % ip)
 def scanfromfile(csv,methods):
     for row in csv:            
         (dstip,dstport,srcip,srcport,uaname) = row
