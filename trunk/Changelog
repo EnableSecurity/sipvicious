@@ -15,7 +15,7 @@ Svmap:
 * Feature: Added options to allow you to specify the ip to bind to as well as the external ip address of the scanner
 * Feature: --help now shows proper usage
 * Feature: ReportBack function is off by default but can be enabled by using -R option
-
+* Feature: New scanning method - random. This scan avoids scanning non-internet address space. 
 Svwar:
 * Bug fix: Handled bug which allowed svwar to miss valid extensions (false negatives)
 * Bug fix: Logic bug which did not identify between a server that does not respond and one that sends an unexpected response.
