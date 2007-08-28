@@ -289,16 +289,17 @@ def scanlist(iprange,portrange,methods):
             for method in methods:
                 yield(ip,port,method)
 
-def scanrandom(portrange,methods,resume=False,scanspecialips=False):
+def _scanrandom(portrange,methods,resume=False,scanspecialips=False):
     import random
     from iphelper import numToDottedQuad
     import anydbm
     import logging
     log = logging.getLogger('scanrandom')
-    mode = 'c'
+    mode = 'n'
     if resume:
         mode = 'w'    
-    database = anydbm.open('.sipvicious_random',mode)    
+    database = anydbm.open('.sipvicious_random',mode)
+    
     while 1:
         if not scanspecialips:
             # takes into consideration private and reserved address space
@@ -325,6 +326,35 @@ def scanrandom(portrange,methods,resume=False,scanspecialips=False):
                     yield(ip,port,method)
         else:
             log.debug( 'found dup %s' % ip)
+
+def scanrandom(ipranges,portrange,methods,resume=False,scanspecialips=False):
+    import random
+    from iphelper import numToDottedQuad,dottedQuadToNum
+    import anydbm
+    import logging
+    log = logging.getLogger('scanrandom')
+    mode = 'n'
+    if resume:
+        mode = 'w'    
+    database = anydbm.open('.sipvicious_random',mode)
+    ipsleft = 0
+    for iprange in ipranges:
+        ipsleft += iprange[1] - iprange[0]    
+    while ipsleft > 0:
+        randomchoice = random.choice(ipranges)
+        #randomchoice = [0,4294967295L]
+        randint = random.randint(*randomchoice)
+        ip = numToDottedQuad(randint)
+        if ip not in database:
+            database[ip] = ''
+            for port in portrange:
+                for method in methods:
+                    ipsleft -= 1
+                    yield(ip,port,method)                    
+        else:
+            log.debug( 'found dup %s' % ip)
+
+
 def scanfromfile(csv,methods):
     for row in csv:            
         (dstip,dstport,srcip,srcport,uaname) = row

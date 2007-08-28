@@ -275,8 +275,18 @@ if __name__ == '__main__':
     elif options.randomscan:
         logging.debug('making use of random scan')
         logging.debug('parsing range of ports: %s' % options.port)
-        portrange = getRange(options.port)        
-        scaniter = scanrandom(portrange,[options.method])
+        portrange = getRange(options.port)
+        internetranges= [[16777216,167772159],
+                        [184549376,234881023],
+                        [251658240,2130706431],
+                        [2147549184L,2851995647L],
+                        [2852061184L,2886729727L],
+                        [2886795264L,3221159935L],
+                        [3221226240L,3227017983L],
+                        [3227018240L,3232235519L],
+                        [3232301056L,3323068415L],
+                        [3323199488L,3758096127L]]
+        scaniter = scanrandom(internetranges,portrange,[options.method])
     else:
         if len(args) < 1:
             parser.print_help()
