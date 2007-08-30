@@ -7,6 +7,7 @@
   * feature: output to other formats - pdf / xml
   * bug fix: review all code for logic bugs and consistency between tools
   * feature: output for all tools
+  * feature: resume previous scan
 
 = svmap =
   * feature: dns resolution on results *(done)*
