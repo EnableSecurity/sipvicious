@@ -12,7 +12,7 @@
 = svmap =
   * feature: dns resolution on results *(done)*
   * feature: random scan and randomize *(done)*
-  * feature: ip range helper *(done - needs more work)*:
+  * feature: ip range helper *(almost done - needs more work)*:
       * support 1.1.1.1-20, 1.1.1.1-1.1.2.30 and 1.1.1.1/24 ranges
       * support multiple ranges: ./svmap 1.1.1.1/24 1.1.2.1-20
   * feature: work more on fingerprinting
