@@ -18,7 +18,7 @@
 
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.1'
+__version__ = '0.1-svn'
 
 import base64
 
@@ -220,8 +220,8 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
     superheaders = dict()
     if compact:
         superheaders['v'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,port,branchunique)        
-        headers['t'] = fromaddr
-        headers['f'] = toaddr
+        headers['t'] = toaddr
+        headers['f'] = fromaddr
         if localtag is not None:
             headers['f'] += ';tag=%s' % localtag
         headers['i'] = callid
@@ -230,8 +230,8 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
     else:
         superheaders['Via'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,port,branchunique)
         headers['Max-Forwards'] = 70    
-        headers['To'] = fromaddr
-        headers['From'] = toaddr
+        headers['To'] = toaddr
+        headers['From'] = fromaddr
         if localtag is not None:
             headers['From'] += '; tag=%s' % localtag
         headers['Call-ID'] = callid
@@ -275,6 +275,8 @@ def reportBugToAuthor(trace):
     data = str()
     data += "Command line parameters:\r\n"
     data += str(argv)
+    data += '\r\n'
+    data += 'version: %s' % __version__
     data += '\r\n\r\n'
     data += "Trace:\r\n"
     data += str(trace)
@@ -338,10 +340,19 @@ def scanrandom(ipranges,portrange,methods,resume=False,scanspecialips=False):
         mode = 'w'    
     database = anydbm.open('.sipvicious_random',mode)
     ipsleft = 0
+    ipranges2 = list()
     for iprange in ipranges:
-        ipsleft += iprange[1] - iprange[0]    
+        
+        if type(iprange[0]) is str:
+            startip = dottedQuadToNum(iprange[0])
+            endip = dottedQuadToNum(iprange[1])
+        else:
+            startip = iprange[0]
+            endip = iprange[1]
+        ipsleft += endip - startip
+        ipranges2.append((startip,endip))
     while ipsleft > 0:
-        randomchoice = random.choice(ipranges)
+        randomchoice = random.choice(ipranges2)
         #randomchoice = [0,4294967295L]
         randint = random.randint(*randomchoice)
         ip = numToDottedQuad(randint)

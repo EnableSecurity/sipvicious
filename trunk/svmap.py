@@ -253,6 +253,9 @@ if __name__ == '__main__':
     parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
+    parser.add_option("--randomize", dest="randomize", action="store_true",
+                      default=False,
+                  help="Randomize scanning instead of scanning consecutive ip addresses")
     (options, args) = parser.parse_args()
     from ip4range import IP4Range
     from iphelper import getranges
@@ -292,13 +295,16 @@ if __name__ == '__main__':
             parser.print_help()
             exit(1)
         targets = list()
+        targets2 = list()
         for arg in args:
             res = getranges(arg)
             if res is not None:
                 minip,maxip = res
                 target = '%s<->%s' % (minip,maxip)
+                target2 = (minip,maxip)
+                targets2.append(target2)
             else:
-                target = arg
+                target = arg            
             targets.append(target)
         logging.debug('scanning %s' % ' '.join(targets))
         try:
@@ -308,7 +314,11 @@ if __name__ == '__main__':
             exit(1)
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
-        scaniter = scanlist(iprange,portrange,[options.method])
+        if options.randomize:
+            scaniter = scanrandom(targets2,portrange,[options.method])
+        else:
+            # normal consecutive scan
+            scaniter = scanlist(iprange,portrange,[options.method])
     sipvicious = DrinkOrSip(
                     scaniter,                    
                     selecttime=options.selecttime,
