@@ -1,7 +1,5 @@
 Welcome to SIPVicious security tools.
 
-This stuff is obviously still very betaish.
-
 The 3 tools that you should be looking at are:
  - svmap
  - svwar
@@ -13,15 +11,13 @@ ranges of ip address space, it will identify any SIP servers
 which it finds on the way. Also has the option to scan hosts 
 on ranges of ports.
 
-svwar - traditionally a war dialer used to call up numbers
-on the phone network to identify ones that are interesting from
-ones that are not. With SIP, you can do something similar to 
-identify active users. 
+svwar - identifies working extension lines on a PBX. 
+Also tells you if the extension line requires authentication or not. 
 
-svcrack - this is a password cracker making use of digest
-authentication. It is able to crack passwords on both registrar
-servers and proxy servers. It can make use of ranges of numbers
-or a dictionary file full of possible passwords. 
+svcrack - a password cracker making use of digest authentication. 
+It is able to crack passwords on both registrar servers and proxy 
+servers. Current cracking modes are either numeric ranges or
+words from dictionary files.
 
 For usage help make use of -h or --help switch.
 
