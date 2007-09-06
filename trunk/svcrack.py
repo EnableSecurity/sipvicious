@@ -4,7 +4,7 @@
 __GPL__ = """
 
    SIPvicious password cracker is an online password guessing tool for SIP devices
-   Copyright (C) 2007  Sandro Gauci <sandro@sipvicious.org>
+   Copyright (C) 2007  Sandro Gauci <sandrogauc@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
