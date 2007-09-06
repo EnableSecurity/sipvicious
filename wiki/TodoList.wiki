@@ -1,7 +1,7 @@
 #summary The list of features or fixes which we'd like work on
 
 = general = 
-  * feature: when bind port is already busy give error and choose next one *(done for svmap)*
+  * feature: when bind port is already busy give error and choose next one *(done)*
   * feature: verbose levels or use logging module better ;) *(done for svmap)*
   * feature: update sipvicious tools by executing svn update like metasploit
   * feature: output to other formats - pdf / xml
@@ -12,10 +12,9 @@
 = svmap =
   * feature: dns resolution on results *(done)*
   * feature: random scan and randomize *(done)*
-  * feature: ip range helper *(almost done - needs more work)*:
+  * feature: ip range helper *(done)*:
       * support 1.1.1.1-20, 1.1.1.1-1.1.2.30 and 1.1.1.1/24 ranges
       * support multiple ranges: ./svmap 1.1.1.1/24 1.1.2.1-20
-  * feature: work more on fingerprinting
   * optimization: check why windows is slow while other unix-like OSes are fine
 
 = svwar =
@@ -30,3 +29,6 @@
         * numeric bruteforce
         * dictionary attack
         * alphanumeric bruteforce
+
+= future = 
+  * feature: work more on fingerprinting
