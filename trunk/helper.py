@@ -20,8 +20,7 @@
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.1-svn'
 
-import base64
-
+import base64,struct,socket,logging
 
 def getRange(rangestr):
     _tmp1 = rangestr.split(',')
@@ -34,36 +33,30 @@ def getRange(rangestr):
                 return            
             startport,endport = map(int,[_tmp3[0],_tmp3[1]])
             endport += 1
-            numericrange.extend(range(startport,endport))
+            numericrange.append(xrange(startport,endport))
         else:
             if not _tmp3[0].isdigit():
                 raise ValueError, "the ranges need to be digits"                
                 return
-            numericrange.append(int(_tmp3[0]))
+            singleport = int(_tmp3[0])
+            numericrange.append(xrange(singleport,singleport+1))
     return numericrange
 
-class numericbrute:
-    def __init__(self,rangelist,zeropadding=0):
-        self.rangelist = rangelist
-        self.format = '%%0%su' % zeropadding
-    def nextone(self):
-        if len(self.rangelist) > 0:
-            self.currentpos = self.rangelist.pop(0)
-            r = self.format % self.currentpos
-        else:
-            r = None
-        return r
 
-class dictionaryattack:
-    def __init__(self,dictionaryfile):
-        self.passwordfile = dictionaryfile
+def numericbrute(rangelist,zeropedding=0):
+    format = '%%0%su' % zeropedding
+    for x in rangelist:
+        for y in x:            
+            r = format % y
+            yield(r)
+
+def dictionaryattack(dictionaryfile):
+    r = dictionaryfile.readline().strip()    
+    while r != '':
+        yield(r)
+        r = dictionaryfile.readline().strip()
+    dictionaryfile.close()
         
-    def nextone(self):
-        r = self.passwordfile.readline().strip()
-        if r == '':
-            self.passwordfile.close()
-            return None
-        return r
 
 class genericbrute:
     pass
@@ -127,6 +120,7 @@ def parseHeader(buff,type='response'):
         return r
 
 def fingerPrint(request,src=None,dst=None):
+    # work needs to be done here
     import re
     server = dict()
     if request.has_key('headers'):
@@ -285,83 +279,50 @@ def reportBugToAuthor(trace):
     except URLError,err:
         print err
 
-def scanlist(iprange,portrange,methods):
-    for ip in iprange.iteraddresses():
-        for port in portrange:
-            for method in methods:
-                yield(ip,port,method)
-
-def _scanrandom(portrange,methods,resume=False,scanspecialips=False):
-    import random
-    from iphelper import numToDottedQuad
-    import anydbm
-    import logging
-    log = logging.getLogger('scanrandom')
-    mode = 'n'
-    if resume:
-        mode = 'w'    
-    database = anydbm.open('.sipvicious_random',mode)
-    
-    while 1:
-        if not scanspecialips:
-            # takes into consideration private and reserved address space
-            randomchoice = random.choice([
-                [16777216,167772159],
-                [184549376,234881023],
-                [251658240,2130706431],
-                [2147549184L,2851995647L],
-                [2852061184L,2886729727L],
-                [2886795264L,3221159935L],
-                [3221226240L,3227017983L],
-                [3227018240L,3232235519L],
-                [3232301056L,3323068415L],
-                [3323199488L,3758096127L]
-                ])
-        else:
-            randomchoice = [0,4294967295L]
-        randint = random.randint(*randomchoice)
-        ip = numToDottedQuad(randint)
-        if ip not in database:
-            database[ip] = ''
+def scanlist(iprange,portranges,methods):
+    for ip in iter(iprange):
+        for portrange in portranges:
             for port in portrange:
-                for method in methods:                    
+                for method in methods:                
                     yield(ip,port,method)
-        else:
-            log.debug( 'found dup %s' % ip)
 
-def scanrandom(ipranges,portrange,methods,resume=False,scanspecialips=False):
-    import random
-    from iphelper import numToDottedQuad,dottedQuadToNum
-    import anydbm
-    import logging
+
+def scanrandom(ipranges,portranges,methods,resume=False):
+    # if the ipranges intersect then we go infinate .. we prevent that
+    # example: 127.0.0.1 127.0.0.1/24
+    import random    
+    import anydbm    
     log = logging.getLogger('scanrandom')
     mode = 'n'
     if resume:
         mode = 'w'    
     database = anydbm.open('.sipvicious_random',mode)
-    ipsleft = 0
-    ipranges2 = list()
+    ipsleft = 0    
     for iprange in ipranges:
-        
-        if type(iprange[0]) is str:
-            startip = dottedQuadToNum(iprange[0])
-            endip = dottedQuadToNum(iprange[1])
-        else:
-            startip = iprange[0]
-            endip = iprange[1]
-        ipsleft += endip - startip
-        ipranges2.append((startip,endip))
+        startip,endip = iprange        
+        ipsleft += endip - startip + 1
+        hit = 0
+        for iprange2 in ipranges:
+            startip2,endip2 = iprange2
+            if startip <= startip2:
+                if endip2 <= endip:
+                    hit += 1
+                    if hit > 1:
+                        log.error('Cannot use random scan and try to hit the same ip twice')
+                        return
+    log.debug('scanning a total of %s ips' % ipsleft)
     while ipsleft > 0:
-        randomchoice = random.choice(ipranges2)
+        randomchoice = random.choice(ipranges)
         #randomchoice = [0,4294967295L]
         randint = random.randint(*randomchoice)
         ip = numToDottedQuad(randint)
         if ip not in database:
             database[ip] = ''
-            for port in portrange:
-                for method in methods:
-                    ipsleft -= 1
-                    yield(ip,port,method)                    
+            for portrange in portranges:
+                for port in portrange:
+                    for method in methods:
+                        ipsleft -= 1
+                        yield(ip,port,method)                    
         else:
             log.debug( 'found dup %s' % ip)
 
@@ -371,3 +332,105 @@ def scanfromfile(csv,methods):
         (dstip,dstport,srcip,srcport,uaname) = row
         for method in methods:
             yield(dstip,int(dstport),method)
+            
+def dottedQuadToNum(ip):
+    "convert decimal dotted quad string to long integer"
+    return struct.unpack('!L',socket.inet_aton(ip))[0]
+
+def numToDottedQuad(n):
+    "convert long int to dotted quad string"
+    return socket.inet_ntoa(struct.pack('!L',n))
+      
+
+def ip4range(*args):    
+    for arg in args:
+        r = getranges(arg)
+        if r is None:            
+            continue
+        startip,endip = r
+        curip = startip
+        while curip <= endip:        
+            yield(numToDottedQuad(curip))
+            curip += 1
+
+def getranges(ipstring):
+    import re
+    log = logging.getLogger('getranges')
+    if re.match(
+        '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',
+        ipstring
+        ):        
+        naddr1,naddr2 = map(dottedQuadToNum,ipstring.split('-'))
+    elif re.match(
+        '^(\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)$',
+        ipstring
+        ):
+        naddr1,naddr2 = map(dottedQuadToNum,getranges2(ipstring))
+    elif re.match(
+        '^.*?\/\d{,2}$',
+        ipstring
+        ):
+        r = getmaskranges(ipstring)
+        if r is None:
+            return
+        naddr1,naddr2 = r
+    else:
+        # we attempt to resolve the host
+        from socket import gethostbyname
+        try:
+            naddr1 = dottedQuadToNum(gethostbyname(ipstring))
+            naddr2 = naddr1
+        except socket.error:
+            log.info('Could not resolve %s' % ipstring)
+            return
+    return((naddr1,naddr2))
+
+def getranges2(ipstring):
+    _tmp = ipstring.split('.')
+    if len(_tmp) != 4:
+        raise ValueError, "needs to be a Quad dotted ip"
+    _tmp2 = map(lambda x: x.split('-'),_tmp)
+    startip = list()
+    endip = list()
+    for dot in _tmp2:
+        if dot[0] == '*':
+            startip.append('0')
+            endip.append('255')
+        elif len(dot) == 1:
+            startip.append(dot[0])
+            endip.append(dot[0])
+        elif len(dot) == 2:
+            startip.append(dot[0])
+            endip.append(dot[1])
+    naddr1 = '.'.join(startip)
+    naddr2 = '.'.join(endip)
+    return(naddr1,naddr2)
+
+def getmaskranges(ipstring):
+    import re
+    log = logging.getLogger('getmaskranges')
+    addr,mask = ipstring.rsplit('/',1)    
+    if not re.match('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',addr):
+        from socket import gethostbyname
+        try:
+            log.debug('Could not resolve %s' % addr)
+            addr = gethostbyname(addr)
+        except socket.error:
+            return
+    
+    naddr = dottedQuadToNum(addr)
+    masklen = int(mask)
+    if not 0 <= masklen <= 32:
+        raise ValueError
+    naddr1 = naddr & (((1<<masklen)-1)<<(32-masklen))
+    naddr2 = naddr1 + (1<<(32-masklen)) - 1
+    return (naddr1,naddr2)
+
+
+if __name__ == '__main__':
+    print getranges('1.1.1.1/24')
+    seq = getranges('google.com/24')    
+    if seq is not None:
+        a = ip4range(seq)
+        for x in iter(a):
+            print x

@@ -28,12 +28,12 @@ import select
 
 import random
 from struct import pack,unpack
-reportBack = False
+
 
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
-                 socktimeout=3,externalip=None,localport=5060,resolvehosts=False):
+                 socktimeout=3,externalip=None,localport=5060):
         import logging        
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
@@ -52,7 +52,6 @@ class DrinkOrSip:
         self.xlist = list()
         self.scaniter = scaniter
         self.selecttime = selecttime
-        self.resolvehosts = resolvehosts
         self.localport = localport
         if externalip is None:
             self.externalip = socket.gethostbyname(socket.gethostname())
@@ -98,21 +97,11 @@ class DrinkOrSip:
                 dstport = int(originaldst[8:12],16)
             except (ValueError,TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
-                dstip,dstport = 'unknown','unknown'
-            dsthost = None
-            if self.resolvehosts:
-                try:                    
-                    dsthost = socket.gethostbyaddr(srcip)[0]
-                    self.log.debug('resolved %s to %s' % (srcip,dsthost))
-                except socket.herror:
-                    self.log.debug('could not resolve %s' % (dsthost))
-                    dsthost = 'NA'
-                resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname,dsthost)
-            else:
-                resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
+                dstip,dstport = 'unknown','unknown'            
+            resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
             self.log.info( resultstr )
             if self.outputcsv is not None:
-                self.outputcsv.writerow((dstip,dstport,dsthost,srcip,srcport,uaname))
+                self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
                 
     def start(self):
         from helper import makeRequest
@@ -174,7 +163,8 @@ class DrinkOrSip:
                 dstip,dstport,method = nextscan
                 dsthost = (dstip,dstport)
                 branchunique = '%s' % random.getrandbits(32)
-                localtag = '%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]) 
+                
+                localtag = '%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1])
                 cseq = 1
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
                 toaddr = fromaddr
@@ -207,7 +197,7 @@ if __name__ == '__main__':
     from datetime import datetime
     from sys import exit
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
-    usage += "example: %prog -l '10.0.0.1-10.0.0.255' "
+    usage += "example: %prog 10.0.0.1-10.0.0.255 "
     usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
     usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*"
     parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
@@ -218,13 +208,6 @@ if __name__ == '__main__':
                       help="Quiet mode")
     parser.add_option("-o", "--outputcsv", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")
-    parser.add_option("-X", "--outputxml", dest="outputxml",
-                  help="Output results to a specified xml file", metavar="output.xml")    
-    parser.add_option("-s", "--scantype", dest="scantype",
-                  help="currently svmap only supports UDP. Later on there will be TCP and TLS support")
-    parser.add_option("-r", "--resolve", dest="resolvehosts", action="store_true",
-                      default=False,
-                  help="Perform reverse DNS resolution for hosts that reply")
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
                       default=False,
                   help="Scan random IP addresses")
@@ -256,10 +239,8 @@ if __name__ == '__main__':
     parser.add_option("--randomize", dest="randomize", action="store_true",
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
-    (options, args) = parser.parse_args()
-    from ip4range import IP4Range
-    from iphelper import getranges
-    from helper import getRange, scanfromfile, scanlist, scanrandom
+    (options, args) = parser.parse_args()        
+    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range
     logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
@@ -274,12 +255,12 @@ if __name__ == '__main__':
     if options.inputcsv is not None:
         import csv
         reader = csv.reader(open(options.inputcsv,'rb'))
-        scaniter = scanfromfile(reader,[options.method])
+        scaniter = scanfromfile(reader,options.method.split(','))
     elif options.randomscan:
         logging.debug('making use of random scan')
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
-        internetranges= [[16777216,167772159],
+        internetranges =[[16777216,167772159],
                         [184549376,234881023],
                         [251658240,2130706431],
                         [2147549184L,2851995647L],
@@ -288,37 +269,26 @@ if __name__ == '__main__':
                         [3221226240L,3227017983L],
                         [3227018240L,3232235519L],
                         [3232301056L,3323068415L],
-                        [3323199488L,3758096127L]]
-        scaniter = scanrandom(internetranges,portrange,[options.method])
+                        [3323199488L,3758096127L]
+                        ]
+        scaniter = scanrandom(internetranges,portrange,options.method.split(','))
     else:
         if len(args) < 1:
             parser.print_help()
-            exit(1)
-        targets = list()
-        targets2 = list()
-        for arg in args:
-            res = getranges(arg)
-            if res is not None:
-                minip,maxip = res
-                target = '%s<->%s' % (minip,maxip)
-                target2 = (minip,maxip)
-                targets2.append(target2)
-            else:
-                target = arg            
-            targets.append(target)
-        logging.debug('scanning %s' % ' '.join(targets))
-        try:
-            iprange = IP4Range(*targets)
-        except ValueError,err:
-            logging.error(err)
-            exit(1)
+            exit(1)        
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         if options.randomize:
-            scaniter = scanrandom(targets2,portrange,[options.method])
+            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','))
         else:
             # normal consecutive scan
-            scaniter = scanlist(iprange,portrange,[options.method])
+            try:
+                iprange = ip4range(*args)
+            except ValueError,err:
+                logging.error(err)
+                exit(1)
+            scaniter = scanlist(iprange,portrange,options.method.split(','))
+
     sipvicious = DrinkOrSip(
                     scaniter,                    
                     selecttime=options.selecttime,
@@ -326,8 +296,7 @@ if __name__ == '__main__':
                     localport=options.localport,                    
                     outputcsv=options.outputcsv,
                     externalip=options.externalip,
-                    bindingip=options.bindingip,
-                    resolvehosts=options.resolvehosts
+                    bindingip=options.bindingip,                    
                     )
     
     start_time = datetime.now()
@@ -344,7 +313,7 @@ if __name__ == '__main__':
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
         else:
-            logging.critical( "Unhandled exception - please run same command with the -R option")
+            logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
         logging.exception( "Exception" )            
     end_time = datetime.now()

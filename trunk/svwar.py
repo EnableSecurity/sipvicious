@@ -26,8 +26,9 @@ __version__ = '0.1-svn'
 import socket
 import select
 import random
+import logging
 
-reportBack = True
+
 
 class TakeASip:    
     def __init__(self,host='localhost',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False,socktimeout=3):
@@ -188,8 +189,9 @@ class TakeASip:
                 self.getResponse()
             else:
                 # no stuff to read .. its our turn to send back something
-                nextuser = self.usernamegen.nextone()
-                if nextuser is None:
+                try:
+                    nextuser = self.usernamegen.next()
+                except StopIteration:
                     self.nomore = True
                     continue
                 data = self.createRequest(self.method,nextuser,self.dsthost)                
@@ -228,6 +230,9 @@ if __name__ == '__main__':
                   help="enable compact mode. Makes packets smaller but possibly less compatable",
                   action="store_true",
                   )
+    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
+                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
+                  )
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error("provide one hostname")
@@ -241,10 +246,10 @@ if __name__ == '__main__':
             print "could not open %s" % options.dictionary
         guessargs = dictionary
     else:
-        from helper import getRange
+        from helper import getRange 
         guessmode = 1
-        extensionstotry = getRange(options.range)        
-        guessargs = (extensionstotry,options.zeropadding)    
+        extensionstotry = getRange(options.range)
+        guessargs = (extensionstotry,options.zeropadding)
     sipvicious = TakeASip(
                     host,
                     port=options.port,
@@ -260,14 +265,16 @@ if __name__ == '__main__':
         sipvicious.start()
     except KeyboardInterrupt:
         print 'caught your control^c - quiting'
-    except:
-        if reportBack:
-            import traceback
-            from helper import reportBugToAuthor
-            print "Got unhandled exception : sending report to author"
+    except Exception, err:
+        import traceback
+        from helper import reportBugToAuthor                
+        if options.reportBack:
+            logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
         else:
-            print "Unhandled exception - please enable the 'report bug to author option'"
+            logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
+            pass
+        logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
     print "Total time:", total_time
