@@ -1,21 +1,22 @@
 v0.1-svn
 General:
-* added iphelper.py which will eventually replace ip4range
+* replaced 3rd party functions in ip4range with our functions in helper.py
+* Feature: ReportBack function is off by default but can be enabled by using -R option
 
 Svmap:
 * Feature: Host arguments now accepts a variety of formats. You can now scan using ranges like the following:
 	- 1.1.1.1-20 1.1.1-20.1-10
 	- 1.1.1.*
 	- 1.1.1.1-1.1.2.20
+	- sipvicious.org/22
 * Bug fix: Generation of hosts to scan is now dynamic and does not slow down startup time
 * Feature: Now making use of the standard logging module with more logging to debug problems
 * Feature: Verbose and Quite mode
 * Feature: When the port is already bound, svmap tries to listen on another port
-* Feature: Reverse DNS resolution for IPs that reply back
 * Feature: Added options to allow you to specify the ip to bind to as well as the external ip address of the scanner
 * Feature: --help now shows proper usage
-* Feature: ReportBack function is off by default but can be enabled by using -R option
-* Feature: New scanning method - random. This scan avoids scanning non-internet address space. 
+* Feature: New scanning method - random scan! This scans only valid internet address space.
+* Feature: Randomize scan. Allows you to randomize the order of the IP addresses to be scanned. 
 
 Svwar:
 * Bug fix: Handled bug which allowed svwar to miss valid extensions (false negatives)
