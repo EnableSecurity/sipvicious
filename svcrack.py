@@ -320,4 +320,4 @@ if __name__ == '__main__':
         logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
-    logging.info("Total time:", total_time)
+    logging.info("Total time: %s" % total_time)

@@ -134,7 +134,7 @@ class TakeASip:
             self.nomore = True
             return
         else:
-            self.log.warn("We got this unknown thing:")
+            self.log.warn("We got an unknown response")
             self.log.error("Response: %s" % `buff`)
             self.nomore = True
 
@@ -220,7 +220,7 @@ class TakeASip:
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
                 except socket.error,err:
-                    self.error("socket error: %s" % err)
+                    self.log.error("socket error: %s" % err)
                     break
 
 if __name__ == '__main__':
@@ -302,4 +302,4 @@ if __name__ == '__main__':
         logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
-    logging.info("Total time:", total_time)
+    logging.info("Total time: %s" % total_time)
