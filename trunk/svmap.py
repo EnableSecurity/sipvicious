@@ -139,6 +139,7 @@ class DrinkOrSip:
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
                     self.log.debug('got data from %s:%s' % srcaddr)
+		    self.log.debug('data: %s' % `buff`)
                 except socket.error:
                     continue
                 self.getResponse(buff,srcaddr)
