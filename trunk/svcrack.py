@@ -31,11 +31,13 @@ import base64
 
 
 class ASipOfRedWine:
-    def __init__(self,host='localhost',localport=5060,port=5060,username=None,crackmode=1,crackargs=None,realm=None,selecttime=0.005,compact=False,reusenonce=False,extension=None):
+    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,username=None,crackmode=1,crackargs=None,realm=None,selecttime=0.005,compact=False,reusenonce=False,extension=None):
         from helper import dictionaryattack, numericbrute
+        import logging
+        self.log = logging.getLogger('ASipOfRedWine')
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(10)
-        self.sock.bind(('',localport))
+        #self.sock.bind(('',localport))
         self.nomore = False
         self.passwordcracked = False
         self.rlist = [self.sock]
@@ -63,7 +65,9 @@ class ASipOfRedWine:
             self.extension = extension
         else:
             self.extension = username
-
+        self.bindingip = bindingip
+        self.localport = localport
+        self.originallocalport = localport
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
     OKEY = 'SIP/2.0 200 '
@@ -126,20 +130,20 @@ class ASipOfRedWine:
             _tmp = getCredentials(buff)
             if _tmp is not None:
                 crackeduser,crackedpasswd = _tmp
-                print "Surprise surprise - the password for %s is %s" % (crackeduser,crackedpasswd)
+                self.log.info("The password for %s is %s" % (crackeduser,crackedpasswd))
             else:
-                print "Does not seem to require authentication"
+                self.log.info("Does not seem to require authentication")
                 self.noauth = True
         elif buff.startswith(self.NOTFOUND):
-            print "User not found"
+            self.log.warn("User not found")
             self.noauth = True
         elif buff.startswith(self.INVALIDPASS):
             pass
         elif buff.startswith(self.TRYING):
             pass
         else:
-            print "We got this unknown thing:"
-            print buff
+            self.log.error("We got an unknown response")
+            self.log.debug(`buff`)
             self.nomore = True
 
         
@@ -147,17 +151,36 @@ class ASipOfRedWine:
     def start(self):
         #from helper import ,getCredentials,getRealm,getCID
         import socket
+        if self.bindingip == '':
+            bindingip = 'any'
+        else:
+            bindingip = self.bindingip
+        self.log.debug("binding to %s:%s" % (bindingip,self.localport))
+        while 1:
+            if self.localport > 65535:
+                self.log.critical("Could not bind to any port")
+                return
+            try:            
+                self.sock.bind((self.bindingip,self.localport))
+                break
+            except socket.error:
+                self.log.debug("could not bind to %s" % self.localport)
+                self.localport += 1            
+        if self.originallocalport != self.localport:
+            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
+            self.log.info("Make use of the -P option to specify a port to bind to yourself")
+
         # perform a test 1st ..
         data = self.Register(self.extension,self.dsthost)
         try:
             self.sock.sendto(data,(self.dsthost,self.dstport))
         except socket.error,err:
-            print "socket error: %s" % err
+            self.log.error("socket error: %s" % err)
             return
         try:
             self.getResponse()
         except socket.timeout:
-            print "no server response"
+            self.log.error("no server response")
             return
         if self.noauth is True:
             return
@@ -197,7 +220,7 @@ class ASipOfRedWine:
                     try:                        
                         auth['password'] = self.passwdgen.next()                        
                     except StopIteration:
-                        print "no more passwords"
+                        self.log.info("no more passwords")
                         self.nomore = True
                         continue
                 else:
@@ -207,13 +230,15 @@ class ASipOfRedWine:
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
                 except socket.error,err:
-                    print "socket error: %s" % err
+                    self.log.error("socket error: %s" % err)
                     break
 
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
     from helper import getRange
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP Registrar", metavar="PORT")
@@ -260,7 +285,7 @@ if __name__ == '__main__':
         try:
             dictionary = open(options.dictionary,'r')
         except IOError:
-            print "could not open %s" % options.dictionary            
+            logging.error("could not open %s" % options.dictionary            )
         crackargs = dictionary
     else:
         crackmode = 1
@@ -278,11 +303,11 @@ if __name__ == '__main__':
                     )
     
     start_time = datetime.now()
-    print "scan started at %s" % str(start_time)
+    logging.info("scan started at %s" % str(start_time))
     try:        
         sipvicious.start()
     except KeyboardInterrupt:
-        print 'caught your control^c - quiting'
+        logging.warn('caught your control^c - quiting')
     except Exception, err:
         import traceback
         from helper import reportBugToAuthor
@@ -295,4 +320,4 @@ if __name__ == '__main__':
         logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
-    print "Total time:", total_time
+    logging.info("Total time:", total_time)
