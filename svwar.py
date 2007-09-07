@@ -31,11 +31,15 @@ import logging
 
 
 class TakeASip:    
-    def __init__(self,host='localhost',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False,socktimeout=3):
+    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False,socktimeout=3):
         from helper import dictionaryattack, numericbrute
+        import logging
+        self.log = logging.getLogger('TakeASip')        
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
-        self.sock.bind(('',localport))
+        self.bindingip = bindingip
+        self.localport = localport
+        self.originallocalport = localport
         self.rlist = [self.sock]
         self.wlist = list()
         self.xlist = list()
@@ -101,25 +105,24 @@ class TakeASip:
         try:
             firstline = buff.splitlines()[0]
         except (ValueError,IndexError,AttributeError):
-            print "could not get the 1st line"
+            self.log.error("could not get the 1st line")
             return
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.INVALIDPASS) or buff.startswith(self.AUTHREQ):
                 if self.realm is None:
                     self.realm = getRealm(buff)
-                print "extension '%s' exists - requires authentication" % extension
+                self.log.info("extension '%s' exists - requires authentication" % extension)
             elif buff.startswith(self.TRYING):
                 pass
             elif buff.startswith(self.RINGING):
                 pass
             elif buff.startswith(self.OKEY):            
-                print "extension '%s' exists - authentication not required" % extension
+                self.log.info("extension '%s' exists - authentication not required" % extension)
             else:
-                print "extension '%s' probably exists but the response is weird" % extension
-                print firstline
-        elif buff.startswith(self.NOTFOUND):
-            pass
-            #print "User '%s' not found" % extension
+                self.log.warn("extension '%s' probably exists but the response is weird" % extension)
+                self.log.debug("response: %s" % firstline)
+        elif buff.startswith(self.NOTFOUND):            
+            self.log.debug("User '%s' not found" % extension)
         elif buff.startswith(self.TRYING):
             pass
         elif buff.startswith(self.RINGING):
@@ -127,18 +130,37 @@ class TakeASip:
         elif buff.startswith(self.OKEY):
             pass
         elif buff.startswith(self.NOTALLOWED):
-            print "method not allowed"
+            self.log.warn("method not allowed")
             self.nomore = True
             return
         else:
-            print "We got this unknown thing:"
-            print buff
+            self.log.warn("We got this unknown thing:")
+            self.log.error("Response: %s" % `buff`)
             self.nomore = True
 
         
     
     def start(self):        
         import socket
+        if self.bindingip == '':
+            bindingip = 'any'
+        else:
+            bindingip = self.bindingip
+        self.log.debug("binding to %s:%s" % (bindingip,self.localport))
+        while 1:
+            if self.localport > 65535:
+                self.log.critical("Could not bind to any port")
+                return
+            try:            
+                self.sock.bind((self.bindingip,self.localport))
+                break
+            except socket.error:
+                self.log.debug("could not bind to %s" % self.localport)
+                self.localport += 1            
+        if self.originallocalport != self.localport:
+            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
+            self.log.info("Make use of the -P option to specify a port to bind to yourself")
+
         # perform a test 1st .. we want to see if we get a 404
         # some other error for unknown users
         nextuser = random.getrandbits(32)
@@ -146,7 +168,7 @@ class TakeASip:
         try:
             self.sock.sendto(data,(self.dsthost,self.dstport))
         except socket.error,err:
-            print "socket error: %s" % err
+            self.log.error("socket error: %s" % err)
             return
         # first we identify the assumed reply for an unknown extension 
         gotbadresponse=False
@@ -163,12 +185,12 @@ class TakeASip:
                     break
         except socket.timeout:
             if gotbadresponse:
-                print "The response we got was not good: %s" % buff
+                self.log.error("The response we got was not good: %s" % `buff`)
             else:
-                print "No server response - are you sure that this PBX is listening? run svmap.py against it to find out"
+                self.log.error("No server response - are you sure that this PBX is listening? run svmap against it to find out")
             return
         except (AttributeError,ValueError,IndexError):
-            print "bad response .. bailing out"
+            self.log.error("bad response .. bailing out")            
             return
         # let the fun commence
         while 1:
@@ -198,12 +220,14 @@ class TakeASip:
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
                 except socket.error,err:
-                    print "socket error: %s" % err
+                    self.error("socket error: %s" % err)
                     break
 
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
+    import logging, sys
+    logging.basicConfig(level=logging.DEBUG)
     parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP UA", metavar="PORT")
@@ -243,7 +267,8 @@ if __name__ == '__main__':
         try:
             dictionary = open(options.dictionary,'r')
         except IOError:
-            print "could not open %s" % options.dictionary
+            logging.error( "could not open %s" % options.dictionary )
+            sys.exit(1)
         guessargs = dictionary
     else:
         from helper import getRange 
@@ -260,11 +285,11 @@ if __name__ == '__main__':
                     guessargs=guessargs
                     )
     start_time = datetime.now()
-    print "scan started at %s" % str(start_time)
+    logging.info("scan started at %s" % str(start_time))
     try:        
         sipvicious.start()
     except KeyboardInterrupt:
-        print 'caught your control^c - quiting'
+        logging.warn('caught your control^c - quiting')
     except Exception, err:
         import traceback
         from helper import reportBugToAuthor                
@@ -277,4 +302,4 @@ if __name__ == '__main__':
         logging.exception( "Exception" )            
     end_time = datetime.now()
     total_time = end_time - start_time
-    print "Total time:", total_time
+    logging.info("Total time:", total_time)

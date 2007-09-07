@@ -265,7 +265,9 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
 
 def reportBugToAuthor(trace):
     from urllib2 import urlopen,URLError
+    import logging
     from sys import argv
+    log = logging.getLogger('reportBugToAuthor')
     data = str()
     data += "Command line parameters:\r\n"
     data += str(argv)
@@ -277,7 +279,7 @@ def reportBugToAuthor(trace):
     try:
         urlopen('http://geekbazaar.org/bugreport/r.php',data)
     except URLError,err:
-        print err
+        log.error( err )
 
 def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
