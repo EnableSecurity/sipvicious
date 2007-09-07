@@ -2,9 +2,9 @@
 
 = general = 
   * feature: when bind port is already busy give error and choose next one *(done)*
-  * feature: verbose and quiet mode *(done for svmap)*
+  * feature: verbose and quiet mode *(in process)*
+  * bug fix: review all code for logic bugs and consistency between tools *(in process)*
   * feature: update sipvicious tools by executing svn update like metasploit
-  * bug fix: review all code for logic bugs and consistency between tools
   * feature: output for all tools
   * feature: resume previous scan
 
