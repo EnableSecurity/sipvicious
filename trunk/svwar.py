@@ -228,7 +228,14 @@ if __name__ == '__main__':
     from datetime import datetime
     import logging, sys
     logging.basicConfig(level=logging.DEBUG)
-    parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
+    usage = "usage: %prog [options] target\r\n"
+    usage += "example: %prog -r100-999 10.0.0.1"    
+    parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
+    parser.add_option('-v', '--verbose', dest="verbose", action="count",
+                      help="Increase verbosity")
+    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
+                      default=False,
+                      help="Quiet mode")
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP UA", metavar="PORT")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",

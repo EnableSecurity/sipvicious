@@ -239,7 +239,14 @@ if __name__ == '__main__':
     from helper import getRange
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    parser = OptionParser(version="%prog v"+str(__version__)+__GPL__)
+    usage = "usage: %prog -u username [options] target\r\n"
+    usage += "example: %prog -u100 -d dictionary.txt 10.0.0.1"
+    parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
+    parser.add_option('-v', '--verbose', dest="verbose", action="count",
+                      help="Increase verbosity")
+    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
+                      default=False,
+                      help="Quiet mode")
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP Registrar", metavar="PORT")
     parser.add_option("-u", "--username", dest="username",
