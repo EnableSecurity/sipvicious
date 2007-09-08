@@ -193,6 +193,7 @@ class TakeASip:
             self.log.error("bad response .. bailing out")            
             return
         # let the fun commence
+        self.log.info('Ok SIP device found')
         while 1:
             if self.nomore:
                 while 1:
@@ -227,7 +228,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
     import logging, sys
-    logging.basicConfig(level=logging.DEBUG)
+    #logging.basicConfig(level=logging.DEBUG)
     usage = "usage: %prog [options] target\r\n"
     usage += "example: %prog -r100-999 10.0.0.1"    
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
@@ -269,6 +270,15 @@ if __name__ == '__main__':
         parser.error("provide one hostname")
     else:
         host=args[0]
+    logginglevel = 20
+    if options.verbose is not None:
+        for somecount in xrange(options.verbose):
+            if logginglevel > 10:
+                logginglevel = logginglevel-10
+    if options.quiet:
+        logginglevel = 50
+    logging.basicConfig(level=logginglevel)
+    logging.debug('started logging')
     if options.dictionary is not None:
         guessmode=2
         try:
