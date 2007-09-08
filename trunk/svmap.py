@@ -197,6 +197,7 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
     from sys import exit
+    import logging
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
     usage += "example: %prog 10.0.0.1-10.0.0.255 "
     usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
