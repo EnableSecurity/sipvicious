@@ -238,7 +238,6 @@ if __name__ == '__main__':
     from datetime import datetime
     from helper import getRange
     import logging
-    logging.basicConfig(level=logging.DEBUG)
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "example: %prog -u100 -d dictionary.txt 10.0.0.1"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
@@ -286,7 +285,15 @@ if __name__ == '__main__':
         host=args[0]
     if options.username is None:
         parser.error("provide one username to crack")
-    
+    logginglevel = 20
+    if options.verbose is not None:
+        for somecount in xrange(options.verbose):
+            if logginglevel > 10:
+                logginglevel = logginglevel-10
+    if options.quiet:
+        logginglevel = 50
+    logging.basicConfig(level=logginglevel)
+    logging.debug('started logging')    
     if options.dictionary is not None:
         crackmode=2
         try:

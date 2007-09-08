@@ -249,7 +249,6 @@ if __name__ == '__main__':
                 logginglevel = logginglevel-10
     if options.quiet:
         logginglevel = 50
-    import logging
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
 
