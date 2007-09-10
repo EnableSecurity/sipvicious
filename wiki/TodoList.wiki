@@ -9,7 +9,6 @@
   * feature: update sipvicious tools by executing svn update like metasploit
 
 = svmap =
-  * feature: dns resolution on results *(done)*
   * feature: random scan and randomize *(done)*
   * feature: ip range helper *(done)*:
       * support 1.1.1.1-20, 1.1.1.1-1.1.2.30 and 1.1.1.1/24 ranges
