@@ -419,7 +419,7 @@ if __name__ == '__main__':
     # display results
     if not options.quiet:
         from pptable import indent,wrap_onspace
-        width = 30
+        width = 60
         labels = ('SIP Device','User-Agent')
         rows = list()
         for k in sipvicious.resultua.keys():
