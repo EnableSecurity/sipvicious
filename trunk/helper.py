@@ -289,7 +289,7 @@ def scanlist(iprange,portranges,methods):
                     yield(ip,port,method)
 
 
-def scanrandom(ipranges,portranges,methods,resume=False,randomstore='.sipvicious_random'):
+def scanrandom(ipranges,portranges,methods,resume=None,randomstore='.sipvicious_random'):
     # if the ipranges intersect then we go infinate .. we prevent that
     # example: 127.0.0.1 127.0.0.1/24
     import random    
@@ -297,7 +297,7 @@ def scanrandom(ipranges,portranges,methods,resume=False,randomstore='.sipvicious
     log = logging.getLogger('scanrandom')
     mode = 'n'
     if resume:
-        mode = 'w'    
+	    mode = 'c'		   
     database = anydbm.open(randomstore,mode)
     ipsleft = 0    
     for iprange in ipranges:
@@ -312,6 +312,8 @@ def scanrandom(ipranges,portranges,methods,resume=False,randomstore='.sipvicious
                     if hit > 1:
                         log.error('Cannot use random scan and try to hit the same ip twice')
                         return
+    if resume:
+	ipsleft -= len(database)
     log.debug('scanning a total of %s ips' % ipsleft)
     while ipsleft > 0:
         randomchoice = random.choice(ipranges)
