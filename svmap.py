@@ -420,7 +420,7 @@ if __name__ == '__main__':
     if not options.quiet:
         from pptable import indent,wrap_onspace
         width = 60
-        labels = ('SIP Device','User-Agent')
+        labels = ('SIP Device','User Agent')
         rows = list()
         for k in sipvicious.resultua.keys():
             rows.append((k,sipvicious.resultua[k]))
