@@ -7,6 +7,7 @@
   * feature: output for all tools (*in process*)
   * feature: resume previous scan (*in process*)
   * feature: update sipvicious tools by executing svn update like metasploit
+  * others : improve documentation
 
 = svmap =
   * feature: random scan and randomize *(done)*
@@ -20,7 +21,6 @@
   * feature: scan multiple hosts at the same time
 
 = svcrack = 
-  * optimization: check when was the last response - if it were more than a few seconds ago then inform the end user and maybe reduce speed
   * feature: scan multiple users
   * feature: intelligent scan - sequentially perform the following attacks:
         * username and modifications of that as password
