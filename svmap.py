@@ -268,6 +268,9 @@ if __name__ == '__main__':
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious','svmap',options.resume)
+	if not os.path.exists(exportpath):
+		logging.critical('A session with the name %s was not found'% options.resume)
+		exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
 	previousresume = options.resume
         options,args = pickle.load(open(optionssrc,'r'))        
