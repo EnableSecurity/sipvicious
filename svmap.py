@@ -424,7 +424,8 @@ if __name__ == '__main__':
         rows = list()
         for k in sipvicious.resultua.keys():
             rows.append((k,sipvicious.resultua[k]))
-        print indent([labels]+rows,hasHeader=True, wrapfunc=lambda x: wrap_onspace(x,width))
+        print indent([labels]+rows,hasHeader=True,
+            prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
