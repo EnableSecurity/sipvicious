@@ -237,7 +237,7 @@ if __name__ == '__main__':
     parser.add_option("-s", "--save", dest="save",
                   help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
     parser.add_option("--resume", dest="resume",
-                  help="resume a previous sessname", metavar="NAME")    
+                  help="resume a previous scan", metavar="NAME")    
     parser.add_option("-o", "--outputcsv", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
