@@ -40,6 +40,12 @@ class DrinkOrSip:
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
 	self.sessionpath = sessionpath
+	if self.sessionpath is not  None:
+		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip.db'),'n')
+		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua.db'),'n')
+	else:
+		self.resultip = dict()
+		self.resultua = dict()
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -107,6 +113,8 @@ class DrinkOrSip:
             self.log.info( resultstr )
             if self.outputcsv is not None:
                 self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
+	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
+	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
                 
     def start(self):
         from helper import makeRequest
@@ -376,6 +384,8 @@ if __name__ == '__main__':
     logging.info( "start your engines" )
     try:
         sipvicious.start()
+	for k in sipvicious.resultua.keys():
+		print '%s\t%s' % (k,sipvicious.resultua[k])
     except KeyboardInterrupt:
         logging.warn( 'caught your control^c - quiting' )
         pass
@@ -398,7 +408,7 @@ if __name__ == '__main__':
             f.close()
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
-    else:
+    elif options.save is not None and (options.randomize is not None or options.randomscan is not None):
 	try:
 		logging.debug('removing %s' % scanrandomstore)
 		os.unlink(scanrandomstore)
