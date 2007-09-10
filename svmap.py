@@ -36,8 +36,10 @@ class DrinkOrSip:
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060):
         import logging,anydbm
         import os.path
+	from helper import packetcounter
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
+	self.sessionpath = sessionpath
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -72,7 +74,8 @@ class DrinkOrSip:
         else:
             self.outputcsv = None
         self.nextip = None
-        
+	if self.sessionpath is not None:
+	        self.packetcount = packetcounter(50)
     
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
@@ -192,6 +195,15 @@ class DrinkOrSip:
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.sock.sendto(data,dsthost)                    
+		    if self.sessionpath is not None:
+			    if self.packetcount.next():
+				try:
+					f=open(os.path.join(self.sessionpath,'lastip.txt'),'w')
+					f.write(self.nextip)
+					f.close()
+					self.log.debug('logged last ip %s' % self.nextip)
+				except IOError:
+					self.log.warn('could not log the last ip scanned')
                 except socket.error,err:
                     self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
                     pass
@@ -252,11 +264,14 @@ if __name__ == '__main__':
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
     (options, args) = parser.parse_args()        
-    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range
+    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range, resumeFromIP
+    exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious','svmap',options.resume)
         optionssrc = os.path.join(exportpath,'options.pkl')
+	previousresume = options.resume
         options,args = pickle.load(open(optionssrc,'r'))        
+	options.resume = previousresume
     logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
@@ -305,8 +320,11 @@ if __name__ == '__main__':
                 except IOError:
                     logging.critical('Could not read from %s' % lastipsrc)
                     exit(1)
+		logging.debug('Previous args: %s' % args)
+                args = resumeFromIP(previousip,args)
+		logging.debug('New args: %s' % args)
                 logging.info('Resuming from %s' % previousip)
-                args = resumeFrom(previousip,args)
+
             # normal consecutive scan
             try:
                 iprange = ip4range(*args)
@@ -314,9 +332,9 @@ if __name__ == '__main__':
                 logging.error(err)
                 exit(1)
             scaniter = scanlist(iprange,portrange,options.method.split(','))    
-    if options.save is None:
-        exportpath = os.path.join('.sipvicious','svmap',options.save)
+    if options.save is not None:
         if options.resume is None:
+            exportpath = os.path.join('.sipvicious','svmap',options.save)
             if os.path.exists(exportpath):
                 logging.warn('we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
@@ -348,7 +366,7 @@ if __name__ == '__main__':
         pass
     except Exception, err:
         import traceback
-        from helper import reportBugToAuthor                
+        from helper import reportBugToAuthor 
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
@@ -356,9 +374,9 @@ if __name__ == '__main__':
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
         logging.exception( "Exception" )
-    lastipdst = os.path.join(exportpath,'lastip.txt')
-    logging.debug('saving state to %s' % lastipdst)
-    if options.save is not None:
+    if options.save is not None and sipvicious.nextip is not None:
+   	lastipdst = os.path.join(exportpath,'lastip.txt')
+   	logging.debug('saving state to %s' % lastipdst)
         try:
             f = open(lastipdst,'w')
             f.write(sipvicious.nextip)

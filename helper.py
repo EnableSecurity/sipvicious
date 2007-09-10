@@ -429,10 +429,35 @@ def getmaskranges(ipstring):
     return (naddr1,naddr2)
 
 def resumeFromIP(ip,args):
-    pass
+    ipranges = list()
+    foundit = False
+    rargs = list()
+    nip = dottedQuadToNum(ip)
+    for arg in args:
+    	startip,endip = getranges(arg)
+	if not foundit:
+		if startip <= nip and endip >= nip:
+			ipranges.append((nip,endip))
+			foundit = True
+	else:
+		ipranges.append((startip,endip))
+    for iprange in ipranges:
+    	rargs.append('-'.join(map(numToDottedQuad,iprange)))
+    return rargs
 
 def resumeFrom(n,args):
     pass
+
+def packetcounter(n):
+	i = 0
+	while 1:
+		if i == n:
+			i = 0
+			r = True
+		else:
+			i += 1
+			r = False
+		yield(r)
 
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
