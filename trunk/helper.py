@@ -468,3 +468,4 @@ if __name__ == '__main__':
         a = ip4range(seq)
         for x in iter(a):
             print x
+
