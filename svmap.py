@@ -36,13 +36,13 @@ class DrinkOrSip:
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060):
         import logging,anydbm
         import os.path
-	from helper import packetcounter
+        from helper import packetcounter
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
-	self.sessionpath = sessionpath
-	if self.sessionpath is not  None:
-		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip.db'),'n')
-		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua.db'),'n')
+        self.sessionpath = sessionpath
+        if self.sessionpath is not  None:
+		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip.db'),'c')
+		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua.db'),'c')
 	else:
 		self.resultip = dict()
 		self.resultua = dict()
@@ -281,11 +281,13 @@ if __name__ == '__main__':
 		exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
 	previousresume = options.resume
+        previousverbose = options.verbose
         options,args = pickle.load(open(optionssrc,'r'))        
 	options.resume = previousresume
+        options.verbose = previousverbose
     elif options.save is not None:
 	exportpath = os.path.join('.sipvicious','svmap',options.save)
-    logginglevel = 20
+    logginglevel = 30
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
             if logginglevel > 10:
@@ -384,8 +386,9 @@ if __name__ == '__main__':
     logging.info( "start your engines" )
     try:
         sipvicious.start()
-	for k in sipvicious.resultua.keys():
-		print '%s\t%s' % (k,sipvicious.resultua[k])
+        if not options.quiet:
+            for k in sipvicious.resultua.keys():
+                print '\t%s\t%s' % (k,sipvicious.resultua[k])
     except KeyboardInterrupt:
         logging.warn( 'caught your control^c - quiting' )
         pass
@@ -408,7 +411,7 @@ if __name__ == '__main__':
             f.close()
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
-    elif options.save is not None and (options.randomize is not None or options.randomscan is not None):
+    elif options.save is None and (options.randomize is not None or options.randomscan is not None):
 	try:
 		logging.debug('removing %s' % scanrandomstore)
 		os.unlink(scanrandomstore)
