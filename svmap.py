@@ -386,9 +386,6 @@ if __name__ == '__main__':
     logging.info( "start your engines" )
     try:
         sipvicious.start()
-        if not options.quiet:
-            for k in sipvicious.resultua.keys():
-                print '\t%s\t%s' % (k,sipvicious.resultua[k])
     except KeyboardInterrupt:
         logging.warn( 'caught your control^c - quiting' )
         pass
@@ -411,13 +408,17 @@ if __name__ == '__main__':
             f.close()
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
-    elif options.save is None and (options.randomize is not None or options.randomscan is not None):
-	try:
-		logging.debug('removing %s' % scanrandomstore)
-		os.unlink(scanrandomstore)
-	except OSError:
-		logging.warn('could not remove %s' % scanrandomstore)
-		pass
+    elif options.save is None:
+        if options.randomize or options.randomscan:
+            try:
+                    logging.debug('removing %s' % scanrandomstore)
+                    os.unlink(scanrandomstore)
+            except OSError:
+                    logging.warn('could not remove %s' % scanrandomstore)
+                    pass
+    if not options.quiet:
+        for k in sipvicious.resultua.keys():
+            print '\t%s\t%s' % (k,sipvicious.resultua[k])
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
