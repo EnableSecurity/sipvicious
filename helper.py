@@ -289,7 +289,7 @@ def scanlist(iprange,portranges,methods):
                     yield(ip,port,method)
 
 
-def scanrandom(ipranges,portranges,methods,resume=False):
+def scanrandom(ipranges,portranges,methods,resume=False,randomstore='.sipvicious_random'):
     # if the ipranges intersect then we go infinate .. we prevent that
     # example: 127.0.0.1 127.0.0.1/24
     import random    
@@ -298,7 +298,7 @@ def scanrandom(ipranges,portranges,methods,resume=False):
     mode = 'n'
     if resume:
         mode = 'w'    
-    database = anydbm.open('.sipvicious_random',mode)
+    database = anydbm.open(randomstore,mode)
     ipsleft = 0    
     for iprange in ipranges:
         startip,endip = iprange        
@@ -428,6 +428,11 @@ def getmaskranges(ipstring):
     naddr2 = naddr1 + (1<<(32-masklen)) - 1
     return (naddr1,naddr2)
 
+def resumeFromIP(ip,args):
+    pass
+
+def resumeFrom(n,args):
+    pass
 
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')

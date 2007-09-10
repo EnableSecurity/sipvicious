@@ -33,8 +33,9 @@ from struct import pack,unpack
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
-                 socktimeout=3,externalip=None,localport=5060):
-        import logging        
+                 sessionpath=None,socktimeout=3,externalip=None,localport=5060):
+        import logging,anydbm
+        import os.path
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         # we do UDP
@@ -70,6 +71,7 @@ class DrinkOrSip:
             self.outputcsv = csv.writer(open(outputcsv,'wb'))
         else:
             self.outputcsv = None
+        self.nextip = None
         
     
     def getResponse(self,buff,srcaddr):
@@ -139,7 +141,7 @@ class DrinkOrSip:
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
                     self.log.debug('got data from %s:%s' % srcaddr)
-		    self.log.debug('data: %s' % `buff`)
+                    self.log.debug('data: %s' % `buff`)
                 except socket.error:
                     continue
                 self.getResponse(buff,srcaddr)
@@ -162,6 +164,7 @@ class DrinkOrSip:
                     self.nomoretoscan = True
                     continue
                 dstip,dstport,method = nextscan
+                self.nextip = dstip
                 dsthost = (dstip,dstport)
                 branchunique = '%s' % random.getrandbits(32)
                 
@@ -196,8 +199,11 @@ class DrinkOrSip:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
+    import anydbm
+    import os
     from sys import exit
     import logging
+    import pickle
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
     usage += "example: %prog 10.0.0.1-10.0.0.255 "
     usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
@@ -208,6 +214,10 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                       default=False,
                       help="Quiet mode")
+    parser.add_option("-s", "--save", dest="save",
+                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
+    parser.add_option("--resume", dest="resume",
+                  help="resume a previous sessname", metavar="NAME")    
     parser.add_option("-o", "--outputcsv", dest="outputcsv",
                   help="Output results to a specified csv file", metavar="output.csv")
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
@@ -243,6 +253,10 @@ if __name__ == '__main__':
                   help="Randomize scanning instead of scanning consecutive ip addresses")
     (options, args) = parser.parse_args()        
     from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range
+    if options.resume is not None:
+        exportpath = os.path.join('.sipvicious','svmap',options.resume)
+        optionssrc = os.path.join(exportpath,'options.pkl')
+        options,args = pickle.load(open(optionssrc,'r'))        
     logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
@@ -282,24 +296,49 @@ if __name__ == '__main__':
         if options.randomize:
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','))
         else:
+            if options.resume is not None:
+                lastipsrc = os.path.join(exportpath,'lastip.txt')
+                try:
+                    f=open(lastipsrc,'r')
+                    previousip = f.read()
+                    f.close()
+                except IOError:
+                    logging.critical('Could not read from %s' % lastipsrc)
+                    exit(1)
+                logging.info('Resuming from %s' % previousip)
+                args = resumeFrom(previousip,args)
             # normal consecutive scan
             try:
                 iprange = ip4range(*args)
             except ValueError,err:
                 logging.error(err)
                 exit(1)
-            scaniter = scanlist(iprange,portrange,options.method.split(','))
-
+            scaniter = scanlist(iprange,portrange,options.method.split(','))    
+    if options.save is None:
+        exportpath = os.path.join('.sipvicious','svmap',options.save)
+        if options.resume is None:
+            if os.path.exists(exportpath):
+                logging.warn('we found a previous scan with the same name. Please choose a new session name')
+                exit(1)
+            logging.debug('creating an export location %s' % exportpath)
+            try:
+                os.makedirs(exportpath,mode=0700)
+            except OSError:
+                logging.critical('could not create the export location %s' % exportpath)
+                exit(1)
+            optionsdst = os.path.join(exportpath,'options.pkl')
+            logging.debug('saving options to %s' % optionsdst)
+            pickle.dump([options,args],open(optionsdst,'w'))
     sipvicious = DrinkOrSip(
-                    scaniter,                    
+                    scaniter,
                     selecttime=options.selecttime,
                     compact=options.enablecompact,
                     localport=options.localport,                    
                     outputcsv=options.outputcsv,
                     externalip=options.externalip,
-                    bindingip=options.bindingip,                    
+                    bindingip=options.bindingip,
+                    sessionpath=exportpath,
                     )
-    
     start_time = datetime.now()
     logging.info( "start your engines" )
     try:
@@ -316,7 +355,16 @@ if __name__ == '__main__':
         else:
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
-        logging.exception( "Exception" )            
+        logging.exception( "Exception" )
+    lastipdst = os.path.join(exportpath,'lastip.txt')
+    logging.debug('saving state to %s' % lastipdst)
+    if options.save is not None:
+        try:
+            f = open(lastipdst,'w')
+            f.write(sipvicious.nextip)
+            f.close()
+        except OSError:
+            logging.warn('Could not save state to %s' % lastipdst)
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
