@@ -416,6 +416,7 @@ if __name__ == '__main__':
             except OSError:
                     logging.warn('could not remove %s' % scanrandomstore)
                     pass
+    # display results
     if not options.quiet:
         for k in sipvicious.resultua.keys():
             print '\t%s\t%s' % (k,sipvicious.resultua[k])
