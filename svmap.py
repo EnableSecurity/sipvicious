@@ -272,6 +272,8 @@ if __name__ == '__main__':
 	previousresume = options.resume
         options,args = pickle.load(open(optionssrc,'r'))        
 	options.resume = previousresume
+    elif options.save is not None:
+	exportpath = os.path.join('.sipvicious','svmap',options.save)
     logginglevel = 20
     if options.verbose is not None:
         for somecount in xrange(options.verbose):
@@ -301,7 +303,12 @@ if __name__ == '__main__':
                         [3232301056L,3323068415L],
                         [3323199488L,3758096127L]
                         ]
-        scaniter = scanrandom(internetranges,portrange,options.method.split(','))
+	scanrandomstore = '.sipviciousrandomtmp'
+	resumescan = False 
+	if options.save is not None:
+		scanrandomstore = os.path.join(exportpath,'random.db')
+		resumescan = True
+        scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
     else:
         if len(args) < 1:
             parser.print_help()
@@ -309,7 +316,12 @@ if __name__ == '__main__':
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         if options.randomize:
-            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','))
+	    scanrandomstore = '.sipviciousrandomtmp'
+	    resumescan = False
+	    if options.save is not None:
+		scanrandomstore = os.path.join(exportpath,'random.db')
+		resumescan = True
+            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:
             if options.resume is not None:
                 lastipsrc = os.path.join(exportpath,'lastip.txt')
@@ -374,7 +386,7 @@ if __name__ == '__main__':
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
         logging.exception( "Exception" )
-    if options.save is not None and sipvicious.nextip is not None:
+    if options.save is not None and sipvicious.nextip is not None and options.randomize is False and options.randomscan is False:
    	lastipdst = os.path.join(exportpath,'lastip.txt')
    	logging.debug('saving state to %s' % lastipdst)
         try:
@@ -383,6 +395,13 @@ if __name__ == '__main__':
             f.close()
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
+    else:
+	try:
+		logging.debug('removing %s' % scanrandomstore)
+		os.unlink(scanrandomstore)
+	except OSError:
+		logging.warn('could not remove %s' % scanrandomstore)
+		pass
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
