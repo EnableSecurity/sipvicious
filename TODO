@@ -1,14 +1,1 @@
-svmap:
-  * optimization: check why scanning port ranges is so slow
-
-svwar:
-  * none
-
-svcrack:
-  * optimization: check when was the last response - if it was more than a few seconds ago then inform the end user and maybe reduce speed
-  * feature: end user to scan multiple users
-  * feature: intelligent scan - sequentially perform the following attacks:
-        - username and modifications of that as password
-        - numeric bruteforce
-        - dictionary attack
-        - alphanumeric bruteforce
+Consult the wiki page please
