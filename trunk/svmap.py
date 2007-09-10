@@ -418,8 +418,13 @@ if __name__ == '__main__':
                     pass
     # display results
     if not options.quiet:
+        from pptable import indent,wrap_onspace
+        width = 30
+        labels = ('SIP Device','User-Agent')
+        rows = list()
         for k in sipvicious.resultua.keys():
-            print '\t%s\t%s' % (k,sipvicious.resultua[k])
+            rows.append((k,sipvicious.resultua[k]))
+        print indent([labels]+rows,hasHeader=True, wrapfunc=lambda x: wrap_onspace(x,width))
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
