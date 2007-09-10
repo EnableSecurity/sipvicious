@@ -4,9 +4,9 @@
   * feature: when bind port is already busy give error and choose next one *(done)*
   * feature: verbose and quiet mode *(done)*
   * bug fix: review all code for logic bugs and consistency between tools *(in process)*
-  * feature: update sipvicious tools by executing svn update like metasploit
   * feature: output for all tools (*in process*)
   * feature: resume previous scan (*in process*)
+  * feature: update sipvicious tools by executing svn update like metasploit
 
 = svmap =
   * feature: dns resolution on results *(done)*
