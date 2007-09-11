@@ -136,6 +136,8 @@ class TakeASip:
         else:
             self.log.warn("We got an unknown response")
             self.log.error("Response: %s" % `buff`)
+	    self.log.debug("1st line: %s" % `firstline`)
+	    self.log.debug("Bad user: %s" % `self.BADUSER`)
             self.nomore = True
 
         
@@ -181,6 +183,7 @@ class TakeASip:
                     gotbadresponse=True
                 else:
                     self.BADUSER = buff.splitlines()[0]
+		    self.log.debug("Bad user = %s" % self.BADUSER)
                     gotbadresponse=False
                     break
         except socket.timeout:
@@ -192,6 +195,8 @@ class TakeASip:
         except (AttributeError,ValueError,IndexError):
             self.log.error("bad response .. bailing out")            
             return
+	if self.BADUSER.startswith(self.AUTHREQ):
+		self.log.warn("Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
         # let the fun commence
         self.log.info('Ok SIP device found')
         while 1:
