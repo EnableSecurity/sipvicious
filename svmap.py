@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-# svmap.py - SIPvicious scanner
+# svmap.py - SIPvicious SIP scanner
 
 __GPL__ = """
 
-   SIPvicious scanner is a scanner to search for SIP devices
+   SIPvicious SIP scanner searches for SIP devices on a given network
    Copyright (C) 2007  Sandro Gauci <sandrogauc@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
@@ -31,8 +31,8 @@ from struct import pack,unpack
 
 
 class DrinkOrSip:
-    def __init__(self,scaniter,selecttime=0.005,compact=True, bindingip='',
-                 fromname='sipvicious',fromaddr='sip:100@1.1.1.1', outputcsv=None,
+    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='',
+                 fromname='sipvicious',fromaddr='sip:100@1.1.1.1', 
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060):
         import logging,anydbm
         import os.path
@@ -74,11 +74,6 @@ class DrinkOrSip:
         self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
         self.nomoretoscan = False
         self.originallocalport = self.localport
-        if outputcsv is not None:
-            import csv
-            self.outputcsv = csv.writer(open(outputcsv,'wb'))
-        else:
-            self.outputcsv = None
         self.nextip = None
 	if self.sessionpath is not None:
 	        self.packetcount = packetcounter(50)
@@ -111,8 +106,6 @@ class DrinkOrSip:
                 dstip,dstport = 'unknown','unknown'            
             resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
             self.log.info( resultstr )
-            if self.outputcsv is not None:
-                self.outputcsv.writerow((dstip,dstport,srcip,srcport,uaname))
 	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
 	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
                 
@@ -185,7 +178,7 @@ class DrinkOrSip:
                 toaddr = fromaddr
                 callid = '%s' % random.getrandbits(80)
                 contact = None
-                if method == 'INVITE' or method == 'OPTIONS':
+                if method != 'REGISTER':
                     contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
                 data = makeRequest(
                                 method,
@@ -198,10 +191,12 @@ class DrinkOrSip:
                                 branchunique,
                                 compact=self.compact,
                                 localtag=localtag,
-                                contact=contact
+                                contact=contact,
+				accept='application/sdp',
                                 )
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
+		    self.log.debug("packet: %s" % `data`)
                     self.sock.sendto(data,dsthost)                    
 		    if self.sessionpath is not None:
 			    if self.packetcount.next():
@@ -238,8 +233,6 @@ if __name__ == '__main__':
                   help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
     parser.add_option("--resume", dest="resume",
                   help="resume a previous scan", metavar="NAME")    
-    parser.add_option("-o", "--outputcsv", dest="outputcsv",
-                  help="Output results to a specified csv file", metavar="output.csv")
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
                       default=False,
                   help="Scan random IP addresses")
@@ -289,9 +282,10 @@ if __name__ == '__main__':
 	exportpath = os.path.join('.sipvicious','svmap',options.save)
     logginglevel = 30
     if options.verbose is not None:
-        for somecount in xrange(options.verbose):
-            if logginglevel > 10:
-                logginglevel = logginglevel-10
+	if options.verbose >= 3:
+		logginglevel = 10
+	else:
+		logginglevel = 30-(options.verbose*10)
     if options.quiet:
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
@@ -324,7 +318,8 @@ if __name__ == '__main__':
         scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
     else:
         if len(args) < 1:
-            parser.print_help()
+            #parser.print_help()
+	    print usage
             exit(1)        
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
@@ -377,7 +372,6 @@ if __name__ == '__main__':
                     selecttime=options.selecttime,
                     compact=options.enablecompact,
                     localport=options.localport,                    
-                    outputcsv=options.outputcsv,
                     externalip=options.externalip,
                     bindingip=options.bindingip,
                     sessionpath=exportpath,
@@ -417,15 +411,18 @@ if __name__ == '__main__':
                     logging.warn('could not remove %s' % scanrandomstore)
                     pass
     # display results
-    if not options.quiet:
-        from pptable import indent,wrap_onspace
-        width = 60
-        labels = ('SIP Device','User Agent')
-        rows = list()
-        for k in sipvicious.resultua.keys():
-            rows.append((k,sipvicious.resultua[k]))
-        print indent([labels]+rows,hasHeader=True,
-            prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+    if not options.quiet: 
+	if len(sipvicious.resultua) > 0:
+        	from pptable import indent,wrap_onspace
+	        width = 60
+	        labels = ('SIP Device','User Agent')
+	        rows = list()
+	        for k in sipvicious.resultua.keys():
+        	    rows.append((k,sipvicious.resultua[k]))
+	        print indent([labels]+rows,hasHeader=True,
+        	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+	else:
+		print "found nothing"
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)

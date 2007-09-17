@@ -207,7 +207,7 @@ def makeRedirect(previousHeaders,rediraddr):
     return(r)
     
 
-def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None):
+def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None,accept='application/sdp',contentlength=0):
     uri = 'sip:%s' % dsthost    
     headers = dict()
     finalheaders = dict()
@@ -232,7 +232,9 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
         if contact is not None:
             headers['Contact'] = contact
     headers['CSeq'] = '%s %s' % (cseq,method)
-    headers['Max-Forwards'] = 70 
+    headers['Max-Forwards'] = 70
+    headers['Accept'] = accept
+    headers['Content-Length'] = contentlength
     if auth is not None:
         response = challengeResponse(auth['username'],auth['realm'],auth['password'],method,uri,auth['nonce'])        
         if auth['proxy']:
