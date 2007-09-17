@@ -432,6 +432,17 @@ def getmaskranges(ipstring):
     naddr2 = naddr1 + (1<<(32-masklen)) - 1
     return (naddr1,naddr2)
 
+def scanfromdb(db,methods):
+    import anydbm
+    database = anydbm.open(db,'r')
+    for k in database.keys():
+        for method in methods:
+            ip,port = k.split(':')
+            port = int(port)
+            yield(ip,port,method)
+    
+    
+
 def resumeFromIP(ip,args):
     ipranges = list()
     foundit = False
@@ -449,8 +460,6 @@ def resumeFromIP(ip,args):
     	rargs.append('-'.join(map(numToDottedQuad,iprange)))
     return rargs
 
-def resumeFrom(n,args):
-    pass
 
 def packetcounter(n):
 	i = 0

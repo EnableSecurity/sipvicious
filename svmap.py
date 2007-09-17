@@ -236,8 +236,8 @@ if __name__ == '__main__':
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
                       default=False,
                   help="Scan random IP addresses")
-    parser.add_option("-i", "--input", dest="inputcsv",
-                  help="Input csv based on previous results", metavar="input.csv")
+    parser.add_option("-i", "--input", dest="input",
+                  help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
     parser.add_option("-p", "--port", dest="port", default='5060',
                   help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
@@ -265,7 +265,7 @@ if __name__ == '__main__':
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
     (options, args) = parser.parse_args()        
-    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range, resumeFromIP
+    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range, resumeFromIP, scanfromdb
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious','svmap',options.resume)
@@ -291,10 +291,13 @@ if __name__ == '__main__':
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
 
-    if options.inputcsv is not None:
-        import csv
-        reader = csv.reader(open(options.inputcsv,'rb'))
-        scaniter = scanfromfile(reader,options.method.split(','))
+    if options.input is not None:
+        db = os.path.join('.sipvicious','svmap',options.input,'resultua.db')
+        if os.path.exists(db):
+            scaniter = scanfromdb(db,options.method.split(','))
+        else:
+            logging.error("the session name does not exist. Please use svreport to list existing scans")
+            exit(1)
     elif options.randomscan:
         logging.debug('making use of random scan')
         logging.debug('parsing range of ports: %s' % options.port)
