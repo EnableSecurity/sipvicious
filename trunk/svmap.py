@@ -318,8 +318,7 @@ if __name__ == '__main__':
         scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
     else:
         if len(args) < 1:
-            #parser.print_help()
-	    print usage
+            parser.print_help()
             exit(1)        
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
