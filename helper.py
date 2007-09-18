@@ -92,6 +92,8 @@ def getCID(pkt):
 
 def parseHeader(buff,type='response'):
     SEP = '\r\n\r\n'
+    import logging
+    log = logging.getLogger('parseHeader')
     if SEP in buff:
         header,body = buff.split(SEP,1)
     else:
@@ -100,13 +102,23 @@ def parseHeader(buff,type='response'):
     if len(headerlines) > 1:
         r = dict()
         if type == 'response':
-            sipversion,_code,description = headerlines[0].split(' ',2)
+	    _t = headerlines[0].split(' ',2)
+	    if len(_t) == 3:
+            	sipversion,_code,description = _t
+	    else:
+		log.warn('Could not parse the first header line: %s' % `_t`)
+		return r
             try:
                 r['code'] = int(_code)
             except ValueError:
                 return r
         elif type == 'request':
-            method,uri,sipversion = headerlines[0].split(' ',2)        
+	    _t = headerlines[0].split(' ',2)
+	    if len(_t) == 3:
+            	method,uri,sipversion = _t     
+	    else:
+		log.warn('Could not parse the first header line: %s' % `_t`)
+		return r  
         r['headers'] = dict()
         for headerline in headerlines[1:]:
             SEP = ':'
