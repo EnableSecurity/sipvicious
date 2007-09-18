@@ -31,7 +31,7 @@ from struct import pack,unpack
 
 
 class DrinkOrSip:
-    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='',
+    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', 
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060):
         import logging,anydbm
@@ -84,8 +84,11 @@ class DrinkOrSip:
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '): 
-            self.log.info("Looks like we received our own packet")
-            self.log.debug(repr(buff))            
+	    if self.externalip == srcip:
+		self.log.debug("We received our own packet from %s:%s" % srcaddr)
+	    else: 
+            	self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
+            	self.log.debug(repr(buff))            
             return
         self.log.debug("running fingerPrintPacket()")
         res = fingerPrintPacket(buff)
@@ -108,6 +111,9 @@ class DrinkOrSip:
             self.log.info( resultstr )
 	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
 	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
+	else:
+	    self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
+	    self.log.debug('Packet: %s' % `buff`)
                 
     def start(self):
         from helper import makeRequest
@@ -115,11 +121,7 @@ class DrinkOrSip:
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
         # to port 5060
-        if self.bindingip == '':
-            bindingip = 'any'
-        else:
-            bindingip = self.bindingip
-        self.log.debug("binding to %s:%s" % (bindingip,self.localport))
+        self.log.debug("binding to %s:%s" % (self.bindingip,self.localport))
         while 1:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
@@ -179,7 +181,8 @@ class DrinkOrSip:
                 callid = '%s' % random.getrandbits(80)
                 contact = None
                 if method != 'REGISTER':
-                    contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
+                    #contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
+		    contact = 'sip:1000@%s:%s' % (self.externalip,self.localport)
                 data = makeRequest(
                                 method,
                                 fromaddr,
