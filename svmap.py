@@ -111,6 +111,18 @@ class DrinkOrSip:
             self.log.info( resultstr )
 	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
 	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
+	    self.resultip.sync()
+	    self.resultua.sync()
+	    if self.sessionpath is not None:
+		    if self.packetcount.next():
+			try:
+				f=open(os.path.join(self.sessionpath,'lastip.txt'),'w')
+				f.write(self.nextip)
+				f.close()
+				self.log.debug('logged last ip %s' % self.nextip)
+			except IOError:
+				self.log.warn('could not log the last ip scanned')
+
 	else:
 	    self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
 	    self.log.debug('Packet: %s' % `buff`)
@@ -416,8 +428,10 @@ if __name__ == '__main__':
                     logging.warn('could not remove %s' % scanrandomstore)
                     pass
     # display results
-    if not options.quiet: 
-	if len(sipvicious.resultua) > 0:
+    if not options.quiet:
+	lenres = len(sipvicious.resultua)  
+	if lenres > 0:
+	   if lenres < 400 and options.save is not None:
         	from pptable import indent,wrap_onspace
 	        width = 60
 	        labels = ('SIP Device','User Agent')
@@ -426,6 +440,8 @@ if __name__ == '__main__':
         	    rows.append((k,sipvicious.resultua[k]))
 	        print indent([labels]+rows,hasHeader=True,
         	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+	   else:
+		print "too many to print - use svreport for this"
 	else:
 		print "found nothing"
     end_time = datetime.now()
