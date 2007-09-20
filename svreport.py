@@ -35,6 +35,7 @@ if command == 'list':
 		print "Type of scan: %s" % k
 		for r in listresult[k]:
 			print "\t%s" % r
+		print
 elif command == 'export':
 	if options.session is None:
 		parser.error("please specify a saved session")
