@@ -4,7 +4,12 @@ from xml.dom.minidom import Document
 from optparse import OptionParser
 from sys import exit
 import os
-parser = OptionParser()
+usage = """%prog [command] [options]
+Command can be:
+	- list : lists all scans
+	- export : exports the given scan to a given format
+"""
+parser = OptionParser(usage=usage)
 parser.add_option("-t", "--type", dest="sessiontype",
 		help="Type of session. This is usually either svmap, svwar or svcrack. If not set I will try to find the best match")
 parser.add_option("-s", "--session", dest="session",
