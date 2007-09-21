@@ -22,6 +22,7 @@ __GPL__ = """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.1-svn'
+__prog__ = 'svmap'
 
 import socket
 import select
@@ -283,7 +284,7 @@ if __name__ == '__main__':
     from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range, resumeFromIP, scanfromdb
     exportpath = None
     if options.resume is not None:
-        exportpath = os.path.join('.sipvicious','svmap',options.resume)
+        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
 	if not os.path.exists(exportpath):
 		logging.critical('A session with the name %s was not found'% options.resume)
 		exit(1)
