@@ -37,6 +37,8 @@ if command == 'list':
 			print "\t%s" % r
 		print
 elif command == 'export':
+	from datetime import datetime
+	start_time = datetime.now()
 	if options.session is None:
 		parser.error("please specify a saved session")
 		exit(1)
@@ -109,4 +111,5 @@ elif command == 'export':
 			for k in resultua.keys():
 				writer.writerow((k,resultua[k]))
 
-		
+	print "That took %s" % (datetime.now() - start_time)
+
