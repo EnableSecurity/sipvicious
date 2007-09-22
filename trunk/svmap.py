@@ -421,10 +421,10 @@ if __name__ == '__main__':
                     pass
     # display results
     if not options.quiet:
-	lenres = len(sipvicious.resultua)
-        print lenres
+	lenres = len(sipvicious.resultua)        
 	if lenres > 0:
-	   if (lenres < 400 and options.save is not None) or options.save is None:
+            logging.info("we have %s devices" % lenres)
+            if (lenres < 400 and options.save is not None) or options.save is None:
         	from pptable import indent,wrap_onspace
 	        width = 60
 	        labels = ('SIP Device','User Agent')
@@ -433,10 +433,10 @@ if __name__ == '__main__':
         	    rows.append((k,sipvicious.resultua[k]))
 	        print indent([labels]+rows,hasHeader=True,
         	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
-	   else:
-		print "too many to print - use svreport for this"
+            else:
+                logging.warn("too many to print - use svreport for this")
 	else:
-		print "found nothing"
+		logging.warn("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
