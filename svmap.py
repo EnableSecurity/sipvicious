@@ -112,18 +112,9 @@ class DrinkOrSip:
             self.log.info( resultstr )
 	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
 	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
-	    self.resultip.sync()
-	    self.resultua.sync()
 	    if self.sessionpath is not None:
-		    if self.packetcount.next():
-			try:
-				f=open(os.path.join(self.sessionpath,'lastip.txt'),'w')
-				f.write(self.nextip)
-				f.close()
-				self.log.debug('logged last ip %s' % self.nextip)
-			except IOError:
-				self.log.warn('could not log the last ip scanned')
-
+                    self.resultip.sync()
+                    self.resultua.sync()		    
 	else:
 	    self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
 	    self.log.debug('Packet: %s' % `buff`)
@@ -295,7 +286,7 @@ if __name__ == '__main__':
 	options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-	exportpath = os.path.join('.sipvicious','svmap',options.save)
+	exportpath = os.path.join('.sipvicious',__prog__,options.save)
     logginglevel = 30
     if options.verbose is not None:
 	if options.verbose >= 3:
@@ -308,7 +299,7 @@ if __name__ == '__main__':
     logging.debug('started logging')
 
     if options.input is not None:
-        db = os.path.join('.sipvicious','svmap',options.input,'resultua.db')
+        db = os.path.join('.sipvicious',__prog__,options.input,'resultua.db')
         if os.path.exists(db):
             scaniter = scanfromdb(db,options.method.split(','))
         else:
@@ -372,7 +363,7 @@ if __name__ == '__main__':
             scaniter = scanlist(iprange,portrange,options.method.split(','))    
     if options.save is not None:
         if options.resume is None:
-            exportpath = os.path.join('.sipvicious','svmap',options.save)
+            exportpath = os.path.join('.sipvicious',__prog__,options.save)
             if os.path.exists(exportpath):
                 logging.warn('we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
@@ -430,9 +421,10 @@ if __name__ == '__main__':
                     pass
     # display results
     if not options.quiet:
-	lenres = len(sipvicious.resultua)  
+	lenres = len(sipvicious.resultua)
+        print lenres
 	if lenres > 0:
-	   if lenres < 400 and options.save is not None:
+	   if (lenres < 400 and options.save is not None) or options.save is None:
         	from pptable import indent,wrap_onspace
 	        width = 60
 	        labels = ('SIP Device','User Agent')
