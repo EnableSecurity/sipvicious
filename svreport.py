@@ -6,8 +6,9 @@ from sys import exit
 import os
 usage = """%prog [command] [options]
 Command can be:
-	- list : lists all scans
-	- export : exports the given scan to a given format
+	- list:\tlists all scans
+	- export:\texports the given scan to a given format
+	- delete:\t deletes the scan
 """
 parser = OptionParser(usage=usage)
 parser.add_option("-t", "--type", dest="sessiontype",
@@ -20,7 +21,7 @@ parser.add_option("-o", "--output", dest="outputfile",
 		help="Output filename")
 (options,args) = parser.parse_args()
 if len(args) < 1:
-	parser.error("please specify a command. Current commands are list and export")
+	parser.error("please specify a command. Current commands are list, export and delete")
 	exit(1)
 command = args[0]
 sessiontypes = ['svmap','svwar','svcrack']
@@ -36,6 +37,29 @@ if command == 'list':
 		for r in listresult[k]:
 			print "\t%s" % r
 		print
+if command == 'delete':
+	sessionpath = None
+	if options.session is None:
+		parser.error("please specify a saved session")
+		exit(1)
+	if options.sessiontype is None:
+		for sessiontype in sessiontypes:
+			p = os.path.join('.sipvicious',sessiontype,options.session)
+			if os.path.exists(p):
+				sessionpath = p
+				break
+	else:
+		p = os.path.join('.sipvicious',options.sessiontype,options.session)
+		if os.path.exists(p):
+			sessionpath = p
+			sessiontype = options.sessiontype
+	if sessionpath is None:
+		parser.error('Session could not be found. Make sure it exists by making use of %prog list')
+		exit(1)
+	import shutil
+	shutil.rmtree(sessionpath)
+	print "ok session was removed"
+
 elif command == 'export':
 	from datetime import datetime
 	start_time = datetime.now()
