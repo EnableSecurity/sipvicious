@@ -499,6 +499,45 @@ def packetcounter(n):
 			r = False
 		yield(r)
 
+sessiontypes = ['svmap','svwar','svcrack']
+def findsession(chosensessiontype=None):
+        import os
+	listresult = dict()
+	for sessiontype in sessiontypes:
+		if chosensessiontype in [None,sessiontype]:
+			p = os.path.join('.sipvicious',sessiontype)
+			if os.path.exists(p):
+				listresult[sessiontype] = os.listdir(p)
+	return listresult
+	
+def listsessions(chosensessiontype=None):	
+	listresult = findsession(chosensessiontype)
+	for k in listresult.keys():
+		print "Type of scan: %s" % k
+		for r in listresult[k]:
+			print "\t%s" % r
+		print
+
+def deletesessions(chosensession,chosensessiontype):
+	import shutil,os
+	sessionpath = None
+	if chosensessiontype is None:
+		for sessiontype in sessiontypes:
+			p = os.path.join('.sipvicious',sessiontype,chosensession)
+			if os.path.exists(p):
+				sessionpath = p
+				shutil.rmtree(sessionpath)
+				print "ok session at %s was removed" % sessionpath
+	else:
+		p = os.path.join('.sipvicious',chosensessiontype,chosensession)
+		if os.path.exists(p):
+			sessionpath = p
+			sessiontype = chosensessiontype
+			shutil.rmtree(sessionpath)
+			print "ok session at %s was removed" % sessionpath
+        return sessionpath
+
+
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
     seq = getranges('google.com/24')    
