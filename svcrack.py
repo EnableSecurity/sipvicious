@@ -262,8 +262,7 @@ class ASipOfRedWine:
                                     pickle.dump(self.crackargs.tell(),open(os.path.join(exportpath,'lastpasswd.pkl'),'w'))
                                     self.log.debug('logged last position %s' % self.crackargs.tell())
                             except IOError:
-                                self.log.warn('could not log the last extension scanned')
-                    
+                                self.log.warn('could not log the last extension scanned')                    
                 except socket.error,err:
                     self.log.error("socket error: %s" % err)
                     break
