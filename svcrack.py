@@ -21,8 +21,8 @@ __GPL__ = """
 """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.1-svn'
-
+__version__= '0.1-svn'
+__prog__   = 'svcrack'
 import socket
 import select
 import random
@@ -31,12 +31,21 @@ import base64
 
 
 class ASipOfRedWine:
-    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,username=None,crackmode=1,crackargs=None,realm=None,selecttime=0.005,compact=False,reusenonce=False,extension=None):
-        from helper import dictionaryattack, numericbrute
+    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
+                 username=None,crackmode=1,crackargs=None,realm=None,sessionpath=None,
+                 selecttime=0.005,compact=False,reusenonce=False,extension=None):
+        from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(10)
+        self.sessionpath = sessionpath
+        
+        if self.sessionpath is not  None:
+	    self.resultpasswd = anydbm.open( 
+                os.path.join(self.sessionpath,'resultpasswd.db'),'c')
+	else:
+            self.resultpasswd = dict()
         #self.sock.bind(('',localport))
         self.nomore = False
         self.passwordcracked = False
@@ -45,6 +54,8 @@ class ASipOfRedWine:
         self.xlist = list()
         self.challenges = list()
         self.localhost = 'localhost'
+        self.crackmode = crackmode
+        self.crackargs = crackargs
         self.dsthost,self.dstport =host,port
         if crackmode == 1:            
             self.passwdgen = numericbrute(*crackargs)
@@ -57,6 +68,8 @@ class ASipOfRedWine:
         self.dstisproxy = None
         self.ignorenewnonce = True
         self.noauth = False
+        self.auth = dict()
+        self.previouspassword = str()
         self.compact=compact
         self.reusenonce = reusenonce
         self.staticnonce = None
@@ -68,6 +81,9 @@ class ASipOfRedWine:
         self.bindingip = bindingip
         self.localport = localport
         self.originallocalport = localport
+        if self.sessionpath is not None:
+            self.packetcount = packetcounter(50)
+
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
     OKEY = 'SIP/2.0 200 '
@@ -87,7 +103,7 @@ class ASipOfRedWine:
         localtag=None
         if auth is not None:
             cseq = 2
-            localtag=base64.b64encode('%s:%s' % (auth['username'],auth['password']))            
+            localtag=base64.b64encode('%s:%s' % (self.auth['username'],self.auth['password']))
         register = makeRequest(
                                     m,
                                     '"%s"<sip:%s@%s>' % (extension,extension,self.dsthost),
@@ -108,6 +124,7 @@ class ASipOfRedWine:
         from helper import getNonce,getCredentials,getRealm,getCID
         # we got stuff to read off the socket                
         buff,srcaddr = self.sock.recvfrom(8192)
+
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
@@ -131,9 +148,13 @@ class ASipOfRedWine:
             if _tmp is not None:
                 crackeduser,crackedpasswd = _tmp
                 self.log.info("The password for %s is %s" % (crackeduser,crackedpasswd))
+                self.resultpasswd[crackeduser] = crackedpasswd
+                if self.sessionpath is not None:
+                    self.resultpasswd.sync()
             else:
                 self.log.info("Does not seem to require authentication")
                 self.noauth = True
+                self.resultpasswd[crackeduser] = ''
         elif buff.startswith(self.NOTFOUND):
             self.log.warn("User not found")
             self.noauth = True
@@ -150,7 +171,7 @@ class ASipOfRedWine:
     
     def start(self):
         #from helper import ,getCredentials,getRealm,getCID
-        import socket
+        import socket, pickle
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -173,7 +194,7 @@ class ASipOfRedWine:
         # perform a test 1st ..
         data = self.Register(self.extension,self.dsthost)
         try:
-            self.sock.sendto(data,(self.dsthost,self.dstport))
+            self.sock.sendto(data,(self.dsthost,self.dstport))            
         except socket.error,err:
             self.log.error("socket error: %s" % err)
             return
@@ -208,27 +229,41 @@ class ASipOfRedWine:
                 # no stuff to read .. its our turn to send back something
                 if len(self.challenges) > 0:
                     # we have challenges to take care of
-                    auth = dict()
-                    auth['username'] = self.username
-                    auth['realm'] = self.realm
+                    self.auth = dict()
+                    self.auth['username'] = self.username
+                    self.auth['realm'] = self.realm
                     if self.reusenonce:
-                        auth['nonce'] = self.staticnonce
+                        self.auth['nonce'] = self.staticnonce
                         cid = self.staticcid
                     else:
-                        auth['nonce'],cid = self.challenges.pop()
-                    auth['proxy'] = self.dstisproxy
+                        self.auth['nonce'],cid = self.challenges.pop()
+                    self.auth['proxy'] = self.dstisproxy 
                     try:                        
-                        auth['password'] = self.passwdgen.next()                        
+                        self.auth['password'] = self.passwdgen.next()
+                        self.previouspassword = self.auth['password']
+                        self.log.debug('trying %s' % self.auth['password'])
                     except StopIteration:
                         self.log.info("no more passwords")
                         self.nomore = True
                         continue
                 else:
-                    auth = None
+                    self.auth = None
                     cid = None
-                data = self.Register(self.extension,self.dsthost,auth,cid)                
+                data = self.Register(self.extension,self.dsthost,self.auth,cid)                
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
+                    if self.sessionpath is not None:
+                        if self.packetcount.next():                    
+                            try:                                    
+                                if self.crackmode == 1:
+                                    pickle.dump(self.previouspassword,open(os.path.join(exportpath,'lastpasswd.pkl'),'w'))
+                                    self.log.debug('logged last extension %s' % self.previouspassword)
+                                elif self.crackmode == 2:
+                                    pickle.dump(self.crackargs.tell(),open(os.path.join(exportpath,'lastpasswd.pkl'),'w'))
+                                    self.log.debug('logged last position %s' % self.crackargs.tell())
+                            except IOError:
+                                self.log.warn('could not log the last extension scanned')
+                    
                 except socket.error,err:
                     self.log.error("socket error: %s" % err)
                     break
@@ -236,8 +271,13 @@ class ASipOfRedWine:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
-    from helper import getRange
+    from helper import getRange, resumeFrom
+    import anydbm
+    import os
+    from sys import exit
     import logging
+    import pickle
+
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "example: %prog -u100 -d dictionary.txt 10.0.0.1"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
@@ -246,6 +286,10 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                       default=False,
                       help="Quiet mode")
+    parser.add_option("-s", "--save", dest="save",
+                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
+    parser.add_option("--resume", dest="resume",
+                  help="resume a previous scan", metavar="NAME")        
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP Registrar", metavar="PORT")
     parser.add_option("-u", "--username", dest="username",
@@ -279,32 +323,94 @@ if __name__ == '__main__':
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
     (options, args) = parser.parse_args()
+    logginglevel = 30
+    if options.verbose is not None:
+	if options.verbose >= 3:
+		logginglevel = 10
+	else:
+		logginglevel = 30-(options.verbose*10)
+    if options.quiet:
+        logginglevel = 50
+    exportpath = None
+    logging.basicConfig(level=logginglevel)
+    logging.debug('started logging')
+    if options.resume is not None:
+        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+	if not os.path.exists(exportpath):
+		logging.critical('A session with the name %s was not found'% options.resume)
+		exit(1)
+        optionssrc = os.path.join(exportpath,'options.pkl')
+	previousresume = options.resume
+        previousverbose = options.verbose
+        options,args = pickle.load(open(optionssrc,'r'))        
+	options.resume = previousresume
+        options.verbose = previousverbose
+    elif options.save is not None:
+	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        logging.debug('Session path: %s' % exportpath)
+    
+    if options.resume is not None:
+        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+	if not os.path.exists(exportpath):
+		logging.critical('A session with the name %s was not found'% options.resume)
+		exit(1)
+        optionssrc = os.path.join(exportpath,'options.pkl')
+	previousresume = options.resume
+        previousverbose = options.verbose
+        options,args = pickle.load(open(optionssrc,'r'))        
+	options.resume = previousresume
+        options.verbose = previousverbose
+    elif options.save is not None:
+	exportpath = os.path.join('.sipvicious',__prog__,options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:
         host=args[0]
+        
     if options.username is None:
         parser.error("provide one username to crack")
-    logginglevel = 20
-    if options.verbose is not None:
-        for somecount in xrange(options.verbose):
-            if logginglevel > 10:
-                logginglevel = logginglevel-10
-    if options.quiet:
-        logginglevel = 50
-    logging.basicConfig(level=logginglevel)
-    logging.debug('started logging')    
+
     if options.dictionary is not None:
         crackmode=2
         try:
             dictionary = open(options.dictionary,'r')
         except IOError:
-            logging.error("could not open %s" % options.dictionary            )
+            logging.error("could not open %s" % options.dictionary)
+        if options.resume is not None:
+            lastpasswdsrc = os.path.join(exportpath,'lastpasswd.pkl')
+            previousposition = pickle.load(open(lastpasswdsrc,'r'))
+            dictionary.seek(previousposition)
         crackargs = dictionary
     else:
         crackmode = 1
+        if options.resume is not None:
+            lastpasswdsrc = os.path.join(exportpath,'lastpasswd.pkl')
+            try:
+                previouspasswd = pickle.load(open(lastpasswdsrc,'r'))
+            except IOError:
+                logging.critical('Could not read from %s' % lastpasswdsrc)
+                exit(1)
+            logging.debug('Previous range: %s' % options.range)
+            options.range = resumeFrom(previouspasswd,options.range)
+            logging.debug('New range: %s' % options.range)
+            logging.info('Resuming from %s' % previouspasswd)
         rangelist = getRange(options.range)        
         crackargs = (rangelist,options.zeropadding)
+    if options.save is not None:
+        if options.resume is None:
+            exportpath = os.path.join('.sipvicious',__prog__,options.save)
+            if os.path.exists(exportpath):
+                logging.warn('we found a previous scan with the same name. Please choose a new session name')
+                exit(1)
+            logging.debug('creating an export location %s' % exportpath)
+            try:
+                os.makedirs(exportpath,mode=0700)
+            except OSError:
+                logging.critical('could not create the export location %s' % exportpath)
+                exit(1)
+            optionsdst = os.path.join(exportpath,'options.pkl')
+            logging.debug('saving options to %s' % optionsdst)
+            pickle.dump([options,args],open(optionsdst,'w'))
     sipvicious = ASipOfRedWine(
                     host,
                     username=options.username,
@@ -313,7 +419,8 @@ if __name__ == '__main__':
                     crackmode=crackmode,
                     crackargs=crackargs,
                     reusenonce=options.reusenonce,
-                    extension=options.extension
+                    extension=options.extension,
+                    sessionpath=exportpath,
                     )
     
     start_time = datetime.now()
@@ -331,7 +438,19 @@ if __name__ == '__main__':
         else:
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
-        logging.exception( "Exception" )            
+        logging.exception( "Exception" )
+    if options.save is not None and sipvicious.previouspassword is not None:
+        lastextensiondst = os.path.join(exportpath,'lastpasswd.pkl')
+        logging.debug('saving state to %s' % lastextensiondst)
+        try:
+            if crackmode == 1:
+                pickle.dump(sipvicious.previouspassword,open(os.path.join(exportpath,'lastpasswd.pkl'),'w'))
+                logging.debug('logged last password %s' % sipvicious.previouspassword)
+            elif crackmode == 2:
+                pickle.dump(sipvicious.crackargs.tell(),open(os.path.join(exportpath,'lastpasswd.pkl'),'w'))
+                logging.debug('logged last position %s' % sipvicious.crackargs.tell())            
+        except IOError:
+            logging.warn('could not log the last tried password')
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
