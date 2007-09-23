@@ -56,7 +56,7 @@ def dictionaryattack(dictionaryfile):
         yield(r)
         r = dictionaryfile.readline().strip()
     dictionaryfile.close()
-        
+
 
 class genericbrute:
     pass
@@ -472,6 +472,21 @@ def resumeFromIP(ip,args):
     	rargs.append('-'.join(map(numToDottedQuad,iprange)))
     return rargs
 
+
+def resumeFrom(val,rangestr):
+    val = int(val)
+    ranges = map(lambda x : map(int,x.split('-')),rangestr.split(','))    
+    foundit = False
+    tmp = list()
+    for r in ranges:        
+        start,end = r
+        if not foundit:
+            if start <= val and end >= val:                
+                tmp.append((val,end))
+                foundit= True
+        else:
+            tmp.append((start,end))    
+    return ','.join(map(lambda x: '-'.join(map(str,x)),tmp))
 
 def packetcounter(n):
 	i = 0

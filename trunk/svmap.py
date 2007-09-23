@@ -208,8 +208,8 @@ class DrinkOrSip:
 		    if self.sessionpath is not None:
 			    if self.packetcount.next():
 				try:
-					f=open(os.path.join(self.sessionpath,'lastip.txt'),'w')
-					f.write(self.nextip)
+					f=open(os.path.join(self.sessionpath,'lastip.pkl'),'w')
+					pickle.dump(self.nextip,f)
 					f.close()
 					self.log.debug('logged last ip %s' % self.nextip)
 				except IOError:
@@ -341,10 +341,10 @@ if __name__ == '__main__':
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:
             if options.resume is not None:
-                lastipsrc = os.path.join(exportpath,'lastip.txt')
+                lastipsrc = os.path.join(exportpath,'lastip.pkl')
                 try:
-                    f=open(lastipsrc,'r')
-                    previousip = f.read()
+                    f=open(lastipsrc,'r')                    
+                    previousip = pickle.load(f)
                     f.close()
                 except IOError:
                     logging.critical('Could not read from %s' % lastipsrc)
@@ -403,11 +403,11 @@ if __name__ == '__main__':
             pass
         logging.exception( "Exception" )
     if options.save is not None and sipvicious.nextip is not None and options.randomize is False and options.randomscan is False:
-   	lastipdst = os.path.join(exportpath,'lastip.txt')
+   	lastipdst = os.path.join(exportpath,'lastip.pkl')
    	logging.debug('saving state to %s' % lastipdst)
         try:
             f = open(lastipdst,'w')
-            f.write(sipvicious.nextip)
+            pickle.dump(sipvicious.nextip,f)
             f.close()
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)

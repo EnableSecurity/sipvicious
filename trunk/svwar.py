@@ -22,6 +22,7 @@ __GPL__ = """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.1-svn'
+__prog__ = 'svwar'
 
 import socket
 import select
@@ -31,10 +32,17 @@ import logging
 
 
 class TakeASip:    
-    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,compact=False,socktimeout=3):
-        from helper import dictionaryattack, numericbrute
+    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
+                 method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
+                 sessionpath=None,compact=False,socktimeout=3):
+        from helper import dictionaryattack, numericbrute, packetcounter
         import logging
-        self.log = logging.getLogger('TakeASip')        
+        self.log = logging.getLogger('TakeASip')
+        self.sessionpath = sessionpath
+        if self.sessionpath is not  None:
+	    self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth.db'),'c')		
+	else:
+            self.resultauth = dict()		
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
         self.bindingip = bindingip
@@ -47,6 +55,8 @@ class TakeASip:
         self.localhost = 'localhost'
         self.realm = None
         self.dsthost,self.dstport = host,port
+        self.guessmode = guessmode
+        self.guessargs = guessargs
         if guessmode == 1:
             self.usernamegen = numericbrute(*guessargs)
         elif guessmode == 2:
@@ -56,6 +66,8 @@ class TakeASip:
         self.nomore=False
         self.BADUSER=None
         self.method = method.upper()
+	if self.sessionpath is not None:
+	        self.packetcount = packetcounter(50)
 
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
@@ -112,15 +124,25 @@ class TakeASip:
                 if self.realm is None:
                     self.realm = getRealm(buff)
                 self.log.info("extension '%s' exists - requires authentication" % extension)
+                self.resultauth[extension] = 'reqauth'
+                if self.sessionpath is not None:
+                    self.resultauth.sync()
+
             elif buff.startswith(self.TRYING):
                 pass
             elif buff.startswith(self.RINGING):
                 pass
             elif buff.startswith(self.OKEY):            
                 self.log.info("extension '%s' exists - authentication not required" % extension)
+                self.resultauth[extension] = 'noauth'
+                if self.exportpath is not None:
+                    self.resultauth.sync()
             else:
-                self.log.warn("extension '%s' probably exists but the response is weird" % extension)
+                self.log.warn("extension '%s' probably exists but the response is unexpected" % extension)
                 self.log.debug("response: %s" % firstline)
+                self.resultauth[extension] = 'weird'
+                if self.exportpath is not None:
+                    self.resultauth.sync()
         elif buff.startswith(self.NOTFOUND):            
             self.log.debug("User '%s' not found" % extension)
         elif buff.startswith(self.TRYING):
@@ -143,7 +165,7 @@ class TakeASip:
         
     
     def start(self):        
-        import socket
+        import socket, pickle
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -165,8 +187,8 @@ class TakeASip:
 
         # perform a test 1st .. we want to see if we get a 404
         # some other error for unknown users
-        nextuser = random.getrandbits(32)
-        data = self.createRequest(self.method,nextuser,self.dsthost)
+        self.nextuser = random.getrandbits(32)
+        data = self.createRequest(self.method,self.nextuser,self.dsthost)
         try:
             self.sock.sendto(data,(self.dsthost,self.dstport))
         except socket.error,err:
@@ -218,13 +240,24 @@ class TakeASip:
             else:
                 # no stuff to read .. its our turn to send back something
                 try:
-                    nextuser = self.usernamegen.next()
+                    self.nextuser = self.usernamegen.next()
                 except StopIteration:
                     self.nomore = True
                     continue
-                data = self.createRequest(self.method,nextuser,self.dsthost)                
+                data = self.createRequest(self.method,self.nextuser,self.dsthost)                
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
+		    if self.sessionpath is not None:
+			    if self.packetcount.next():
+				try:                                    
+                                    if self.guessmode == 1:
+                                        pickle.dump(self.nextuser,open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                                        self.log.debug('logged last extension %s' % self.nextuser)
+                                    elif self.guessmode == 2:
+                                        pickle.dump(self.guessargs.tell(),open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                                        self.log.debug('logged last position %s' % self.guessargs.tell())
+				except IOError:
+                                    self.log.warn('could not log the last extension scanned')
                 except socket.error,err:
                     self.log.error("socket error: %s" % err)
                     break
@@ -232,7 +265,12 @@ class TakeASip:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
-    import logging, sys
+    import anydbm
+    from helper import resumeFrom
+    import os
+    from sys import exit
+    import logging
+    import pickle
     #logging.basicConfig(level=logging.DEBUG)
     usage = "usage: %prog [options] target\r\n"
     usage += "example: %prog -r100-999 10.0.0.1"    
@@ -242,6 +280,10 @@ if __name__ == '__main__':
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                       default=False,
                       help="Quiet mode")
+    parser.add_option("-s", "--save", dest="save",
+                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
+    parser.add_option("--resume", dest="resume",
+                  help="resume a previous scan", metavar="NAME")    
     parser.add_option("-p", "--port", dest="port", default=5060, type="int",
                   help="destination port of the SIP UA", metavar="PORT")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
@@ -271,19 +313,35 @@ if __name__ == '__main__':
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
     (options, args) = parser.parse_args()
-    if len(args) != 1:
-        parser.error("provide one hostname")
-    else:
-        host=args[0]
-    logginglevel = 20
+    exportpath = None
+    logginglevel = 30
     if options.verbose is not None:
-        for somecount in xrange(options.verbose):
-            if logginglevel > 10:
-                logginglevel = logginglevel-10
+	if options.verbose >= 3:
+		logginglevel = 10
+	else:
+		logginglevel = 30-(options.verbose*10)
     if options.quiet:
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
+    
+    if options.resume is not None:
+        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+	if not os.path.exists(exportpath):
+		logging.critical('A session with the name %s was not found'% options.resume)
+		exit(1)
+        optionssrc = os.path.join(exportpath,'options.pkl')
+	previousresume = options.resume
+        previousverbose = options.verbose
+        options,args = pickle.load(open(optionssrc,'r'))        
+	options.resume = previousresume
+        options.verbose = previousverbose
+    elif options.save is not None:
+	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+    if len(args) != 1:
+        parser.error("provide one hostname")
+    else:
+        host=args[0]
     if options.dictionary is not None:
         guessmode=2
         try:
@@ -291,12 +349,42 @@ if __name__ == '__main__':
         except IOError:
             logging.error( "could not open %s" % options.dictionary )
             sys.exit(1)
+        if options.resume is not None:
+            lastextensionsrc = os.path.join(exportpath,'lastextension.pkl')
+            previousposition = pickle.load(open(lastextensionsrc,'r'))
+            dictionary.seek(previousposition)
         guessargs = dictionary
     else:
         from helper import getRange 
         guessmode = 1
+        if options.resume is not None:
+            lastextensionsrc = os.path.join(exportpath,'lastextension.pkl')
+            try:
+                previousextension = pickle.load(open(lastextensionsrc,'r'))
+            except IOError:
+                logging.critical('Could not read from %s' % lastipsrc)
+                exit(1)
+            logging.debug('Previous range: %s' % options.range)
+            options.range = resumeFrom(previousextension,options.range)
+            logging.debug('New range: %s' % options.range)
+            logging.info('Resuming from %s' % previousextension)
         extensionstotry = getRange(options.range)
         guessargs = (extensionstotry,options.zeropadding)
+    if options.save is not None:
+        if options.resume is None:
+            exportpath = os.path.join('.sipvicious',__prog__,options.save)
+            if os.path.exists(exportpath):
+                logging.warn('we found a previous scan with the same name. Please choose a new session name')
+                exit(1)
+            logging.debug('creating an export location %s' % exportpath)
+            try:
+                os.makedirs(exportpath,mode=0700)
+            except OSError:
+                logging.critical('could not create the export location %s' % exportpath)
+                exit(1)
+            optionsdst = os.path.join(exportpath,'options.pkl')
+            logging.debug('saving options to %s' % optionsdst)
+            pickle.dump([options,args],open(optionsdst,'w'))
     sipvicious = TakeASip(
                     host,
                     port=options.port,
@@ -304,7 +392,8 @@ if __name__ == '__main__':
                     method=options.method,
                     compact=options.enablecompact,
                     guessmode=guessmode,
-                    guessargs=guessargs
+                    guessargs=guessargs,
+                    sessionpath=exportpath,
                     )
     start_time = datetime.now()
     logging.info("scan started at %s" % str(start_time))
@@ -321,7 +410,19 @@ if __name__ == '__main__':
         else:
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
-        logging.exception( "Exception" )            
+        logging.exception( "Exception" )
+    if options.save is not None and sipvicious.nextuser is not None:
+   	lastextensiondst = os.path.join(exportpath,'lastextension.pkl')
+   	logging.debug('saving state to %s' % lastextensiondst)
+        try:
+            if guessmode == 1:
+                pickle.dump(sipvicious.nextuser,open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                logging.debug('logged last extension %s' % sipvicious.nextuser)
+            elif guessmode == 2:
+                pickle.dump(sipvicious.guessargs.tell(),open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                logging.debug('logged last position %s' % sipvicious.guessargs.tell())            
+        except IOError:
+            logging.warn('could not log the last extension scanned')
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
