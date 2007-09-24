@@ -527,7 +527,7 @@ def deletesessions(chosensession,chosensessiontype):
 			if os.path.exists(p):
 				sessionpath = p
 				shutil.rmtree(sessionpath)
-				print "ok session at %s was removed" % sessionpath
+				print "Session at %s was removed" % sessionpath
 	else:
 		p = os.path.join('.sipvicious',chosensessiontype,chosensession)
 		if os.path.exists(p):
