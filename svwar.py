@@ -425,7 +425,7 @@ if __name__ == '__main__':
             logging.warn('could not log the last extension scanned')
     # display results
     if not options.quiet:
-	lenres = len(sipvicious.resulauth)        
+	lenres = len(sipvicious.resultauth)        
 	if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
