@@ -433,8 +433,8 @@ if __name__ == '__main__':
 	        width = 60
 	        labels = ('Extension','Authentication')
 	        rows = list()
-	        for k in sipvicious.resultua.keys():
-        	    rows.append((k,sipvicious.resultua[k]))
+	        for k in sipvicious.resultauth.keys():
+        	    rows.append((k,sipvicious.resultauth[k]))
 	        print indent([labels]+rows,hasHeader=True,
         	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
             else:
