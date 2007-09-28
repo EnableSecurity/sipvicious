@@ -30,6 +30,7 @@ from optparse import OptionParser
 from sys import exit
 import os
 import logging
+import socket
 
 if __name__ == "__main__":
 	commandsusage = """Supported commands:
@@ -52,6 +53,8 @@ if __name__ == "__main__":
 			help="Format type. Can be stdout, pdf, xml, csv or txt")
 	parser.add_option("-o", "--output", dest="outputfile",
 			help="Output filename")
+	parser.add_option("-n", dest="resolve", default=True,
+                          action="store_false", help="Do not resolve the ip address")
 	(options,args) = parser.parse_args()
 	if len(args) < 1:
 		parser.error("Please specify a command.\r\n")
@@ -107,15 +110,18 @@ if __name__ == "__main__":
 		if sessionpath is None:
 			parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
 			exit(1)
+                resolve = False
                 if sessiontype == 'svmap':
                         db = anydbm.open(os.path.join(sessionpath,'resultua.db'),'r')
                         labels = ('Host','User Agent')
+                        if options.resolve:
+                                resolve = True                
                 elif sessiontype == 'svwar':
                         db = anydbm.open(os.path.join(sessionpath,'resultauth.db'),'r')
                         labels = ('Extension','Authentication')
                 elif sessiontype == 'svcrack':
                         db = anydbm.open(os.path.join(sessionpath,'resultpasswd.db'),'r')
-                        labels = ('Extension','Password')
+                        labels = ('Extension','Password')                
 		if options.outputfile is not None:
 			if options.outputfile.find('.') < 0:
 				if options.format is None:
@@ -127,7 +133,15 @@ if __name__ == "__main__":
                         width = 60
                         rows = list()
                         for k in db.keys():
-                            rows.append((k,db[k]))
+                                tmpk = k
+                                if resolve:
+                                        ajpi,port = k.split(':',1)
+                                        try:
+                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                                        except socket.error:
+                                                logging.warn('Could not resolve %s' % k)
+                                                pass
+                                rows.append((tmpk,db[k]))
                         o = indent([labels]+rows,hasHeader=True,
                             prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
                         if options.outputfile is None:
@@ -139,8 +153,16 @@ if __name__ == "__main__":
                         doc = Document()
                         node = doc.createElement(sessiontype)
                         for k in db.keys():
+                                tmpk = k
+                                if resolve:
+                                        ajpi,port = k.split(':',1)
+                                        try:
+                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                                        except socket.error:
+                                                logging.warn('Could not resolve %s' % k)
+                                                pass
                                 elem = doc.createElement('entry')
-                                elem.setAttribute(labels[0],k)
+                                elem.setAttribute(labels[0],tmpk)
                                 elem.setAttribute(labels[1],db[k])
                                 node.appendChild(elem)
                         doc.appendChild(node)
@@ -153,7 +175,15 @@ if __name__ == "__main__":
                                 exit(1)
                         rows=list()
                         for k in db.keys():
-                                rows.append((k,db[k]))
+                                tmpk = k
+                                if resolve:
+                                        ajpi,port = k.split(':',1)
+                                        try:
+                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                                        except socket.error:
+                                                logging.warn('Could not resolve %s' % k)
+                                                pass
+                                rows.append((tmpk,db[k]))
                         t=Table(rows)
                         doc = SimpleDocTemplate(options.outputfile)
                         elements = []
@@ -163,6 +193,14 @@ if __name__ == "__main__":
                         import csv
                         writer = csv.writer(open(options.outputfile,"w"))
                         for k in db.keys():
-                                writer.writerow((k,db[k]))
+                                tmpk = k
+                                if resolve:
+                                        ajpi,port = k.split(':',1)
+                                        try:
+                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                                        except socket.error:
+                                                logging.warn('Could not resolve %s' % k)
+                                                pass
+                                writer.writerow((tmpk,db[k]))
 
 		logging.info( "That took %s" % (datetime.now() - start_time))
