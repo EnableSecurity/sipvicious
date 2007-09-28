@@ -34,15 +34,15 @@ import logging
 class TakeASip:    
     def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
-                 sessionpath=None,compact=False,socktimeout=3):
+                 sessionpath=None,compact=False,socktimeout=3,intialcheck=True):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
         self.sessionpath = sessionpath
         if self.sessionpath is not  None:
-	    self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth.db'),'c')		
-	else:
-            self.resultauth = dict()		
+            self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth.db'),'c')
+        else:
+            self.resultauth = dict()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
         self.bindingip = bindingip
@@ -66,8 +66,9 @@ class TakeASip:
         self.nomore=False
         self.BADUSER=None
         self.method = method.upper()
-	if self.sessionpath is not None:
-	        self.packetcount = packetcounter(50)
+        if self.sessionpath is not None:
+            self.packetcount = packetcounter(50)
+        self.initialcheck = initialcheck
 
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
@@ -78,10 +79,9 @@ class TakeASip:
     RINGING = 'SIP/2.0 180 '
     NOTALLOWED = 'SIP/2.0 405 '
     UNAVAILABLE = 'SIP/2.0 480 '
-        
+
     def createRequest(self,m,username,remotehost,auth=None,cid=None):
         from helper import makeRequest
-
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
@@ -91,26 +91,26 @@ class TakeASip:
         if m == 'INVITE' or m == 'OPTIONS':
             contact = 'sip:%s@%s' % (username,self.dsthost)
         register = makeRequest(
-                                    m,
-                                    '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
-                                    '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
-                                    self.dsthost,
-                                    self.dstport,
-                                    cid,
-                                    self.localhost,
-                                    branchunique,
-                                    cseq,
-                                    auth,
-                                    localtag,
-                                    self.compact
-                                  )
+                                m,
+                                '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
+                                '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
+                                self.dsthost,
+                                self.dstport,
+                                cid,
+                                self.localhost,
+                                branchunique,
+                                cseq,
+                                auth,
+                                localtag,
+                                self.compact
+                              )
         return register
 
     def getResponse(self):
         from helper import getNonce,getCredentials,getRealm,getCID,getTag
-        # we got stuff to read off the socket                
+        # we got stuff to read off the socket
         buff,srcaddr = self.sock.recvfrom(8192)
-        extension = getTag(buff)        
+        extension = getTag(buff)
         if extension is None:
             self.nomore = True
             return
@@ -120,14 +120,15 @@ class TakeASip:
             self.log.error("could not get the 1st line")
             return
         if firstline != self.BADUSER:
-            if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.INVALIDPASS) or buff.startswith(self.AUTHREQ):
+            if buff.startswith(self.PROXYAUTHREQ) \
+            or buff.startswith(self.INVALIDPASS) \
+            or buff.startswith(self.AUTHREQ):
                 if self.realm is None:
                     self.realm = getRealm(buff)
                 self.log.info("extension '%s' exists - requires authentication" % extension)
                 self.resultauth[extension] = 'reqauth'
                 if self.sessionpath is not None:
                     self.resultauth.sync()
-
             elif buff.startswith(self.TRYING):
                 pass
             elif buff.startswith(self.RINGING):
@@ -158,8 +159,8 @@ class TakeASip:
         else:
             self.log.warn("We got an unknown response")
             self.log.error("Response: %s" % `buff`)
-	    self.log.debug("1st line: %s" % `firstline`)
-	    self.log.debug("Bad user: %s" % `self.BADUSER`)
+            self.log.debug("1st line: %s" % `firstline`)
+            self.log.debug("Bad user: %s" % `self.BADUSER`)
             self.nomore = True
 
         
@@ -203,9 +204,15 @@ class TakeASip:
                     or buff.startswith(self.RINGING) \
                     or buff.startswith(self.UNAVAILABLE):
                     gotbadresponse=True
+                elif (buff.startswith(self.PROXYAUTHREQ) \
+                    or buff.startswith(self.INVALIDPASS) \
+                    or buff.startswith(self.AUTHREQ)) \
+                    and self.intialcheck:
+                    self.log.error("SIP server replied with an authentication request for an unknown extension. Set --force to force a scan.")
+                    return
                 else:
                     self.BADUSER = buff.splitlines()[0]
-		    self.log.debug("Bad user = %s" % self.BADUSER)
+                    self.log.debug("Bad user = %s" % self.BADUSER)
                     gotbadresponse=False
                     break
         except socket.timeout:
@@ -217,8 +224,8 @@ class TakeASip:
         except (AttributeError,ValueError,IndexError):
             self.log.error("bad response .. bailing out")            
             return
-	if self.BADUSER.startswith(self.AUTHREQ):
-		self.log.warn("Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
+        if self.BADUSER.startswith(self.AUTHREQ):
+            self.log.warn("Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
         # let the fun commence
         self.log.info('Ok SIP device found')
         while 1:
@@ -247,16 +254,16 @@ class TakeASip:
                 data = self.createRequest(self.method,self.nextuser,self.dsthost)                
                 try:
                     self.sock.sendto(data,(self.dsthost,self.dstport))
-		    if self.sessionpath is not None:
-			    if self.packetcount.next():
-				try:                                    
-                                    if self.guessmode == 1:
-                                        pickle.dump(self.nextuser,open(os.path.join(exportpath,'lastextension.pkl'),'w'))
-                                        self.log.debug('logged last extension %s' % self.nextuser)
-                                    elif self.guessmode == 2:
-                                        pickle.dump(self.guessargs.tell(),open(os.path.join(exportpath,'lastextension.pkl'),'w'))
-                                        self.log.debug('logged last position %s' % self.guessargs.tell())
-				except IOError:
+                    if self.sessionpath is not None:
+                        if self.packetcount.next():
+                            try:
+                                if self.guessmode == 1:
+                                    pickle.dump(self.nextuser,open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                                    self.log.debug('logged last extension %s' % self.nextuser)
+                                elif self.guessmode == 2:
+                                    pickle.dump(self.guessargs.tell(),open(os.path.join(exportpath,'lastextension.pkl'),'w'))
+                                    self.log.debug('logged last position %s' % self.guessargs.tell())
+                            except IOError:
                                     self.log.warn('could not log the last extension scanned')
                 except socket.error,err:
                     self.log.error("socket error: %s" % err)
@@ -312,14 +319,17 @@ if __name__ == '__main__':
     parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
+    parser.add_option('--force', dest="force", action="store_true",
+                      default=False,
+                      help="Force scan, ignoring initial sanity checks.")
     (options, args) = parser.parse_args()
     exportpath = None
     logginglevel = 30
     if options.verbose is not None:
-	if options.verbose >= 3:
-		logginglevel = 10
-	else:
-		logginglevel = 30-(options.verbose*10)
+        if options.verbose >= 3:
+            logginglevel = 10
+        else:
+            logginglevel = 30-(options.verbose*10)
     if options.quiet:
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
@@ -327,17 +337,17 @@ if __name__ == '__main__':
     
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
-	if not os.path.exists(exportpath):
-		logging.critical('A session with the name %s was not found'% options.resume)
-		exit(1)
+        if not os.path.exists(exportpath):
+            logging.critical('A session with the name %s was not found'% options.resume)
+            exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
-	previousresume = options.resume
+        previousresume = options.resume
         previousverbose = options.verbose
         options,args = pickle.load(open(optionssrc,'r'))        
-	options.resume = previousresume
+        options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join('.sipvicious',__prog__,options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:
@@ -412,8 +422,8 @@ if __name__ == '__main__':
             pass
         logging.exception( "Exception" )
     if options.save is not None and sipvicious.nextuser is not None:
-   	lastextensiondst = os.path.join(exportpath,'lastextension.pkl')
-   	logging.debug('saving state to %s' % lastextensiondst)
+        lastextensiondst = os.path.join(exportpath,'lastextension.pkl')
+        logging.debug('saving state to %s' % lastextensiondst)
         try:
             if guessmode == 1:
                 pickle.dump(sipvicious.nextuser,open(os.path.join(exportpath,'lastextension.pkl'),'w'))
@@ -425,22 +435,22 @@ if __name__ == '__main__':
             logging.warn('could not log the last extension scanned')
     # display results
     if not options.quiet:
-	lenres = len(sipvicious.resultauth)        
-	if lenres > 0:
+        lenres = len(sipvicious.resultauth)
+        if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-        	from pptable import indent,wrap_onspace
-	        width = 60
-	        labels = ('Extension','Authentication')
-	        rows = list()
-	        for k in sipvicious.resultauth.keys():
-        	    rows.append((k,sipvicious.resultauth[k]))
-	        print indent([labels]+rows,hasHeader=True,
-        	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+                from pptable import indent,wrap_onspace
+                width = 60
+                labels = ('Extension','Authentication')
+                rows = list()
+                for k in sipvicious.resultauth.keys():
+                    rows.append((k,sipvicious.resultauth[k]))
+                print indent([labels]+rows,hasHeader=True,
+                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
             else:
                 logging.warn("too many to print - use svreport for this")
-	else:
-		logging.warn("found nothing")
+        else:
+            logging.warn("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
