@@ -31,10 +31,10 @@ import logging
 
 
 
-class TakeASip:    
+class TakeASip:
     def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
-                 sessionpath=None,compact=False,socktimeout=3,intialcheck=True):
+                 sessionpath=None,compact=False,socktimeout=3,initialcheck=True):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
@@ -176,12 +176,12 @@ class TakeASip:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
                 return
-            try:            
+            try:
                 self.sock.bind((self.bindingip,self.localport))
                 break
             except socket.error:
                 self.log.debug("could not bind to %s" % self.localport)
-                self.localport += 1            
+                self.localport += 1
         if self.originallocalport != self.localport:
             self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
@@ -207,7 +207,7 @@ class TakeASip:
                 elif (buff.startswith(self.PROXYAUTHREQ) \
                     or buff.startswith(self.INVALIDPASS) \
                     or buff.startswith(self.AUTHREQ)) \
-                    and self.intialcheck:
+                    and self.initialcheck:
                     self.log.error("SIP server replied with an authentication request for an unknown extension. Set --force to force a scan.")
                     return
                 else:
@@ -334,7 +334,10 @@ if __name__ == '__main__':
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
-    
+    if options.force:
+        initialcheck = False
+    else:
+        initialcheck = True
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
         if not os.path.exists(exportpath):
@@ -404,10 +407,12 @@ if __name__ == '__main__':
                     guessmode=guessmode,
                     guessargs=guessargs,
                     sessionpath=exportpath,
+                    initialcheck=initialcheck
                     )
     start_time = datetime.now()
-    logging.info("scan started at %s" % str(start_time))
-    try:        
+    #logging.info("scan started at %s" % str(start_time))
+    logging.info( "start your engines" )
+    try:
         sipvicious.start()
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')

@@ -450,6 +450,24 @@ if __name__ == '__main__':
                 logging.debug('logged last position %s' % sipvicious.crackargs.tell())            
         except IOError:
             logging.warn('could not log the last tried password')
+    # display results
+    if not options.quiet:
+        lenres = len(sipvicious.resultpasswd)
+        if lenres > 0:
+            logging.info("we have %s devices" % lenres)
+            if (lenres < 400 and options.save is not None) or options.save is None:
+                from pptable import indent,wrap_onspace
+                width = 60
+                labels = ('Extension','Password')
+                rows = list()
+                for k in sipvicious.resultpasswd.keys():
+                    rows.append((k,sipvicious.resultpasswd[k]))
+                print indent([labels]+rows,hasHeader=True,
+                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+            else:
+                logging.warn("too many to print - use svreport for this")
+        else:
+            logging.warn("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
