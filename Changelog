@@ -3,6 +3,7 @@ General:
 * replaced 3rd party functions in ip4range with our functions in helper.py
 * Feature: ReportBack function is off by default but can be enabled by using -R option
 * Feature: verbose and quiet mode. Now making use of logging module
+*
 
 Svmap:
 * Feature: Host arguments now accepts a variety of formats. You can now scan using ranges like the following:

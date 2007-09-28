@@ -519,24 +519,28 @@ def listsessions(chosensessiontype=None):
 		print
 
 def deletesessions(chosensession,chosensessiontype):
-	import shutil,os
-	sessionpath = None
+	import shutil,os, logging
+        log = logging.getLogger('deletesessions')
+	sessionpath = list()
 	if chosensessiontype is None:
 		for sessiontype in sessiontypes:
 			p = os.path.join('.sipvicious',sessiontype,chosensession)
 			if os.path.exists(p):
-				sessionpath = p
-				shutil.rmtree(sessionpath)
-				print "Session at %s was removed" % sessionpath
+				sessionpath.append(p)
 	else:
 		p = os.path.join('.sipvicious',chosensessiontype,chosensession)
 		if os.path.exists(p):
-			sessionpath = p
-			sessiontype = chosensessiontype
-			shutil.rmtree(sessionpath)
-			print "ok session at %s was removed" % sessionpath
+			sessionpath.append(p)
+			#sessiontype = chosensessiontype
+        if len(sessionpath) == 0:
+            return
+        for sp in sessionpath:
+            try:
+                shutil.rmtree(sp)
+                log.info("Session at %s was removed" % sp)
+            except OSError:
+                log.error("Could not delete %s" % sp)
         return sessionpath
-
 
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
