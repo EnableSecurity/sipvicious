@@ -162,8 +162,8 @@ if __name__ == "__main__":
                                                 logging.warn('Could not resolve %s' % k)
                                                 pass
                                 elem = doc.createElement('entry')
-                                elem.setAttribute(labels[0],tmpk)
-                                elem.setAttribute(labels[1],db[k])
+                                elem.setAttribute(labels[0].replace(' ','').lower(),tmpk)
+                                elem.setAttribute(labels[1].replace(' ','').lower(),db[k])
                                 node.appendChild(elem)
                         doc.appendChild(node)
                         open(options.outputfile,'w').write(doc.toprettyxml())
