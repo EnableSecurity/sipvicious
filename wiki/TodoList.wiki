@@ -30,7 +30,7 @@
 = svreport =
   * take input from a database produced by sv tools
   * output to xml, pdf, csv, stdout
-  * able to resolve dns for ip addresses
+  * able to resolve dns for ip addresses (*done*)
   * list scans (*done*)
   * delete scans (*done*)
 
