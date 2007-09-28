@@ -28,8 +28,8 @@
         * alphanumeric bruteforce
 
 = svreport =
-  * take input from a database produced by sv tools
-  * output to xml, pdf, csv, stdout
+  * take input from a database produced by sv tools (*done*)
+  * output to xml, pdf, csv, stdout (*done*)
   * able to resolve dns for ip addresses (*done*)
   * list scans (*done*)
   * delete scans (*done*)
