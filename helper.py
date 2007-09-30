@@ -542,6 +542,66 @@ def deletesessions(chosensession,chosensessiontype):
                 log.error("Could not delete %s" % sp)
         return sessionpath
 
+def createReverseLookup(src,dst):
+    import anydbm,logging
+    log = logging.getLogger('createReverseLookup')
+    #srcdb = anydbm.open(src,'r')
+    #dstdb = anydbm.open(dst,'n')
+    srcdb = src
+    dstdb = dst
+    if len(srcdb) > 100:
+        log.warn("Performing dns lookup on %s hosts. To disable reverse ip resolution make use of the -n option")
+    for k in srcdb.keys():
+        tmp = k.split(':',1)
+        if len(tmp) == 2:
+                ajpi,port = tmp
+                try:
+                        tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                        logging.debug('Resolved %s to %s' % (k,tmpk))
+                        dstdb[k] = tmpk
+                except socket.error:
+                        logging.warn('Could not resolve %s' % k)
+                        pass
+    #srcdb.close()
+    #dstdb.close()
+    return dstdb
+
+def getasciitable(labels,db,resdb=None,width=60):
+    from pptable import indent,wrap_onspace                        
+    rows = list()
+    for k in db.keys():
+            cols = [k,db[k]]
+            if resdb is not None:
+                if resdb.has_key(k):
+                    cols.append(resdb[k])
+                else:
+                    cols.append('N/A')
+            rows.append(cols)
+    o = indent([labels]+rows,hasHeader=True,
+        prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+    return o
+
+
+def getsessionpath(session,sessiontype):
+    import os
+    sessiontypes = ['svmap','svwar','svcrack']
+    sessionpath = None
+    if sessiontype is None:
+            for sessiontype in sessiontypes:
+                    p = os.path.join('.sipvicious',sessiontype,session)
+                    if os.path.exists(p):
+                            sessionpath = p
+                            break
+    else:
+            p = os.path.join('.sipvicious',sessiontype,session)
+            if os.path.exists(p):
+                    sessionpath = p
+    return sessionpath,sessiontype
+
+def outputtoxml(labels,db):
+    from xml.sax.saxutils import escape
+    
+
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
     seq = getranges('google.com/24')    
