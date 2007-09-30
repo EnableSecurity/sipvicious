@@ -66,7 +66,7 @@ if __name__ == "__main__":
 		exit(1)
 	command = args[0]
 	from helper import listsessions,deletesessions,createReverseLookup
-        from helper import getsessionpath,getasciitable
+        from helper import getsessionpath,getasciitable,outputtoxml
         logginglevel = 30
         if options.verbose is not None:
             if options.verbose >= 3:
@@ -129,7 +129,8 @@ if __name__ == "__main__":
                 elif sessiontype == 'svcrack':
                         db = anydbm.open(os.path.join(sessionpath,'resultpasswd.db'),'r')
                         labels = ['Extension','Password']
-		if options.outputfile is not None:
+                        
+                if options.outputfile is not None:
 			if options.outputfile.find('.') < 0:
 				if options.format is None:
 					options.format = 'txt'
@@ -144,34 +145,9 @@ if __name__ == "__main__":
                 elif options.format == 'xml':
                         from xml.dom.minidom import Document
                         doc = Document()
-                        node = doc.createElement(sessiontype)
-                        for k in db.keys():
-                                tmpk = k
-                                if resolve:
-                                        k.split(':',1)
-                                        if len(_) == 2:
-                                                ajpi,port = _
-                                                try:
-                                                        tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
-                                                        logging.debug('Resolved %s to %s' % (k,tmpk))
-                                                except socket.error:
-                                                        logging.warn('Could not resolve %s' % k)
-                                                        pass
-                                elem = doc.createElement('entry')
-                                label1 = labels[0].replace(' ','').lower()
-                                label2 = labels[1].replace(' ','').lower()
-                                l1 = doc.createElement(label1)                                
-                                l2 = doc.createElement(label2)
-                                tmptxt = doc.createTextNode(tmpk)
-                                l1.appendChild(tmptxt)
-                                tmptxt = doc.createTextNode(db[k])
-                                l2.appendChild(tmptxt)
-                                elem.appendChild(l1)
-                                elem.appendChild(l2)
-                                #elem.setAttribute(labels[1].replace(' ','').lower(),db[k])
-                                node.appendChild(elem)
-                        doc.appendChild(node)
-                        open(options.outputfile,'w').write(doc.toprettyxml())
+                        node = doc.createElement(sessiontype)                        
+                        o = outputtoxml('%s report' % sessiontype,labels,db,resdb)
+                        open(options.outputfile,'w').write(o)
                 elif options.format == 'pdf':
                         try:
                                 from reportlab.platypus import *
