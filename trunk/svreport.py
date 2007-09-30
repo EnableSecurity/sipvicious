@@ -36,7 +36,12 @@ if __name__ == "__main__":
 	commandsusage = """Supported commands:
 		- list:\tlists all scans
 		- export:\texports the given scan to a given format
-		- delete:\tdeletes the scan"""
+		- delete:\tdeletes the scan
+"""
+        commandsusage += "example:\r\n"
+        commandsusage += "      %s.py list\r\n" % __prog__
+        commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n" % __prog__
+        commandsusage += "      %s.py delete -s scan1\r\n" % __prog__
         usage = "%prog [command] [options]\r\n\r\n"
         usage += commandsusage
 	parser = OptionParser(usage=usage)
@@ -60,7 +65,8 @@ if __name__ == "__main__":
 		parser.error("Please specify a command.\r\n")
 		exit(1)
 	command = args[0]
-	from helper import listsessions,deletesessions
+	from helper import listsessions,deletesessions,createReverseLookup
+        from helper import getsessionpath,getasciitable
         logginglevel = 30
         if options.verbose is not None:
             if options.verbose >= 3:
@@ -95,33 +101,34 @@ if __name__ == "__main__":
 		if options.outputfile is None and options.format not in [None,'stdout']:
 			parser.error("Please specify an output file")
 			exit(1)
-		sessionpath = None
-		if options.sessiontype is None:
-			for sessiontype in sessiontypes:
-				p = os.path.join('.sipvicious',sessiontype,options.session)
-				if os.path.exists(p):
-					sessionpath = p
-					break
-		else:
-			p = os.path.join('.sipvicious',options.sessiontype,options.session)
-			if os.path.exists(p):
-				sessionpath = p
-				sessiontype = options.sessiontype
-		if sessionpath is None:
+                tmp = getsessionpath(options.session,options.sessiontype)                
+		if tmp is None:
 			parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
 			exit(1)
+                sessionpath,sessiontype = tmp
                 resolve = False
+                resdb = None
                 if sessiontype == 'svmap':
-                        db = anydbm.open(os.path.join(sessionpath,'resultua.db'),'r')
-                        labels = ('Host','User Agent')
+                        dbloc = os.path.join(sessionpath,'resultua.db')
+                        db = anydbm.open(dbloc,'r')
+                        labels = ['Host','User Agent']
                         if options.resolve:
-                                resolve = True                
+                                resolve = True
+                                labels.append('Resolved')                                
+                                resdbloc = os.path.join(sessionpath,'resolved.db')
+                                if not os.path.exists(resdbloc):
+                                        logging.info('Performing DNS reverse lookup')
+                                        resdb = anydbm.open(resdbloc,'c')
+                                        createReverseLookup(db,resdb)
+                                else:
+                                        logging.info('Not Performing DNS lookup')
+                                        resdb = anydbm.open(resdbloc,'r')
                 elif sessiontype == 'svwar':
                         db = anydbm.open(os.path.join(sessionpath,'resultauth.db'),'r')
-                        labels = ('Extension','Authentication')
+                        labels = ['Extension','Authentication']
                 elif sessiontype == 'svcrack':
                         db = anydbm.open(os.path.join(sessionpath,'resultpasswd.db'),'r')
-                        labels = ('Extension','Password')                
+                        labels = ['Extension','Password']
 		if options.outputfile is not None:
 			if options.outputfile.find('.') < 0:
 				if options.format is None:
@@ -129,21 +136,7 @@ if __name__ == "__main__":
 				options.outputfile += '.%s' % options.format
 
                 if options.format in [None,'stdout','txt']:
-                        from pptable import indent,wrap_onspace
-                        width = 60
-                        rows = list()
-                        for k in db.keys():
-                                tmpk = k
-                                if resolve:
-                                        ajpi,port = k.split(':',1)
-                                        try:
-                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
-                                        except socket.error:
-                                                logging.warn('Could not resolve %s' % k)
-                                                pass
-                                rows.append((tmpk,db[k]))
-                        o = indent([labels]+rows,hasHeader=True,
-                            prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+                        o = getasciitable(labels,db,resdb)
                         if options.outputfile is None:
                                 print o
                         else:
@@ -155,15 +148,27 @@ if __name__ == "__main__":
                         for k in db.keys():
                                 tmpk = k
                                 if resolve:
-                                        ajpi,port = k.split(':',1)
-                                        try:
-                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
-                                        except socket.error:
-                                                logging.warn('Could not resolve %s' % k)
-                                                pass
+                                        k.split(':',1)
+                                        if len(_) == 2:
+                                                ajpi,port = _
+                                                try:
+                                                        tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
+                                                        logging.debug('Resolved %s to %s' % (k,tmpk))
+                                                except socket.error:
+                                                        logging.warn('Could not resolve %s' % k)
+                                                        pass
                                 elem = doc.createElement('entry')
-                                elem.setAttribute(labels[0].replace(' ','').lower(),tmpk)
-                                elem.setAttribute(labels[1].replace(' ','').lower(),db[k])
+                                label1 = labels[0].replace(' ','').lower()
+                                label2 = labels[1].replace(' ','').lower()
+                                l1 = doc.createElement(label1)                                
+                                l2 = doc.createElement(label2)
+                                tmptxt = doc.createTextNode(tmpk)
+                                l1.appendChild(tmptxt)
+                                tmptxt = doc.createTextNode(db[k])
+                                l2.appendChild(tmptxt)
+                                elem.appendChild(l1)
+                                elem.appendChild(l2)
+                                #elem.setAttribute(labels[1].replace(' ','').lower(),db[k])
                                 node.appendChild(elem)
                         doc.appendChild(node)
                         open(options.outputfile,'w').write(doc.toprettyxml())
