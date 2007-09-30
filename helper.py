@@ -581,25 +581,55 @@ def getasciitable(labels,db,resdb=None,width=60):
         prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
     return o
 
+def outputtoxml(title,labels,db,resdb=None,xsl='sv.xsl'):
+    from xml.sax.saxutils import escape
+    o  = '<?xml version="1.0" ?>\r\n'
+    o += '<?xml-stylesheet type="text/xsl" href="%s"?>\r\n' % escape(xsl)
+    o += '<root>\r\n'
+    o += '<title>%s</title>\r\n' % escape(title)
+    o += '<labels>\r\n'
+    for label in labels:
+        o += '<label><name>%s</name></label>\r\n' % escape(label)
+    o += '</labels>\r\n'
+    o += '<results>\r\n'
+    for k in db.keys():  
+        o += '<result>\r\n'
+        o += '<%s><value>%s</value></%s>\r\n' % (labels[0].replace(' ','').lower(),k,escape(labels[0]).replace(' ','').lower())
+        o += '<%s><value>%s</value></%s>\r\n' % (labels[1].replace(' ','').lower(),escape(db[k]),labels[1].replace(' ','').lower())
+        if resdb is not None:
+            if resdb.has_key(k):
+                o += '<%s><value>%s</value></%s>\r\n' % (labels[2].replace(' ','').lower(),escape(resdb[k]),labels[2].replace(' ','').lower())
+            else:
+                o += '<%s><value>N/A</value></%s>\r\n' % (labels[2].replace(' ','').lower(),labels[2].replace(' ','').lower())
+        o += '</result>\r\n'
+    o += '</results>\r\n'
+    o += '</root>\r\n'
+    return o
 
 def getsessionpath(session,sessiontype):
-    import os
+    import os, logging
+    log = logging.getLogger('getsessionpath')
     sessiontypes = ['svmap','svwar','svcrack']
     sessionpath = None
     if sessiontype is None:
+            log.debug('sessiontype is not specified')
             for sessiontype in sessiontypes:
                     p = os.path.join('.sipvicious',sessiontype,session)
+                    log.debug('trying %s' % p)
                     if os.path.exists(p):
+                            log.debug('%s exists')
+                            log.debug('sessiontype is %s' % sessiontype)
                             sessionpath = p
                             break
     else:
             p = os.path.join('.sipvicious',sessiontype,session)
             if os.path.exists(p):
                     sessionpath = p
+    if sessionpath is None:
+        return
     return sessionpath,sessiontype
 
-def outputtoxml(labels,db):
-    from xml.sax.saxutils import escape
+
     
 
 if __name__ == '__main__':
