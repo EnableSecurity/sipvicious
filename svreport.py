@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 resolve = False
                 resdb = None
                 if sessiontype == 'svmap':
-                        dbloc = os.path.join(sessionpath,'resultua.db')                        
+                        dbloc = os.path.join(sessionpath,'resultua.db')
                         labels = ['Host','User Agent']
                 elif sessiontype == 'svwar':
                         dbloc = os.path.join(sessionpath,'resultauth.db')
@@ -119,6 +119,7 @@ if __name__ == "__main__":
                         labels = ['Extension','Password']
                 if not os.path.exists(dbloc):
                         logging.error('The database could not be found: %s'%dbloc)
+                        exit(1)
                 db = anydbm.open(dbloc,'r')
 
                 if options.resolve and sessiontype == 'svmap':
