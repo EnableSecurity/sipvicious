@@ -134,7 +134,6 @@ if __name__ == "__main__":
                                 logging.info('Not Performing DNS lookup')
                                 resdb = anydbm.open(resdbloc,'r')
 
-                        
                 if options.outputfile is not None:
 			if options.outputfile.find('.') < 0:
 				if options.format is None:
@@ -159,14 +158,11 @@ if __name__ == "__main__":
                         import csv
                         writer = csv.writer(open(options.outputfile,"w"))
                         for k in db.keys():
-                                tmpk = k
-                                if resolve:
-                                        ajpi,port = k.split(':',1)
-                                        try:
-                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
-                                        except socket.error:
-                                                logging.warn('Could not resolve %s' % k)
-                                                pass
-                                writer.writerow((tmpk,db[k]))
-
+                                row = [k,db[k]]
+                                if resdb is not None:
+                                        if resdb.has_key(k):
+                                                row.append(resdb[k])
+                                        else:
+                                                row.append('N/A')
+                                writer.writerow(row)
 		logging.info( "That took %s" % (datetime.now() - start_time))

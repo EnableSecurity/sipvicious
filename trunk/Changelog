@@ -1,9 +1,14 @@
 v0.1-svn
 General:
-* replaced 3rd party functions in ip4range with our functions in helper.py
+* Feature: replaced 3rd party functions in ip4range with our functions in helper.py
 * Feature: ReportBack function is off by default but can be enabled by using -R option
 * Feature: verbose and quiet mode. Now making use of logging module
-*
+* Newtool: svreport - export to csv, pdf, xml and plain text. 
+* Feature: session / database support. This allows two things:
+	- resuming of previous scans
+	- exporting the results to more meaningful formats
+* Feature: give a warning when the default port is already being used and listen on another port
+
 
 Svmap:
 * Feature: Host arguments now accepts a variety of formats. You can now scan using ranges like the following:
@@ -18,13 +23,18 @@ Svmap:
 * Feature: --help now shows proper usage
 * Feature: New scanning method - random scan! This scans only valid internet address space.
 * Feature: Randomize scan. Allows you to randomize the order of the IP addresses to be scanned. 
-* Feature: Resume functionality + sessions
 
 Svwar:
 * Bug fix: Svwar was missing valid extensions (false negatives) - fixed
 * Bug fix: Logic bug which did not identify between a server that does not respond and one that sends an unexpected response.
 * Bug fix: Fixed description of errors and usage
 
+Svcrack:
+* General: --help output was updated to match the other tools. 
+
+Svreport:
+* General: was born. Allows managing of saved sessions and exporting to different file formats.
+* Feature: Reverse name lookup for ip addresses
 
 v0.1
 First release.
