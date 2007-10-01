@@ -109,26 +109,30 @@ if __name__ == "__main__":
                 resolve = False
                 resdb = None
                 if sessiontype == 'svmap':
-                        dbloc = os.path.join(sessionpath,'resultua.db')
-                        db = anydbm.open(dbloc,'r')
+                        dbloc = os.path.join(sessionpath,'resultua.db')                        
                         labels = ['Host','User Agent']
-                        if options.resolve:
-                                resolve = True
-                                labels.append('Resolved')                                
-                                resdbloc = os.path.join(sessionpath,'resolved.db')
-                                if not os.path.exists(resdbloc):
-                                        logging.info('Performing DNS reverse lookup')
-                                        resdb = anydbm.open(resdbloc,'c')
-                                        createReverseLookup(db,resdb)
-                                else:
-                                        logging.info('Not Performing DNS lookup')
-                                        resdb = anydbm.open(resdbloc,'r')
                 elif sessiontype == 'svwar':
-                        db = anydbm.open(os.path.join(sessionpath,'resultauth.db'),'r')
+                        dbloc = os.path.join(sessionpath,'resultauth.db')
                         labels = ['Extension','Authentication']
                 elif sessiontype == 'svcrack':
-                        db = anydbm.open(os.path.join(sessionpath,'resultpasswd.db'),'r')
+                        dbloc = os.path.join(sessionpath,'resultpasswd.db')
                         labels = ['Extension','Password']
+                if not os.path.exists(dbloc):
+                        logging.error('The database could not be found: %s'%dbloc)
+                db = anydbm.open(dbloc,'r')
+
+                if options.resolve and sessiontype == 'svmap':
+                        resolve = True
+                        labels.append('Resolved')                                
+                        resdbloc = os.path.join(sessionpath,'resolved.db')
+                        if not os.path.exists(resdbloc):
+                                logging.info('Performing DNS reverse lookup')
+                                resdb = anydbm.open(resdbloc,'c')
+                                createReverseLookup(db,resdb)
+                        else:
+                                logging.info('Not Performing DNS lookup')
+                                resdb = anydbm.open(resdbloc,'r')
+
                         
                 if options.outputfile is not None:
 			if options.outputfile.find('.') < 0:
