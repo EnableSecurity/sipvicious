@@ -6,7 +6,7 @@
   * bug fix: review all code for logic bugs and consistency between tools *(done)*
   * feature: output for all tools (*done*)
   * feature: resume previous scan (*done*)
-  * feature: update sipvicious tools by executing svn update like metasploit
+  * feature: update sipvicious tools by executing svn update
   * others : improve documentation
 
 = svmap =
