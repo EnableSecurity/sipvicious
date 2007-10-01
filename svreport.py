@@ -66,7 +66,7 @@ if __name__ == "__main__":
 		exit(1)
 	command = args[0]
 	from helper import listsessions,deletesessions,createReverseLookup
-        from helper import getsessionpath,getasciitable,outputtoxml
+        from helper import getsessionpath,getasciitable,outputtoxml,outputtopdf
         logginglevel = 30
         if options.verbose is not None:
             if options.verbose >= 3:
@@ -154,27 +154,7 @@ if __name__ == "__main__":
                         o = outputtoxml('%s report' % sessiontype,labels,db,resdb)
                         open(options.outputfile,'w').write(o)
                 elif options.format == 'pdf':
-                        try:
-                                from reportlab.platypus import *
-                        except ImportError:
-                                parser.error('Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')
-                                exit(1)
-                        rows=list()
-                        for k in db.keys():
-                                tmpk = k
-                                if resolve:
-                                        ajpi,port = k.split(':',1)
-                                        try:
-                                                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0],port])
-                                        except socket.error:
-                                                logging.warn('Could not resolve %s' % k)
-                                                pass
-                                rows.append((tmpk,db[k]))
-                        t=Table(rows)
-                        doc = SimpleDocTemplate(options.outputfile)
-                        elements = []
-                        elements.append(t)
-                        doc.build(elements)
+                        outputtopdf(options.outputfile,'%s report' % sessiontype,labels,db,resdb)
                 elif options.format == 'csv':
                         import csv
                         writer = csv.writer(open(options.outputfile,"w"))
