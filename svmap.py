@@ -227,9 +227,13 @@ if __name__ == '__main__':
     import logging
     import pickle
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
-    usage += "example: %prog 10.0.0.1-10.0.0.255 "
-    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
-    usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*"
+    usage += "examples:\r\n"
+    usage += "%prog 10.0.0.1-10.0.0.255 \\\r\n"
+    usage += "> 172.16.131.1 sipvicious.org/22 10.0.1.1/24 \\\r\n"
+    usage += "> 1.1.1.1-20 1.1.2-20.* 4.1.*.*\r\n"
+    usage += "%prog -s session1 --randomize 10.0.0.1/8\r\n"
+    usage += "%prog --resume session1 -v\r\n"
+    usage += "%prog -p5060-5062 10.0.0.3-20 -m INVITE\r\n"
     parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
@@ -328,7 +332,7 @@ if __name__ == '__main__':
         scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
     else:
         if len(args) < 1:
-            parser.print_help()
+            parser.error('Provide at least one target')
             exit(1)        
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)

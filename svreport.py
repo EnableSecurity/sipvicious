@@ -38,7 +38,7 @@ if __name__ == "__main__":
 		- export:\texports the given scan to a given format
 		- delete:\tdeletes the scan
 """
-        commandsusage += "example:\r\n"
+        commandsusage += "examples:\r\n"
         commandsusage += "      %s.py list\r\n" % __prog__
         commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n" % __prog__
         commandsusage += "      %s.py delete -s scan1\r\n" % __prog__
