@@ -278,7 +278,9 @@ if __name__ == '__main__':
     import pickle
 
     usage = "usage: %prog -u username [options] target\r\n"
-    usage += "example: %prog -u100 -d dictionary.txt 10.0.0.1"
+    usage += "examples:\r\n"
+    usage += "%prog -u100 -d dictionary.txt 10.0.0.1\r\n"
+    usage += "%prog -u100 -r1-9999 -z4 10.0.0.1\r\n"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
