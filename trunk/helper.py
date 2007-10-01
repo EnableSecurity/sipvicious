@@ -629,6 +629,40 @@ def getsessionpath(session,sessiontype):
         return
     return sessionpath,sessiontype
 
+def outputtopdf(outputfile,title,labels,db,resdb):
+    import logging
+    log = logging.getLogger('outputtopdf')
+    try:
+            from reportlab.platypus import TableStyle, Table, SimpleDocTemplate, Paragraph
+            from reportlab.lib import colors
+            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.pdfgen import canvas
+    except ImportError:
+            log.error('Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')
+            return
+    log.debug('ok reportlab library found')
+    styles = getSampleStyleSheet()
+    rows=list()
+    rows.append(labels)
+    for k in db.keys():
+        cols = [k,db[k]]
+        if resdb is not None:
+            if resdb.has_key(k):
+                cols.append(resdb[k])
+            else:
+                cols.append('N/A')
+        rows.append(cols)    
+    t=Table(rows)
+    mytable = TableStyle([('BACKGROUND',(0,0),(-1,0),colors.black),
+                            ('TEXTCOLOR',(0,0),(-1,0),colors.white)])
+    t.setStyle(mytable)
+    doc = SimpleDocTemplate(outputfile)
+    elements = []
+    style = styles["Heading1"]
+    Title = Paragraph(title,style)
+    elements.append(Title)
+    elements.append(t)
+    doc.build(elements)
 
     
 
