@@ -219,7 +219,7 @@ def makeRedirect(previousHeaders,rediraddr):
     return(r)
     
 
-def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None,accept='application/sdp',contentlength=0):
+def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None,accept='application/sdp',contentlength=0,localport=5060):
     uri = 'sip:%s' % dsthost    
     headers = dict()
     finalheaders = dict()
@@ -234,7 +234,7 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
         if contact is not None:
             headers['m'] = contact
     else:
-        superheaders['Via'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,port,branchunique)
+        superheaders['Via'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,localport,branchunique)
         headers['Max-Forwards'] = 70    
         headers['To'] = toaddr
         headers['From'] = fromaddr
