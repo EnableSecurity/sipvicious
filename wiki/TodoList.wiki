@@ -8,6 +8,7 @@
   * feature: resume previous scan (*done*)
   * feature: update sipvicious tools by executing svn update
   * others : improve documentation
+  * feature: STUN support - NAT is a major PITA 
 
 = svmap =
   * feature: random scan and randomize *(done)*
