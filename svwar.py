@@ -102,7 +102,8 @@ class TakeASip:
                                 cseq,
                                 auth,
                                 localtag,
-                                self.compact
+                                self.compact,
+                                localport=self.localport
                               )
         return register
 

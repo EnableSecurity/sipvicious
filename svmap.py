@@ -200,6 +200,7 @@ class DrinkOrSip:
                                 localtag=localtag,
                                 contact=contact,
 				accept='application/sdp',
+				localport=self.localport
                                 )
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)

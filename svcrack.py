@@ -116,7 +116,8 @@ class ASipOfRedWine:
                                     cseq=cseq,
                                     auth=auth,
                                     localtag=localtag,
-                                    compact=self.compact
+                                    compact=self.compact,
+                                    localport=self.localport
                                   )
         return register
 
