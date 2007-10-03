@@ -1,0 +1,20 @@
+#summary Running SIPVicious tools for the first time.
+
+= Introduction =
+
+This guide assumes that you're running either a Linux or a Windows box. It also assumes that you're sufficiently comfortable with the command line. If you are not comfy with that follow the GettingFuzzyWithTheCommandLine guide. 
+
+= Preparation = 
+
+1. Get the latest VMWare Player from [http://www.vmware.com/download/player/ here]
+2. Get the latest Trixbox vmware image from [http://www.trixbox.org/downloads here]
+
+to be continued
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
