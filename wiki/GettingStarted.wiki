@@ -6,8 +6,8 @@ This guide assumes that you're running either a Linux or a Windows box. It also 
 
 = Preparation = 
 
-1. Get the latest VMWare Player from [http://www.vmware.com/download/player/ here]
-2. Get the latest Trixbox vmware image from [http://www.trixbox.org/downloads here]
+  # Get the latest VMWare Player from [http://www.vmware.com/download/player/ here]
+  # Get the latest Trixbox vmware image from [http://www.trixbox.org/downloads here]
 
 to be continued
 
