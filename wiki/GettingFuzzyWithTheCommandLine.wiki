@@ -4,6 +4,6 @@ CUI: Command line user interface
 
 On Windows you too can get a black box (command line):
 
-1. Press the start button
-2. Click on the run entry 
-3. Type cmd in the white space and press enter
+ 1. Press the start button
+ 2. Click on the run entry 
+ 3. Type cmd in the white space and press enter
