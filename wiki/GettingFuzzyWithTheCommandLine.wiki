@@ -1,9 +1,0 @@
-#summary The command line is your friend
-
-CUI: Command line user interface
-
-On Windows you too can get a black box (command line):
-
-  # Press the start button
-  # Click on the run entry 
-  # Type cmd in the white space and press enter
