@@ -155,7 +155,7 @@ class ASipOfRedWine:
             else:
                 self.log.info("Does not seem to require authentication")
                 self.noauth = True
-                self.resultpasswd[crackeduser] = ''
+                self.resultpasswd[self.username] = ''
         elif buff.startswith(self.NOTFOUND):
             self.log.warn("User not found")
             self.noauth = True
