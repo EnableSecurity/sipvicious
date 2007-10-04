@@ -137,13 +137,13 @@ class TakeASip:
             elif buff.startswith(self.OKEY):            
                 self.log.info("extension '%s' exists - authentication not required" % extension)
                 self.resultauth[extension] = 'noauth'
-                if self.exportpath is not None:
+                if self.sessionpath is not None:
                     self.resultauth.sync()
             else:
                 self.log.warn("extension '%s' probably exists but the response is unexpected" % extension)
                 self.log.debug("response: %s" % firstline)
                 self.resultauth[extension] = 'weird'
-                if self.exportpath is not None:
+                if self.sessionpath is not None:
                     self.resultauth.sync()
         elif buff.startswith(self.NOTFOUND):            
             self.log.debug("User '%s' not found" % extension)
