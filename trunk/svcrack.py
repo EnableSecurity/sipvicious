@@ -48,6 +48,7 @@ class ASipOfRedWine:
             try:
                 self.resultpasswd.sync()
                 self.dbsyncs = True
+                self.log.info("Db does sync")
             except AttributeError:
                 self.log.info("Db does not sync")
                 pass

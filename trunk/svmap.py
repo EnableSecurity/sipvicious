@@ -48,6 +48,7 @@ class DrinkOrSip:
                 try:
                     self.resultip.sync()
                     self.dbsyncs = True
+                    self.log.info("Db does sync")
                 except AttributeError:
                     self.log.info("Db does not sync")
                     pass
