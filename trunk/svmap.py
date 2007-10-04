@@ -42,8 +42,8 @@ class DrinkOrSip:
         self.bindingip = bindingip
         self.sessionpath = sessionpath
         if self.sessionpath is not  None:
-		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip.db'),'c')
-		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua.db'),'c')
+		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
+		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
 	else:
 		self.resultip = dict()
 		self.resultua = dict()
@@ -277,7 +277,8 @@ if __name__ == '__main__':
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
     (options, args) = parser.parse_args()        
-    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,ip4range, resumeFromIP, scanfromdb
+    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
+        ip4range, resumeFromIP, scanfromdb, dbexists
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
@@ -304,8 +305,8 @@ if __name__ == '__main__':
     logging.debug('started logging')
 
     if options.input is not None:
-        db = os.path.join('.sipvicious',__prog__,options.input,'resultua.db')
-        if os.path.exists(db):
+        db = os.path.join('.sipvicious',__prog__,options.input,'resultua')
+        if dbexists(db):
             scaniter = scanfromdb(db,options.method.split(','))
         else:
             logging.error("the session name does not exist. Please use svreport to list existing scans")
@@ -328,7 +329,7 @@ if __name__ == '__main__':
 	scanrandomstore = '.sipviciousrandomtmp'
 	resumescan = False 
 	if options.save is not None:
-		scanrandomstore = os.path.join(exportpath,'random.db')
+		scanrandomstore = os.path.join(exportpath,'random')
 		resumescan = True
         scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
     else:
@@ -341,7 +342,7 @@ if __name__ == '__main__':
 	    scanrandomstore = '.sipviciousrandomtmp'
 	    resumescan = False
 	    if options.save is not None:
-		scanrandomstore = os.path.join(exportpath,'random.db')
+		scanrandomstore = os.path.join(exportpath,'random')
 		resumescan = True
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:

@@ -628,6 +628,13 @@ def getsessionpath(session,sessiontype):
     if sessionpath is None:
         return
     return sessionpath,sessiontype
+import os.path
+def dbexists(name):
+    if os.path.exists(name):
+        return True
+    elif os.path.exists(name+'.db'):
+        return True
+    return False
 
 def outputtopdf(outputfile,title,labels,db,resdb):
     import logging
