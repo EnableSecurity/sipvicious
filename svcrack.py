@@ -40,11 +40,18 @@ class ASipOfRedWine:
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(10)
         self.sessionpath = sessionpath
-        
+        self.dbsyncs = False
         if self.sessionpath is not  None:
-	    self.resultpasswd = anydbm.open( 
-                os.path.join(self.sessionpath,'resultpasswd'),'c')
-	else:
+            self.resultpasswd = anydbm.open(
+                os.path.join(self.sessionpath,'resultpasswd'),'c'
+                )
+            try:
+                self.resultpasswd.sync()
+                self.dbsyncs = True
+            except AttributeError:
+                self.log.info("Db does not sync")
+                pass
+        else:
             self.resultpasswd = dict()
         #self.sock.bind(('',localport))
         self.nomore = False
@@ -150,7 +157,7 @@ class ASipOfRedWine:
                 crackeduser,crackedpasswd = _tmp
                 self.log.info("The password for %s is %s" % (crackeduser,crackedpasswd))
                 self.resultpasswd[crackeduser] = crackedpasswd
-                if self.sessionpath is not None:
+                if self.sessionpath is not None and self.dbsyncs:
                     self.resultpasswd.sync()
             else:
                 self.log.info("Does not seem to require authentication")

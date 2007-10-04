@@ -39,8 +39,15 @@ class TakeASip:
         import logging
         self.log = logging.getLogger('TakeASip')
         self.sessionpath = sessionpath
+        self.dbsyncs = False
         if self.sessionpath is not  None:
             self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth'),'c')
+            try:
+                self.resultauth.sync()
+                self.dbsyncs = True
+            except AttributeError:
+                self.log.info("Db does not sync")
+                pass
         else:
             self.resultauth = dict()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -128,7 +135,7 @@ class TakeASip:
                     self.realm = getRealm(buff)
                 self.log.info("extension '%s' exists - requires authentication" % extension)
                 self.resultauth[extension] = 'reqauth'
-                if self.sessionpath is not None:
+                if self.sessionpath is not None and self.dbsyncs:
                     self.resultauth.sync()
             elif buff.startswith(self.TRYING):
                 pass
@@ -137,13 +144,13 @@ class TakeASip:
             elif buff.startswith(self.OKEY):            
                 self.log.info("extension '%s' exists - authentication not required" % extension)
                 self.resultauth[extension] = 'noauth'
-                if self.sessionpath is not None:
+                if self.sessionpath is not None and self.dbsyncs:
                     self.resultauth.sync()
             else:
                 self.log.warn("extension '%s' probably exists but the response is unexpected" % extension)
                 self.log.debug("response: %s" % firstline)
                 self.resultauth[extension] = 'weird'
-                if self.sessionpath is not None:
+                if self.sessionpath is not None and self.dbsyncs:
                     self.resultauth.sync()
         elif buff.startswith(self.NOTFOUND):            
             self.log.debug("User '%s' not found" % extension)

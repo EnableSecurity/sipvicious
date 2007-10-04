@@ -41,9 +41,16 @@ class DrinkOrSip:
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         self.sessionpath = sessionpath
+        self.dbsyncs = False
         if self.sessionpath is not  None:
 		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
 		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
+                try:
+                    self.resultip.sync()
+                    self.dbsyncs = True
+                except AttributeError:
+                    self.log.info("Db does not sync")
+                    pass
 	else:
 		self.resultip = dict()
 		self.resultua = dict()
@@ -78,6 +85,7 @@ class DrinkOrSip:
         self.nextip = None
 	if self.sessionpath is not None:
 	        self.packetcount = packetcounter(50)
+        
     
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
@@ -112,7 +120,7 @@ class DrinkOrSip:
             self.log.info( resultstr )
 	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
 	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
-	    if self.sessionpath is not None:
+	    if self.sessionpath is not None and self.dbsyncs:
                     self.resultip.sync()
                     self.resultua.sync()		    
 	else:
