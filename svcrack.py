@@ -43,7 +43,7 @@ class ASipOfRedWine:
         
         if self.sessionpath is not  None:
 	    self.resultpasswd = anydbm.open( 
-                os.path.join(self.sessionpath,'resultpasswd.db'),'c')
+                os.path.join(self.sessionpath,'resultpasswd'),'c')
 	else:
             self.resultpasswd = dict()
         #self.sock.bind(('',localport))

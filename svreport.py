@@ -65,7 +65,7 @@ if __name__ == "__main__":
 		parser.error("Please specify a command.\r\n")
 		exit(1)
 	command = args[0]
-	from helper import listsessions,deletesessions,createReverseLookup
+	from helper import listsessions,deletesessions,createReverseLookup, dbexists
         from helper import getsessionpath,getasciitable,outputtoxml,outputtopdf
         logginglevel = 30
         if options.verbose is not None:
@@ -109,15 +109,15 @@ if __name__ == "__main__":
                 resolve = False
                 resdb = None
                 if sessiontype == 'svmap':
-                        dbloc = os.path.join(sessionpath,'resultua.db')
+                        dbloc = os.path.join(sessionpath,'resultua')
                         labels = ['Host','User Agent']
                 elif sessiontype == 'svwar':
-                        dbloc = os.path.join(sessionpath,'resultauth.db')
+                        dbloc = os.path.join(sessionpath,'resultauth')
                         labels = ['Extension','Authentication']
                 elif sessiontype == 'svcrack':
-                        dbloc = os.path.join(sessionpath,'resultpasswd.db')
+                        dbloc = os.path.join(sessionpath,'resultpasswd')
                         labels = ['Extension','Password']
-                if not os.path.exists(dbloc):
+                if not dbexists(dbloc):
                         logging.error('The database could not be found: %s'%dbloc)
                         exit(1)
                 db = anydbm.open(dbloc,'r')
@@ -125,8 +125,8 @@ if __name__ == "__main__":
                 if options.resolve and sessiontype == 'svmap':
                         resolve = True
                         labels.append('Resolved')                                
-                        resdbloc = os.path.join(sessionpath,'resolved.db')
-                        if not os.path.exists(resdbloc):
+                        resdbloc = os.path.join(sessionpath,'resolved')
+                        if not dbexists(resdbloc):
                                 logging.info('Performing DNS reverse lookup')
                                 resdb = anydbm.open(resdbloc,'c')
                                 createReverseLookup(db,resdb)

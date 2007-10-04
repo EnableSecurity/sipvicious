@@ -40,7 +40,7 @@ class TakeASip:
         self.log = logging.getLogger('TakeASip')
         self.sessionpath = sessionpath
         if self.sessionpath is not  None:
-            self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth.db'),'c')
+            self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth'),'c')
         else:
             self.resultauth = dict()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
