@@ -1,9 +1,10 @@
 Welcome to SIPVicious security tools.
 
-The 3 tools that you should be looking at are:
+The 4 tools that you should be looking at are:
  - svmap
  - svwar
  - svcrack
+ - svreport
 
 The tools:
 svmap - this is a sip scanner. When launched against
@@ -18,6 +19,9 @@ svcrack - a password cracker making use of digest authentication.
 It is able to crack passwords on both registrar servers and proxy 
 servers. Current cracking modes are either numeric ranges or
 words from dictionary files.
+
+svreport - able to manage sessions created by the rest of the tools
+and export to pdf, xml, csv and plain text.
 
 For usage help make use of -h or --help switch.
 
