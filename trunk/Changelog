@@ -1,4 +1,4 @@
-v0.1-svn
+v0.2
 General:
 * Feature: replaced 3rd party functions in ip4range with our functions in helper.py
 * Feature: ReportBack function is off by default but can be enabled by using -R option

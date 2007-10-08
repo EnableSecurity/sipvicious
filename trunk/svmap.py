@@ -21,7 +21,7 @@ __GPL__ = """
 """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.1-svn'
+__version__ = '0.2'
 __prog__ = 'svmap'
 
 import socket
@@ -43,18 +43,18 @@ class DrinkOrSip:
         self.sessionpath = sessionpath
         self.dbsyncs = False
         if self.sessionpath is not  None:
-		self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
-		self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
-                try:
-                    self.resultip.sync()
-                    self.dbsyncs = True
-                    self.log.info("Db does sync")
-                except AttributeError:
-                    self.log.info("Db does not sync")
-                    pass
-	else:
-		self.resultip = dict()
-		self.resultua = dict()
+            self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
+            self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
+            try:
+                self.resultip.sync()
+                self.dbsyncs = True
+                self.log.info("Db does sync")
+            except AttributeError:
+                self.log.info("Db does not sync")
+                pass
+        else:
+            self.resultip = dict()
+            self.resultua = dict()
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -84,9 +84,8 @@ class DrinkOrSip:
         self.nomoretoscan = False
         self.originallocalport = self.localport
         self.nextip = None
-	if self.sessionpath is not None:
-	        self.packetcount = packetcounter(50)
-        
+        if self.sessionpath is not None:
+            self.packetcount = packetcounter(50)
     
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
@@ -94,11 +93,11 @@ class DrinkOrSip:
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '): 
-	    if self.externalip == srcip:
-		self.log.debug("We received our own packet from %s:%s" % srcaddr)
-	    else: 
-            	self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
-            	self.log.debug(repr(buff))            
+            if self.externalip == srcip:
+                self.log.debug("We received our own packet from %s:%s" % srcaddr)
+            else: 
+                self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
+                self.log.debug(repr(buff))            
             return
         self.log.debug("running fingerPrintPacket()")
         res = fingerPrintPacket(buff)
@@ -119,14 +118,14 @@ class DrinkOrSip:
                 dstip,dstport = 'unknown','unknown'            
             resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
             self.log.info( resultstr )
-	    self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
-	    self.resultua['%s:%s' % (srcip,srcport)] = uaname
-	    if self.sessionpath is not None and self.dbsyncs:
+            self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
+            self.resultua['%s:%s' % (srcip,srcport)] = uaname
+            if self.sessionpath is not None and self.dbsyncs:
                     self.resultip.sync()
-                    self.resultua.sync()		    
-	else:
-	    self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
-	    self.log.debug('Packet: %s' % `buff`)
+                    self.resultua.sync()
+        else:
+            self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
+            self.log.debug('Packet: %s' % `buff`)
                 
     def start(self):
         from helper import makeRequest
@@ -194,8 +193,7 @@ class DrinkOrSip:
                 callid = '%s' % random.getrandbits(80)
                 contact = None
                 if method != 'REGISTER':
-                    #contact = 'sip:1000@%s:%s' % (dsthost[0],dsthost[1])
-		    contact = 'sip:1000@%s:%s' % (self.externalip,self.localport)
+                    contact = 'sip:1000@%s:%s' % (self.externalip,self.localport)
                 data = makeRequest(
                                 method,
                                 fromaddr,
@@ -208,22 +206,22 @@ class DrinkOrSip:
                                 compact=self.compact,
                                 localtag=localtag,
                                 contact=contact,
-				accept='application/sdp',
-				localport=self.localport
+                                accept='application/sdp',
+                                localport=self.localport
                                 )
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
-		    self.log.debug("packet: %s" % `data`)
+                    self.log.debug("packet: %s" % `data`)
                     self.sock.sendto(data,dsthost)                    
-		    if self.sessionpath is not None:
-			    if self.packetcount.next():
-				try:
-					f=open(os.path.join(self.sessionpath,'lastip.pkl'),'w')
-					pickle.dump(self.nextip,f)
-					f.close()
-					self.log.debug('logged last ip %s' % self.nextip)
-				except IOError:
-					self.log.warn('could not log the last ip scanned')
+                    if self.sessionpath is not None:
+                        if self.packetcount.next():
+                            try:
+                                f=open(os.path.join(self.sessionpath,'lastip.pkl'),'w')
+                                pickle.dump(self.nextip,f)
+                                f.close()
+                                self.log.debug('logged last ip %s' % self.nextip)
+                            except IOError:
+                                self.log.warn('could not log the last ip scanned')
                 except socket.error,err:
                     self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
                     pass
@@ -291,7 +289,7 @@ if __name__ == '__main__':
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
-	if not os.path.exists(exportpath):
+        if not os.path.exists(exportpath):
 		logging.critical('A session with the name %s was not found'% options.resume)
 		exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
