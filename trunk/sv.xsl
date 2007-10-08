@@ -9,16 +9,16 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <h2>
         <xsl:value-of select="title"/>
     </h2>
-    <table border="0">
-    <tr bgcolor="#000">
+    <table bgcolor="#000000">
+    <tr bgcolor="#000000">
     <xsl:for-each select="labels/label">
         <th align="left">
-            <font color="#fff"> <xsl:value-of select="name"/></font>
+            <font color="#ffffff"> <xsl:value-of select="name"/></font>
         </th>
     </xsl:for-each>
     </tr>
     <xsl:for-each select="results/result"> 
-    <tr>
+    <tr bgcolor="#ffffff">
         <xsl:for-each select="*"> 
             <td><xsl:value-of select="value"/></td>
         </xsl:for-each>
