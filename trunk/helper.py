@@ -550,7 +550,7 @@ def createReverseLookup(src,dst):
     srcdb = src
     dstdb = dst
     if len(srcdb) > 100:
-        log.warn("Performing dns lookup on %s hosts. To disable reverse ip resolution make use of the -n option")
+        log.warn("Performing dns lookup on %s hosts. To disable reverse ip resolution make use of the -n option" % len(srcdb))
     for k in srcdb.keys():
         tmp = k.split(':',1)
         if len(tmp) == 2:
@@ -560,7 +560,7 @@ def createReverseLookup(src,dst):
                         logging.debug('Resolved %s to %s' % (k,tmpk))
                         dstdb[k] = tmpk
                 except socket.error:
-                        logging.warn('Could not resolve %s' % k)
+                        logging.info('Could not resolve %s' % k)
                         pass
     #srcdb.close()
     #dstdb.close()
@@ -575,7 +575,7 @@ def getasciitable(labels,db,resdb=None,width=60):
                 if resdb.has_key(k):
                     cols.append(resdb[k])
                 else:
-                    cols.append('N/A')
+                    cols.append('[not available]')
             rows.append(cols)
     o = indent([labels]+rows,hasHeader=True,
         prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
