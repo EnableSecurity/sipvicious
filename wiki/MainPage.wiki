@@ -5,7 +5,7 @@
 
 Welcome to SIPVicious security tools.
 
-The 3 tools that you should be looking at are:
+The 4 tools that you should be looking at are:
   * svmap
   * svwar
   * svcrack
@@ -24,7 +24,8 @@ Traditionally a war dialer used to call up numbers on the phone network to ident
 This is a password cracker making use of digest authentication. It is able to crack passwords on both registrar servers and proxy servers. It can make use of ranges of numbers or a dictionary file full of possible passwords. 
 
 == svreport ==
-A tool which manages sessions and exports them to different formats: pdf, xml, csv and plain text.
+Able to manage sessions created by the rest of the tools and export to pdf, xml, csv and plain text.
+
 
 == General help ==
 For usage help make use of -h or --help switch.
