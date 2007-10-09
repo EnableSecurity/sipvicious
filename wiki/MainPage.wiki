@@ -11,6 +11,7 @@ The 3 tools that you should be looking at are:
   * svmap
   * svwar
   * svcrack
+  * svreport
 
 = The tools =
 
