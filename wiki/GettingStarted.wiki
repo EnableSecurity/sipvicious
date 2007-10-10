@@ -1,4 +1,5 @@
 #summary Running SIPVicious tools for the first time.
+#labels Deprecated
 
 = Introduction =
 
@@ -9,4 +10,6 @@ This guide assumes that you're running either a Linux or a Windows box. It also 
   # Get the latest VMWare Player from [http://www.vmware.com/download/player/ here]
   # Get the latest Trixbox vmware image from [http://www.trixbox.org/downloads here]
 
-to be continued
+= Setting up the Victim box =
+
+Once you have Trixbox up make sure to create a few extensions. In our lab we have extensions 100, 101 and 123. Choose a numeric password for extension "100", no password for "101" and an alphabetic password like "secret".
