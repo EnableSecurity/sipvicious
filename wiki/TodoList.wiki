@@ -34,6 +34,7 @@
   * able to resolve dns for ip addresses (*done*)
   * list scans (*done*)
   * delete scans (*done*)
+  * add sipvicious logo to reports
 
 = future = 
   * feature: work more on fingerprinting
