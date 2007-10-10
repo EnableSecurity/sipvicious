@@ -79,9 +79,34 @@ You can also specify a name instead of an IP address:
 ./svmap sipvicious.org/24
 }}}
 
-Another way of specifying a custom range is to make use of <->, for example:
+Another way of specifying a custom range is to make use of "-", for example:
 {{{
-./svmap "1.1.1.50<->1.1.1.60"
+./svmap 1.1.1.50-1.1.1.60
+}}}
+
+Or you could use a shorter method:
+{{{
+./svmap 1.1.1.1-20
+}}}
+
+Could also use a wildcard:
+{{{
+./svmap 1.1.*.*
+}}}
+
+And Finally one can combine any of these methods:
+{{{
+./svmap 1.1.1.1-20 1.1.2.* sipvicious.org/24
+}}}
+
+If you would like to randomly scan internet ranges, the syntax is:
+{{{
+./svmap --randomscan
+}}}
+
+If however, you would like to scan a range randomly:
+{{{
+./svmap --randomize sipvicious.org/24
 }}}
 
 = Options =
