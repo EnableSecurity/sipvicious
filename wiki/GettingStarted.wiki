@@ -67,4 +67,5 @@ Following that, you can make use of the credentials by making use of a SIP softp
 Hope that makes you happy. 
 
 For an animated version of this check out:
-http://sipvicious.org/webcasts/sipvicious-0.2-intro/web.html
+
+[http://sipvicious.org/webcasts/sipvicious-0.2-intro/web.html SIPVicious 0.2 introduction]
