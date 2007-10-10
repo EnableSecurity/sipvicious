@@ -1,8 +1,6 @@
 #summary How to use svmap.
 #labels Featured
 
-=== note: currently being updated ===
-
 Svmap is a free and Open Source scanner to identify sip devices and PBX servers on a target network. It can also be helpful for systems administrators when used as a network inventory tool. Svmap was designed to be faster than the competition by specifically targeting SIP over UDP.
 
 Svmap can:
