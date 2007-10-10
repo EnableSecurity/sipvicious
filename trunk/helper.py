@@ -183,7 +183,7 @@ def getCredentials(buff):
     
 def getTag(buff):
     import re
-    tagRE='(From|f): .*?\;\s*tag=([=+/\.:a-zA-Z0-9]+)'    
+    tagRE='(From|f): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'    
     _tmp = re.findall(tagRE,buff)
     if _tmp is not None:
         if len(_tmp) > 0:
