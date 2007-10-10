@@ -290,7 +290,7 @@ if __name__ == '__main__':
     #logging.basicConfig(level=logging.DEBUG)
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -r100-999 10.0.0.1\r\n"
+    usage += "%prog -e100-999 10.0.0.1\r\n"
     usage += "%prog -d dictionary.txt 10.0.0.2\r\n"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
