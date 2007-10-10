@@ -1,24 +1,53 @@
 #summary How to use svmap.
 #labels Featured
 
+Svmap is a free and Open Source scanner to identify sip devices and PBX servers on a target network. It can also be helpful for systems administrators when used as a network inventory tool. Svmap was designed to be faster than the competition by specifically targeting SIP over UDP.
+
+Svmap can:
+  * identify SIP devices and PBX servers on default and non-default ports
+  * scan large ranges of networks
+  * scan just one host on different ports, looking for a SIP service on that host
+  * take previous scan results as input, allowing you to only scan known hosts running SIP
+  * use different scanning methods (make use of REGISTER instead of OPTIONS request)
+  * get all the phones on a network to ring at the same time
+  * randomly scan internet ranges
+  * resume previous scans
+  
 = Svmap usage =
 
-Svmap is a free scanner for auditing of sip devices and PBX servers. The tool is flexible enough to allow you to scan ranges of ip addresses as well as ranges of ports for SIP. It accepts comma delimited files, and can output to comma delimited files as well. Can be used to launch different types of scans, including ones that set
-
 {{{
-usage: svmap.py [options]
+Usage: svmap.py [options] host1 host2 hostrange
+examples:
+svmap.py 10.0.0.1-10.0.0.255 \
+> 172.16.131.1 sipvicious.org/22 10.0.1.1/24 \
+> 1.1.1.1-20 1.1.2-20.* 4.1.*.*
+svmap.py -s session1 --randomize 10.0.0.1/8
+svmap.py --resume session1 -v
+svmap.py -p5060-5062 10.0.0.3-20 -m INVITE
 
-options:
-  --version             show version and license
+
+Options:
+  --version             show program's version number and exit
   -h, --help            show this help message and exit
-  -o output.csv, --output=output.csv
-                        Output results to a specified csv file
-  -i input.csv, --input=input.csv
-                        Input csv based on previous results
+  -v, --verbose         Increase verbosity
+  -q, --quiet           Quiet mode
+  -s NAME, --save=NAME  save the session. Has the benefit of allowing you to
+                        resume a previous scan and allows you to export scans
+  --resume=NAME         resume a previous scan
+  --randomscan          Scan random IP addresses
+  -i scan1, --input=scan1
+                        Scan IPs which were found in a previous scan. Pass the
+                        session name as the argument
   -p PORT, --port=PORT  Destination port or port ranges of the SIP device - eg
                         -p5060,5061,8000-8100
   -P PORT, --localport=PORT
                         Source port for our packets
+  -x IP, --externalip=IP
+                        IP Address to use as the external ip. Specify this if
+                        you have multiple interfaces or if you are behind NAT
+  -b BINDINGIP, --bindingip=BINDINGIP
+                        By default we bind to all interfaces. This option
+                        overrides that and binds to the specified ip address
   -t SELECTTIME, --timeout=SELECTTIME
                         Timeout for the select() function. Change this if
                         you're losing packets
@@ -27,6 +56,10 @@ options:
   -m METHOD, --method=METHOD
                         Specify the request method - by default this is
                         OPTIONS.
+  -R, --reportback      Send the author an exception traceback. Currently
+                        sends the command line parameters and the traceback
+  --randomize           Randomize scanning instead of scanning consecutive ip
+                        addresses
 }}}
 
 = Target IP addresses =
