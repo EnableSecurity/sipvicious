@@ -1,4 +1,5 @@
 #summary Changelog
+#labels Featured
 = v0.2 =
 == general ==
   * feature: when bind port is already busy give error and choose next one 
