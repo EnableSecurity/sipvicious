@@ -56,7 +56,7 @@ To crack an alphanumeric password we need to make use of a dictionary file. Crea
 ictionary 
 | Extension | Password |
 ------------------------
-| 123       | test     |
+| 123       | secret   |
 [you@box sipvicious]$
 }}}
 
