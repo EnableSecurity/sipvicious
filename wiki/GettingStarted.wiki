@@ -50,10 +50,9 @@ Finally to crack the password for 100, we just run the following command:
 [you@box sipvicious]$
 }}}
 
-To crack an alphanumeric password we need to make use of a dictionary file. Create a dictionary file containing your password. 
+To crack an alphanumeric password we need to make use of a dictionary file. Create a text file called "dictionary.txt" containing your password. 
 {{{
-[you@box sipvicious]$ ./svcrack.py 192.168.1.103 -u 123 -d d
-ictionary 
+[you@box sipvicious]$ ./svcrack.py 192.168.1.103 -u 123 -d dictionary.txt
 | Extension | Password |
 ------------------------
 | 123       | secret   |
