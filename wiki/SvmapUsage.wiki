@@ -1,6 +1,8 @@
 #summary How to use svmap.
 #labels Featured
 
+=== note: currently being updated ===
+
 Svmap is a free and Open Source scanner to identify sip devices and PBX servers on a target network. It can also be helpful for systems administrators when used as a network inventory tool. Svmap was designed to be faster than the competition by specifically targeting SIP over UDP.
 
 Svmap can:
@@ -111,7 +113,8 @@ If however, you would like to scan a range randomly:
 
 = Options =
 
-== Output ==
+== Sessions ==
+The save option allows users to store the current session properties to a database.
 The purpose of having an output file to csv format is to be able to import the results in spreadsheet and database applications with ease. A security administrator or penetration tester might want to present results in graphs.
 
 This also serves the purpose of being compatible with the input option.
