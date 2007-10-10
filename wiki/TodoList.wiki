@@ -1,24 +1,12 @@
 #summary The list of features or fixes which we'd like work on
 
 = general = 
-  * feature: when bind port is already busy give error and choose next one *(done)*
-  * feature: verbose and quiet mode *(done)*
-  * bug fix: review all code for logic bugs and consistency between tools *(done)*
-  * feature: output for all tools (*done*)
-  * feature: resume previous scan (*done*)
-  * feature: update sipvicious tools by executing svn update (*done*)
   * others : improve documentation
   * feature: STUN support - NAT is a major PITA 
   * feature: a way to know that a session is complete (and cannot be resumed) or not
 
-= svmap =
-  * feature: random scan and randomize *(done)*
-  * feature: ip range helper *(done)*:
-      * support 1.1.1.1-20, 1.1.1.1-1.1.2.30 and 1.1.1.1/24 ranges
-      * support multiple ranges: ./svmap 1.1.1.1/24 1.1.2.1-20
 
 = svwar =
-  * bug fix: listen for responses after done scanning *(done)*
   * feature: scan multiple hosts at the same time
 
 = svcrack = 
@@ -30,11 +18,6 @@
         * alphanumeric bruteforce
 
 = svreport =
-  * take input from a database produced by sv tools (*done*)
-  * output to xml, pdf, csv, stdout (*done*)
-  * able to resolve dns for ip addresses (*done*)
-  * list scans (*done*)
-  * delete scans (*done*)
   * add sipvicious logo to reports
 
 = future = 
