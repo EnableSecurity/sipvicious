@@ -114,13 +114,12 @@ If however, you would like to scan a range randomly:
 = Options =
 
 == Sessions ==
-The save option allows users to store the current session properties to a database.
-The purpose of having an output file to csv format is to be able to import the results in spreadsheet and database applications with ease. A security administrator or penetration tester might want to present results in graphs.
+The save option allows users to store the current session properties to a database. You can then make use of svreport to manage the sessions and export to other formats. Refer to SvreportUsage page for this.
 
-This also serves the purpose of being compatible with the input option.
+This also serves the purpose of being compatible with the input and resume options.
 
 == Input ==
-The input option accepts csv files with the same format as the output option. It serves the purpose of being able to scan specific devices on specific ports. This allows security testers to scan the same devices at different times using different methods. 
+The input option accepts previous sessions as input. Make use of svreport to list previous scans. It serves the purpose of being able to scan specific devices on specific ports. This allows security testers to scan the same devices at different times using different methods. 
 
 One particular usage example is to scan for SIP devices using default options. Then at a given time scan for the SIP devices found in the previous scan using the INVITE method, which can get all the scanned devices to ring at the same time. 
 
@@ -128,7 +127,7 @@ One particular usage example is to scan for SIP devices using default options. T
 By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. For example, X-lite is known to listen on "random" high ports. In that case, you can use ranges of ports to find out the port on which the SIP device is listening on. 
 
 == Source port ==
-By default, svmap listens on udp port 5060. However there are times when that port is already taken and svmap cannot bind on the default port. In that case, one can make use of the -P option to specify another udp port to bind to. 
+By default, svmap listens on udp port 5060. However there are times when that port is already taken and svmap cannot bind on the default port. When this is the case, SIPVicious tools will listen on the next available port. However, in the case that one wishes to specify a port, one can make use of the -P option to specify another udp port to bind to. 
 
 == Timeout or Select time ==
 This option allows you to specify the timeout for the select() function. If the network is slow, then it is recommended that you set this to something higher than the default. The default is 0.005. Try with 0.01 first, and start increasing. 
@@ -139,9 +138,6 @@ SIP supports compact mode, where some headers can be written in short form. By d
 == Method ==
 By default, svmap uses the OPTIONS method. However some devices might not support this method (even though they should). You may specify a different method to scan with, such as REGISTER and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
 
-= New options in the SVN version =
-Please note that these options are not yet in the release.
-
 == External IP ==
 This option allows you to specify the external IP address which is used in the SIP request itself.
 
@@ -149,30 +145,20 @@ This option allows you to specify the external IP address which is used in the S
 This option allows you to specify the IP to bind to.
 
 == Verbose ==
-At the moment -v gives you debugging info. Good for .. you know .. debugging ;)
+The verbose gives you more info. If you need to view all debug information, then specify -vv instead of -v. 
 
 == Quiet ==
-Quiet mode does not print anything except for critical errors. Be sure to specify an output file if you want to make use of svmap at all.
-
-== IP Resoluton ==
-The resolve option allows svmap to resolve the ip address of SIP devices and software. Handy when trying to identify what each SIP host does.
+Quiet mode does not print anything except for critical errors. Be sure to save to a session if you want to still view the results later on.
 
 == Report Back ==
 This option allows the end user to send a bug report to the author
 
-== Scan Type == 
-Currently this option is useless since only UDP is supported. However we plan to implement TCP and TLS scanning later on.
-
-== XML output ==
-XML output is an upcoming option
-
-
 
 = Examples =
 
-Scan a subnet:
+Scan a subnet with verbose mode:
 {{{
-./svmap 10.0.0.1/24
+./svmap 10.0.0.1/24 -v
 }}}
 
 Scan a subnet running compact mode on port range 1024-2080:
@@ -180,12 +166,12 @@ Scan a subnet running compact mode on port range 1024-2080:
 ./svmap 10.0.0.1/24 -p1024-2080 -c
 }}}
 
-Scan a subnet and log the results to a csv file:
+Scan a subnet and save the results to a session named "scan1":
 {{{
-./svmap -o scan.csv 10.0.0.1/24
+./svmap -s scan1 10.0.0.1/24
 }}}
 
 Scan a list of previously scanned hosts and make use of the INVITE method:
 {{{
-./svmap -i scan.csv -m INVITE
+./svmap -i scan1 -m INVITE
 }}}
