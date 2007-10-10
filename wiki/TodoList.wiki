@@ -5,6 +5,9 @@
   * feature: STUN support - NAT is a major PITA 
   * feature: a way to know that a session is complete (and cannot be resumed) or not
 
+= svmap =
+  * support for NAPTR
+  * support for e164
 
 = svwar =
   * feature: scan multiple hosts at the same time
