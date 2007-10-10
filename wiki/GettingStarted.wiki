@@ -59,7 +59,7 @@ To crack an alphanumeric password we need to make use of a dictionary file. Crea
 [you@box sipvicious]$
 }}}
 
-Following that, you can make use of the credentials by making use of a SIP softphone such as X-lite. 
+Following that, you can make use of the credentials by making use of a SIP softphone such as [http://www.counterpath.com/ X-lite]. 
 
 Hope that makes you happy. 
 
