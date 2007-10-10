@@ -6,7 +6,7 @@ Svmap is a free and Open Source scanner to identify sip devices and PBX servers 
 Svmap can:
   * identify SIP devices and PBX servers on default and non-default ports
   * scan large ranges of networks
-  * scan just one host on different ports, looking for a SIP service on that host
+  * scan just one host on different ports, looking for a SIP service on that host or just multiple hosts on multiple ports
   * take previous scan results as input, allowing you to only scan known hosts running SIP
   * use different scanning methods (make use of REGISTER instead of OPTIONS request)
   * get all the phones on a network to ring at the same time
