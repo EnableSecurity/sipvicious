@@ -113,15 +113,24 @@ If however, you would like to scan a range randomly:
 
 = Options =
 
-== Sessions ==
+== Save ==
 The save option allows users to store the current session properties to a database. You can then make use of svreport to manage the sessions and export to other formats. Refer to SvreportUsage page for this.
 
 This also serves the purpose of being compatible with the input and resume options.
+
+== Resume ==
+Resumes a previously incomplete session. To list sessions make use of "svreport.py list". When a session is saved, svmap will periodically save the current state and also save the state upon exit.
 
 == Input ==
 The input option accepts previous sessions as input. Make use of svreport to list previous scans. It serves the purpose of being able to scan specific devices on specific ports. This allows security testers to scan the same devices at different times using different methods. 
 
 One particular usage example is to scan for SIP devices using default options. Then at a given time scan for the SIP devices found in the previous scan using the INVITE method, which can get all the scanned devices to ring at the same time. 
+
+== Random Scan ==
+The --randomscan option scans internet ranges to SIP devices. It avoids non routable (internal and reserved) IP addresses. 
+
+== Randomize Scan ==
+The --randomize option randomizes the given ranges of IPs instead of scanning sequentially. 
 
 == Destination port ==
 By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. For example, X-lite is known to listen on "random" high ports. In that case, you can use ranges of ports to find out the port on which the SIP device is listening on. 
