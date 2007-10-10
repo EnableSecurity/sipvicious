@@ -87,6 +87,7 @@ class TakeASip:
     RINGING = 'SIP/2.0 180 '
     NOTALLOWED = 'SIP/2.0 405 '
     UNAVAILABLE = 'SIP/2.0 480 '
+    DECLINED = 'SIP/2.0 603 '
 
     def createRequest(self,m,username,remotehost,auth=None,cid=None):
         from helper import makeRequest
@@ -160,6 +161,8 @@ class TakeASip:
         elif buff.startswith(self.RINGING):
             pass
         elif buff.startswith(self.OKEY):
+            pass
+        elif buff.startswith(self.DECLINED):
             pass
         elif buff.startswith(self.NOTALLOWED):
             self.log.warn("method not allowed")
@@ -372,7 +375,7 @@ if __name__ == '__main__':
             dictionary = open(options.dictionary,'r')
         except IOError:
             logging.error( "could not open %s" % options.dictionary )
-            sys.exit(1)
+            exit(1)
         if options.resume is not None:
             lastextensionsrc = os.path.join(exportpath,'lastextension.pkl')
             previousposition = pickle.load(open(lastextensionsrc,'r'))
