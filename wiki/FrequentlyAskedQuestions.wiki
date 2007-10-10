@@ -3,7 +3,7 @@
 
 === Why SIPVicious? ===
 
-Because the tools are not exactly the nicest thing on earth next to a SIP device. And the play on the sound seems to work. As an extra bonus, it rhymes with the name of Sex Pistol's lead singer. 
+Because the tools are not exactly the nicest thing on earth next to a SIP device. And the play on the sound seems to work. As an extra bonus, it rhymes with the name of Sex Pistol's bass player. 
 
 === I'm running svwar against a PBX server and not getting any results ===
 
