@@ -9,7 +9,7 @@ Svmap can:
   * scan just one host on different ports, looking for a SIP service on that host or just multiple hosts on multiple ports
   * take previous scan results as input, allowing you to only scan known hosts running SIP
   * use different scanning methods (make use of REGISTER instead of OPTIONS request)
-  * get all the phones on a network to ring at the same time
+  * get all the phones on a network to ring at the same time (using INVITE as method)
   * randomly scan internet ranges
   * resume previous scans
   
