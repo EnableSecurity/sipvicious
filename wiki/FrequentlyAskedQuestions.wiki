@@ -1,0 +1,16 @@
+#summary FAQ - frequently asked questions
+#labels Featured
+
+=== Why SIPVicious? ===
+
+Because the tools are not exactly the nicest thing on earth next to a SIP device. And the play on the sound seems to work. As an extra bonus, it rhymes with the name of Sex Pistol's lead singer. 
+
+=== I'm running svwar against a PBX server and not getting any results ===
+
+That might mean two things: 
+  # You do not have any valid extensions in your guess method. If you know any valid extension on the target PBX try that out and make sure that it shows up in the results. You can specify numeric ranges to try via the -e (or -r) option, or dictionary files containing possible extension names via the -d option.
+  # You're running svwar against a PBX that does not differentiate responses between existing and non-existing extensions. You can try different methods, such as INVITE and see what comes up.
+
+=== Why is my question not here? ===
+
+Probably because my telepathic skills leave a lot to be desired. Don't hesitate to email me sandrogauc@gmail.com
