@@ -299,7 +299,7 @@ def reportBugToAuthor(trace):
     try:
         data += "uname: %s" % str(os.uname())
         data += '\r\n'
-    except OSError:
+    except (OSError,AttributeError):
         pass
     data += '\r\n\r\n'
     data += "Trace:\r\n"
