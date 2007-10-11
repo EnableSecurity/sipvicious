@@ -2,7 +2,7 @@
 #labels Featured
 = v0.2 =
 
-Major changes:
+== Major changes ==
   * Session support which allows you to resume previous scans as well as store the results in database format
   * Exporting of previous results to various formats: pdf, xml (html), csv and plain text
   * Easy updating by making use of subversion (svn update)
