@@ -1,3 +1,16 @@
+v0.2-svn
+General:
+* Bug fix:  fixed a bug in the database which was reported anonymously via the --reportback / -R option.
+            Thanks whoever reported that. Bug concerns the dbm which does not
+	    support certain methods supported other database modules referenced
+	    by anydbm.
+* Bug fix:  Ranges of extensions in svwar could not take long numeric extensions
+            (xrange does not support long / large numbers).
+* Bug fix:  svwar was truncating extension names containing certain characters. Fixed.
+* Cosmetic: Certain PBXs reply with "603 Declined" when svwar finds that the
+            extension does not exist. This creates extra noise. It is now being
+	    suppressed.
+
 v0.2
 General:
 * Feature: replaced 3rd party functions in ip4range with our functions in helper.py
