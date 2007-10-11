@@ -18,7 +18,7 @@
 
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.2'
+__version__ = '0.2-svn'
 
 import base64,struct,socket,logging
 
