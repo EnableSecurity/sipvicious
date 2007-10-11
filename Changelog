@@ -10,6 +10,7 @@ General:
 * Cosmetic: Certain PBXs reply with "603 Declined" when svwar finds that the
             extension does not exist. This creates extra noise. It is now being
 	    suppressed.
+* Feature:  -R / --reportback option now supports optional feedback
 
 v0.2
 General:
