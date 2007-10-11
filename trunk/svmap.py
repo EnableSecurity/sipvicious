@@ -290,27 +290,27 @@ if __name__ == '__main__':
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
         if not os.path.exists(exportpath):
-		logging.critical('A session with the name %s was not found'% options.resume)
-		exit(1)
+            logging.critical('A session with the name %s was not found'% options.resume)
+            exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
-	previousresume = options.resume
+        previousresume = options.resume
         previousverbose = options.verbose
         options,args = pickle.load(open(optionssrc,'r'))        
-	options.resume = previousresume
+        options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join('.sipvicious',__prog__,options.save)
     logginglevel = 30
     if options.verbose is not None:
-	if options.verbose >= 3:
-		logginglevel = 10
-	else:
-		logginglevel = 30-(options.verbose*10)
+        if options.verbose >= 3:
+            logginglevel = 10
+        else:
+            logginglevel = 30-(options.verbose*10)
     if options.quiet:
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
-
+    
     if options.input is not None:
         db = os.path.join('.sipvicious',__prog__,options.input,'resultua')
         if dbexists(db):
@@ -422,8 +422,8 @@ if __name__ == '__main__':
             pass
         logging.exception( "Exception" )
     if options.save is not None and sipvicious.nextip is not None and options.randomize is False and options.randomscan is False:
-   	lastipdst = os.path.join(exportpath,'lastip.pkl')
-   	logging.debug('saving state to %s' % lastipdst)
+        lastipdst = os.path.join(exportpath,'lastip.pkl')
+        logging.debug('saving state to %s' % lastipdst)
         try:
             f = open(lastipdst,'w')
             pickle.dump(sipvicious.nextip,f)
@@ -440,22 +440,22 @@ if __name__ == '__main__':
                     pass
     # display results
     if not options.quiet:
-	lenres = len(sipvicious.resultua)        
-	if lenres > 0:
+        lenres = len(sipvicious.resultua)        
+        if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-        	from pptable import indent,wrap_onspace
-	        width = 60
-	        labels = ('SIP Device','User Agent')
-	        rows = list()
-	        for k in sipvicious.resultua.keys():
-        	    rows.append((k,sipvicious.resultua[k]))
-	        print indent([labels]+rows,hasHeader=True,
-        	    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+                from pptable import indent,wrap_onspace
+                width = 60
+                labels = ('SIP Device','User Agent')
+                rows = list()
+                for k in sipvicious.resultua.keys():
+                    rows.append((k,sipvicious.resultua[k]))
+                print indent([labels]+rows,hasHeader=True,
+                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
             else:
                 logging.warn("too many to print - use svreport for this")
-	else:
-		logging.warn("found nothing")
+        else:
+            logging.warn("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)

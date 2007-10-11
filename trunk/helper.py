@@ -288,11 +288,25 @@ def reportBugToAuthor(trace):
     data += str(argv)
     data += '\r\n'
     data += 'version: %s' % __version__
+    data += '\r\n'
+    data += 'email: <%s>' % raw_input("Your email address (optional): ")
+    data += '\r\n'
+    data += 'msg: %s' % raw_input("Extra details (optional): ")
+    data += '\r\n'
+    import os
+    data += "osname: %s" % os.name
+    data += '\r\n'
+    try:
+        data += "uname: %s" % str(os.uname())
+        data += '\r\n'
+    except OSError:
+        pass
     data += '\r\n\r\n'
     data += "Trace:\r\n"
     data += str(trace)
     try:
         urlopen('http://geekbazaar.org/bugreport/r.php',data)
+        log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError,err:
         log.error( err )
 
