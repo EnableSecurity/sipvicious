@@ -333,12 +333,18 @@ if __name__ == '__main__':
                         [3232301056L,3323068415L],
                         [3323199488L,3758096127L]
                         ]
-	scanrandomstore = '.sipviciousrandomtmp'
-	resumescan = False 
-	if options.save is not None:
-		scanrandomstore = os.path.join(exportpath,'random')
-		resumescan = True
-        scaniter = scanrandom(internetranges,portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+        scanrandomstore = '.sipviciousrandomtmp'
+        resumescan = False 
+        if options.save is not None:
+            scanrandomstore = os.path.join(exportpath,'random')
+            resumescan = True
+        scaniter = scanrandom(
+                        internetranges,
+                        portrange,
+                        options.method.split(','),
+                        randomstore=scanrandomstore,
+                        resume=resumescan
+                        )
     else:
         if len(args) < 1:
             parser.error('Provide at least one target')

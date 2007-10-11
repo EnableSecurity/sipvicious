@@ -312,11 +312,17 @@ def scanrandom(ipranges,portranges,methods,resume=None,randomstore='.sipvicious_
     log = logging.getLogger('scanrandom')
     mode = 'n'
     if resume:
-	    mode = 'c'		   
+        mode = 'c'
     database = anydbm.open(randomstore,mode)
-    ipsleft = 0    
+    dbsyncs = False
+    try:
+        database.sync()
+        dbsyncs = True
+    except AttributeError:
+        pass
+    ipsleft = 0
     for iprange in ipranges:
-        startip,endip = iprange        
+        startip,endip = iprange
         ipsleft += endip - startip + 1
         hit = 0
         for iprange2 in ipranges:
@@ -328,14 +334,21 @@ def scanrandom(ipranges,portranges,methods,resume=None,randomstore='.sipvicious_
                         log.error('Cannot use random scan and try to hit the same ip twice')
                         return
     if resume:
-	ipsleft -= len(database)
+        ipsleft -= len(database)
     log.debug('scanning a total of %s ips' % ipsleft)
     while ipsleft > 0:
         randomchoice = random.choice(ipranges)
         #randomchoice = [0,4294967295L]
         randint = random.randint(*randomchoice)
         ip = numToDottedQuad(randint)
-        if ip not in database:
+        ipfound = False
+        if dbsyncs:
+            if ip not in database:
+                ipfound = True
+        else:
+            if ip not in database.keys():
+                ipfound = True
+        if ipfound:
             database[ip] = ''
             for portrange in portranges:
                 for port in portrange:
