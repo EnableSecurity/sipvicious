@@ -296,11 +296,9 @@ def reportBugToAuthor(trace):
     import os
     data += "osname: %s" % os.name
     data += '\r\n'
-    try:
+    if os.name == 'posix':
         data += "uname: %s" % str(os.uname())
         data += '\r\n'
-    except (OSError,AttributeError):
-        pass
     data += '\r\n\r\n'
     data += "Trace:\r\n"
     data += str(trace)
