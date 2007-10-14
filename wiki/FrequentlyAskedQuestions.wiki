@@ -5,6 +5,10 @@
 
 Because the tools are not exactly the nicest thing on earth next to a SIP device. And the play on the sound seems to work. As an extra bonus, it rhymes with the name of Sex Pistol's bass player. 
 
+=== Why did you publish tools that can be used for illegal purposes? ===
+
+The idea behind the tools is to aid administrators and security folks make informed decisions when evaluating the security of their SIP-based servers and devices. The tools are intended to be used for educational and demonstrational purposes. We advise people to request permission before making use of the tool suite against any network. Just like a knife, it can be used for good and bad. We hope that SIPVicious tool suite proves to be a very sharp one. 
+
 === I'm running svwar against a PBX server and not getting any results ===
 
 That might mean two things: 
