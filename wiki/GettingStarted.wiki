@@ -5,6 +5,11 @@
 
 This guide assumes that you're running either a Linux or a Windows box. It also assumes that you're sufficiently comfortable with the command line. We will get a virtual machine running Asterisk PBX as a target and launch SIPVicious tools against it.
 
+For an animated version of this check out:
+
+[http://sipvicious.org/webcasts/sipvicious-0.2-intro/web.html SIPVicious 0.2 introduction]
+
+
 = Preparation = 
 
   # Get the latest VMWare Player from [http://www.vmware.com/download/player/ here]
@@ -62,7 +67,3 @@ To crack an alphanumeric password we need to make use of a dictionary file. Crea
 Following that, you can make use of the credentials by making use of a SIP softphone such as [http://www.counterpath.com/ X-lite]. 
 
 Hope that makes you happy. 
-
-For an animated version of this check out:
-
-[http://sipvicious.org/webcasts/sipvicious-0.2-intro/web.html SIPVicious 0.2 introduction]
