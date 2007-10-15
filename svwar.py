@@ -119,7 +119,12 @@ class TakeASip:
     def getResponse(self):
         from helper import getNonce,getCredentials,getRealm,getCID,getTag
         # we got stuff to read off the socket
-        buff,srcaddr = self.sock.recvfrom(8192)
+        from socket import error as socketerror
+        try:
+            buff,srcaddr = self.sock.recvfrom(8192)
+        except socketerror,err:
+            self.log.error("socket error: %s" % err)
+            return
         extension = getTag(buff)
         if extension is None:
             self.nomore = True
@@ -235,6 +240,9 @@ class TakeASip:
             return
         except (AttributeError,ValueError,IndexError):
             self.log.error("bad response .. bailing out")            
+            return
+        except socket.error,err:
+            self.log.error("socket error: %s" % err)
             return
         if self.BADUSER.startswith(self.AUTHREQ):
             self.log.warn("Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
