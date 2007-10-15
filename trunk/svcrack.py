@@ -131,9 +131,13 @@ class ASipOfRedWine:
 
     def getResponse(self):
         from helper import getNonce,getCredentials,getRealm,getCID
-        # we got stuff to read off the socket                
-        buff,srcaddr = self.sock.recvfrom(8192)
-
+        # we got stuff to read off the socket              
+        from socket import error as socketerror 
+        try: 
+            buff,srcaddr = self.sock.recvfrom(8192)
+        except socketerror,err:
+            self.log.error("socket error: %s" % err)
+            return
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
