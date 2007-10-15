@@ -1,0 +1,7 @@
+#summary Mentions of SIPVicious tool suite on other sites and media
+
+= Presentations =
+
+http://www.arlinx.com/ITExpoWest07.pdf
+
+http://www.hackmeeting.org/materiali/voipsec_hm07.pdf
