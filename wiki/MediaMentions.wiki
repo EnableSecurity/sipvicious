@@ -5,3 +5,8 @@
 http://www.arlinx.com/ITExpoWest07.pdf
 
 http://www.hackmeeting.org/materiali/voipsec_hm07.pdf
+
+
+= Tutorials = 
+
+[http://www.learnsecurityonline.com/index.php?option=com_content&task=view&id=216&Itemid=71 October newsletter of Learn Security Online]
