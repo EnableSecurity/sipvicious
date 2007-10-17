@@ -310,7 +310,7 @@ if __name__ == '__main__':
         logginglevel = 50
     logging.basicConfig(level=logginglevel)
     logging.debug('started logging')
-    
+    scanrandomstore = None 
     if options.input is not None:
         db = os.path.join('.sipvicious',__prog__,options.input,'resultua')
         if dbexists(db):
@@ -431,7 +431,8 @@ if __name__ == '__main__':
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
     elif options.save is None:
-        if options.randomize or options.randomscan:
+        if scanrandomstore is not None: 
+	#if options.randomize or options.randomscan:
             try:
                     logging.debug('removing %s' % scanrandomstore)
                     os.unlink(scanrandomstore)
