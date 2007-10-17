@@ -151,3 +151,38 @@ Svwar does a sanity check before it starts scanning, to make sure that a PBX ser
 {{{
 ./svwar --force 10.0.0.1
 }}}
+
+== Extension range mode ==
+By default svwar will try to guess numeric ranges between 100 and 999. You can specify the ranges by making use of the following format: 
+start-end,start2-end2,start3-end3,...
+
+=== Example ===
+{{{
+./svwar -e 1-99,1000-9999,150-200 1.0.0.1
+}}}
+
+== Zero padding ==
+When making use of the extension range mode, possible extension numbers can be padded with a given number of zeros. For example, with options -z4, when trying extension number 1 the extension would be 0001.
+
+=== Example ===
+{{{
+./svwar -z4 -e1-9999 10.0.0.1
+}}}
+
+== Dictionary guessing mode ==
+Dictionary refers to a text file with a list of possible extension names. This allows for alphanumeric PBX extensions. 
+
+=== Example ===
+{{{
+./svwar -d dictionary.txt 10.0.0.1
+}}}
+
+
+
+
+= Further examples =
+
+Scan from 00000 to 99999 using padding, and save the session to 'session1':
+{{{
+./svwar -s session1 -e0-99999 -z5 10.0.0.1
+}}}
