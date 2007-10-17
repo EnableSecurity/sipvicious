@@ -1,13 +1,65 @@
 #summary How to use svwar
+#labels Featured
 
 = Introduction =
 
-Svwar is a free SIP PBX extension line scanner. In concept it works similar to traditional wardialers - guessing a range of extensions or a given list of extensions.
+Svwar is a free SIP PBX extension line scanner. In concept it works similar to traditional wardialers by guessing a range of extensions or a given list of extensions.
+
+Svwar can:
+  * identify extensions on PBXs and through SIP proxies
+  * Scan for large ranges of numeric extensions
+  * Scan for extensions using a file containing a list of possible extension names
+  * Use different SIP request methods for scanning since not all PBX servers behave the same
+  * resume previous scans
+
+= Svwar Usage =
+{{{
+usage: svwar.py [options] target
+examples:
+svwar.py -e100-999 10.0.0.1
+svwar.py -d dictionary.txt 10.0.0.2
 
 
-= Details =
+options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -v, --verbose         Increase verbosity
+  -q, --quiet           Quiet mode
+  -s NAME, --save=NAME  save the session. Has the benefit of allowing you to
+                        resume a previous scan and allows you to export scans
+  --resume=NAME         resume a previous scan
+  -p PORT, --port=PORT  destination port of the SIP UA
+  -t SELECTTIME, --timeout=SELECTTIME
+                        timeout for the select() function. Change this if
+                        you're losing packets
+  -d DICTIONARY, --dictionary=DICTIONARY
+                        specify a dictionary file with possible extension
+                        names
+  -m OPTIONS, --method=OPTIONS
+                        specify a request method. The default is REGISTER.
+                        Other possible methods are OPTIONS and INVITE
+  -e RANGE, --extensions=RANGE
+                        specify an extension or extension range  example: -e
+                        100-999,1000-1500,9999
+  -z PADDING, --zeropadding=PADDING
+                        the number of zeros used to padd the username.
+                        the options "-e 1-9999 -z 4" would give 0001 0002 0003
+                        ... 9999
+  -c, --enablecompact   enable compact mode. Makes packets smaller but
+                        possibly less compatable
+  -R, --reportback      Send the author an exception traceback. Currently
+                        sends the command line parameters and the traceback
+  --force               Force scan, ignoring initial sanity checks.
+}}}
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+= Target =
+
+Svwar requires the user to pass a target, which can either be an ip address or a destination hostname. 
+
+Examples:
+{{{
+./svwar 10.0.0.1
+}}}
+{{{
+./svwar siphost.com
+}}}
