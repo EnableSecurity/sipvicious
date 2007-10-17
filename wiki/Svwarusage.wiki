@@ -1,5 +1,6 @@
-#summary How to use svwar
 #labels Featured
+
+#summary How to use svwar
 
 = Introduction =
 
@@ -115,6 +116,30 @@ By default, war uses the REGISTER method. However some devices might not reveal 
 
 === Example ===
 {{{
+./svwar -m INVITE 10.0.0.1
+}}}
 
 == Verbose ==
 The verbose gives you more info. If you need to view all debug information, then specify -vv instead of -v. 
+
+=== Example ===
+{{{
+./svwar -vv 10.0.0.1
+}}}
+
+== Quiet ==
+Quiet mode does not print anything except for critical errors. Be sure to save to a session if you want to still view the results later on.
+
+=== Example ===
+{{{
+./svwar -q 10.0.0.1
+}}}
+
+
+== Report Back ==
+This option allows the end user to send a bug report to the author
+
+== Example ===
+{{{
+./svwar -R 10.0.0.1 -s test
+}}}
