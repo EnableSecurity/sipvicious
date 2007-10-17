@@ -182,7 +182,7 @@ Quiet mode does not print anything except for critical errors. Be sure to save t
 This option allows the end user to send a bug report to the author
 
 
-= Examples =
+= Further examples =
 
 Scan a subnet with verbose mode:
 {{{
