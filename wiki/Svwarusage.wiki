@@ -1,5 +1,6 @@
-#summary How to use svwar
 #labels Featured
+
+#summary How to use svwar
 
 = Introduction =
 
@@ -60,6 +61,34 @@ Examples:
 {{{
 ./svwar 10.0.0.1
 }}}
+
+To specify a hostname instead of the IP:
 {{{
 ./svwar siphost.com
+}}}
+
+= Options =
+
+== Save ==
+The save option allows users to store the current session properties to a database. You can then make use of svreport to manage the sessions and export to other formats. Refer to SvreportUsage page for this.
+
+Example:
+{{{
+./svwar -s session1 10.0.0.1
+}}}
+
+This also serves the purpose of being compatible with the input and resume options.
+
+== Resume ==
+Resumes a previously incomplete session. To list sessions make use of "svreport.py list". When a session is saved, svwar will periodically save the current state and also save the state upon exit.
+
+{{{
+./svwar --resume session1
+}}}
+
+== Destination port ==
+By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. Make use of svmap to scan for ports which speak SIP on a target address. You can then pass the non-standard port to svwar by specifying "-p" option. 
+
+{{{
+./svwar -p5061 10.0.0.1
 }}}
