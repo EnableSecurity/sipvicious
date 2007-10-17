@@ -1,6 +1,5 @@
-#labels Featured
-
 #summary How to use svwar
+#labels Featured
 
 = Introduction =
 
@@ -139,7 +138,16 @@ Quiet mode does not print anything except for critical errors. Be sure to save t
 == Report Back ==
 This option allows the end user to send a bug report to the author
 
-== Example ===
+=== Example ===
 {{{
 ./svwar -R 10.0.0.1 -s test
+}}}
+
+== Force scan ==
+Svwar does a sanity check before it starts scanning, to make sure that a PBX server is really listening at the target. This option overrides the sanity check. 
+
+
+=== Example ===
+{{{
+./svwar --force 10.0.0.1
 }}}
