@@ -1,6 +1,5 @@
-#labels Featured
-
 #summary How to use svwar
+#labels Featured
 
 = Introduction =
 
@@ -57,7 +56,7 @@ options:
 
 Svwar requires the user to pass a target, which can either be an ip address or a destination hostname. 
 
-Examples:
+=== Examples ===
 {{{
 ./svwar 10.0.0.1
 }}}
@@ -72,7 +71,7 @@ To specify a hostname instead of the IP:
 == Save ==
 The save option allows users to store the current session properties to a database. You can then make use of svreport to manage the sessions and export to other formats. Refer to SvreportUsage page for this.
 
-Example:
+=== Example ===
 {{{
 ./svwar -s session1 10.0.0.1
 }}}
@@ -82,6 +81,7 @@ This also serves the purpose of being compatible with the input and resume optio
 == Resume ==
 Resumes a previously incomplete session. To list sessions make use of "svreport.py list". When a session is saved, svwar will periodically save the current state and also save the state upon exit.
 
+=== Example ===
 {{{
 ./svwar --resume session1
 }}}
@@ -89,6 +89,32 @@ Resumes a previously incomplete session. To list sessions make use of "svreport.
 == Destination port ==
 By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. Make use of svmap to scan for ports which speak SIP on a target address. You can then pass the non-standard port to svwar by specifying "-p" option. 
 
+=== Example ===
 {{{
 ./svwar -p5061 10.0.0.1
 }}}
+
+== Timeout or Select time ==
+This option allows you to specify the timeout for the select() function. If the network is slow, then it is recommended that you set this to something higher than the default. The default is 0.005. Try with 0.01 first, and start increasing. 
+
+=== Example ===
+{{{
+./svwar -t 0.1 10.0.0.1
+}}}
+
+== Compact mode ==
+SIP supports compact mode, where some headers can be written in short form. By default this is disabled because some devices might not support it.
+
+=== Example ===
+{{{
+./svwar -c 10.0.0.1
+}}} 
+
+== Method ==
+By default, war uses the REGISTER method. However some devices might not reveal existing extensions through this method. You may specify a different method to scan with, such as OPTIONS and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
+
+=== Example ===
+{{{
+
+== Verbose ==
+The verbose gives you more info. If you need to view all debug information, then specify -vv instead of -v. 
