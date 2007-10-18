@@ -120,11 +120,7 @@ class TakeASip:
         from helper import getNonce,getCredentials,getRealm,getCID,getTag
         # we got stuff to read off the socket
         from socket import error as socketerror
-        try:
-            buff,srcaddr = self.sock.recvfrom(8192)
-        except socketerror,err:
-            self.log.error("socket error: %s" % err)
-            return
+        buff,srcaddr = self.sock.recvfrom(8192)
         extension = getTag(buff)
         if extension is None:
             self.nomore = True
