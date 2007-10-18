@@ -10,3 +10,11 @@ http://www.hackmeeting.org/materiali/voipsec_hm07.pdf
 = Tutorials = 
 
 [http://www.learnsecurityonline.com/index.php?option=com_content&task=view&id=216&Itemid=71 October newsletter of Learn Security Online]
+
+= Magazines =
+
+http://xakep.ru/post/40632/default.asp
+
+= Articles =
+
+http://www.secuobs.com/news/17102007-sipvicious.shtml
