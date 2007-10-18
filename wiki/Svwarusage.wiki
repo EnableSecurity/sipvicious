@@ -186,3 +186,8 @@ Scan from 00000 to 99999 using padding, and save the session to 'session1':
 {{{
 ./svwar -s session1 -e0-99999 -z5 10.0.0.1
 }}}
+
+Scanning for extensions using a dictionary file with verbose enabled:
+{{{
+./svwar -d dictionary.txt 10.0.0.1  -v
+}}}
