@@ -362,6 +362,9 @@ if __name__ == '__main__':
         initialcheck = True
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+        if os.path.exists(os.path.join(exportpath,'closed')):
+            logging.error("Cannot resume a session that is complete")
+            exit(1)
         if not os.path.exists(exportpath):
             logging.critical('A session with the name %s was not found'% options.resume)
             exit(1)
@@ -436,6 +439,7 @@ if __name__ == '__main__':
     logging.info( "start your engines" )
     try:
         sipvicious.start()
+        open(os.path.join(exportpath,'closed'),'w').close()
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')
     except Exception, err:

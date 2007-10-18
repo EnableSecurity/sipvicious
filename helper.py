@@ -537,11 +537,15 @@ def findsession(chosensessiontype=None):
 	return listresult
 	
 def listsessions(chosensessiontype=None):	
+        import os.path
 	listresult = findsession(chosensessiontype)
 	for k in listresult.keys():
 		print "Type of scan: %s" % k
 		for r in listresult[k]:
-			print "\t%s" % r
+                        sessionstatus = 'Incomplete'
+                        if os.path.exists(os.path.join('.sipvicious',k,r,'closed')):
+                                 sessionstatus = 'Complete'
+			print "\t- %s\t\t%s" % (r,sessionstatus)
 		print
 
 def deletesessions(chosensession,chosensessiontype):
