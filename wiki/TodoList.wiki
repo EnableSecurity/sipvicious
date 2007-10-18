@@ -3,7 +3,7 @@
 = general = 
   * others : improve documentation
   * feature: STUN support - NAT is a major PITA 
-  * feature: a way to know that a session is complete (and cannot be resumed) or not
+  * feature: a way to know that a session is complete (and cannot be resumed) or not (*done*)
 
 = svmap =
   * support for NAPTR
