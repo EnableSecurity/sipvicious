@@ -154,33 +154,73 @@ The --randomize option randomizes the given ranges of IPs instead of scanning se
 == Destination port ==
 By default, most SIP devices listen on the udp port 5060. However some SIP phones might listen on a high port. For example, X-lite is known to listen on "random" high ports. In that case, you can use ranges of ports to find out the port on which the SIP device is listening on. 
 
+{{{
+./svmap -p5061,5080-5090 10.0.0.1-2
+}}}
+
 == Source port ==
 By default, svmap listens on udp port 5060. However there are times when that port is already taken and svmap cannot bind on the default port. When this is the case, SIPVicious tools will listen on the next available port. However, in the case that one wishes to specify a port, one can make use of the -P option to specify another udp port to bind to. 
+
+{{{
+./svmap -P5666 10.0.0.1
+}}}
 
 == Timeout or Select time ==
 This option allows you to specify the timeout for the select() function. If the network is slow, then it is recommended that you set this to something higher than the default. The default is 0.005. Try with 0.01 first, and start increasing. 
 
+{{{
+./svmap -t0.1 1.1.1.1
+}}}
+
 == Compact mode ==
 SIP supports compact mode, where some headers can be written in short form. By default this is disabled because some devices might not support it. 
+
+
+{{{
+./svmap -c 101.10.1.1
+}}}
 
 == Method ==
 By default, svmap uses the OPTIONS method. However some devices might not support this method (even though they should). You may specify a different method to scan with, such as REGISTER and INVITE. Note that INVITE can be noisy and generate a "ring" at the other end.  For a list of method consult with the relevant RFCs or the [http://en.wikipedia.org/wiki/SIP_Requests wikipedia page].
 
+{{{
+./svmap -m INVITE 1.1.1.1
+}}}
+
 == External IP ==
 This option allows you to specify the external IP address which is used in the SIP request itself.
+
+{{{
+./svmap -x 88.11.1.1 1.1.1.1
+}}}
 
 == Binding IP ==
 This option allows you to specify the IP to bind to.
 
+{{{
+./svmap -b 127.0.0.1 127.0.0.1
+}}}
+
 == Verbose ==
 The verbose gives you more info. If you need to view all debug information, then specify -vv instead of -v. 
+
+{{{
+./svmap -vv 1.1.1.1
+}}}
 
 == Quiet ==
 Quiet mode does not print anything except for critical errors. Be sure to save to a session if you want to still view the results later on.
 
+{{{
+./svmap -q 10.1.1.1
+}}}
+
 == Report Back ==
 This option allows the end user to send a bug report to the author
 
+{{{
+./svmap -R 1.1.1.1
+}}}
 
 = Further examples =
 
