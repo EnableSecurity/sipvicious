@@ -9,9 +9,6 @@
   * support for NAPTR
   * support for e164
 
-= svwar =
-  * feature: scan multiple hosts at the same time
-
 = svcrack = 
   * feature: scan multiple users
   * feature: intelligent scan - sequentially perform the following attacks:
