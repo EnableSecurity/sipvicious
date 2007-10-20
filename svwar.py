@@ -212,7 +212,11 @@ class TakeASip:
         gotbadresponse=False
         try:
             while 1:
-                buff,srcaddr = self.sock.recvfrom(8192)
+                try:
+                    buff,srcaddr = self.sock.recvfrom(8192)
+                except socket.error,err:
+                    self.log.error("socket error: %s" % err)
+                    return
                 if buff.startswith(self.TRYING) \
                     or buff.startswith(self.RINGING) \
                     or buff.startswith(self.UNAVAILABLE):
