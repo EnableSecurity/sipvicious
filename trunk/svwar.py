@@ -439,7 +439,8 @@ if __name__ == '__main__':
     logging.info( "start your engines" )
     try:
         sipvicious.start()
-        open(os.path.join(exportpath,'closed'),'w').close()
+        if exportpath is not None:
+            open(os.path.join(exportpath,'closed'),'w').close()
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')
     except Exception, err:
