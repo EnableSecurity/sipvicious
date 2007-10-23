@@ -469,7 +469,7 @@ if __name__ == '__main__':
     if not options.quiet:
         lenres = len(sipvicious.resultauth)
         if lenres > 0:
-            logging.info("we have %s devices" % lenres)
+            logging.info("we have %s extensions" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
                 from pptable import indent,wrap_onspace
                 width = 60
