@@ -281,7 +281,9 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
 def reportBugToAuthor(trace):
     from urllib2 import urlopen,URLError
     import logging
-    from sys import argv
+    from sys import argv,version
+    import os
+    from urllib import quote
     log = logging.getLogger('reportBugToAuthor')
     data = str()
     data += "Command line parameters:\r\n"
@@ -293,7 +295,11 @@ def reportBugToAuthor(trace):
     data += '\r\n'
     data += 'msg: %s' % raw_input("Extra details (optional): ")
     data += '\r\n'
-    import os
+    data += "python version: \r\n"
+    #data += "%s\r\n" % version
+    #data += """2.5 (r25:51918, Sep 19 2006, 08:49:13)
+    #data += "[GCC ]"
+    #data += "A"*900
     data += "osname: %s" % os.name
     data += '\r\n'
     if os.name == 'posix':
@@ -302,6 +308,9 @@ def reportBugToAuthor(trace):
     data += '\r\n\r\n'
     data += "Trace:\r\n"
     data += str(trace)
+    data = quote(data)
+    print data
+    
     try:
         urlopen('http://geekbazaar.org/bugreport/r.php',data)
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
@@ -312,7 +321,7 @@ def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
         for portrange in portranges:
             for port in portrange:
-                for method in methods:                
+                for method in methods:
                     yield(ip,port,method)
 
 
