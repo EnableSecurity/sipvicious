@@ -75,7 +75,7 @@ class DrinkOrSip:
             self.externalip = socket.gethostbyname(socket.gethostname())
         else:
             self.externalip = externalip
-        self.log.debug("External ip: %s:%s" % (self.externalip,localport) )       
+        self.log.debug("External ip: %s:%s" % (self.externalip,localport) )
         self.compact = compact
         self.log.debug("Compact mode: %s" % self.compact)
         self.fromname = fromname        
@@ -261,7 +261,7 @@ if __name__ == '__main__':
                   help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
                   help="Source port for our packets", metavar="PORT")
-    parser.add_option("-x", "--externalip", dest="externalip", default='localhost',
+    parser.add_option("-x", "--externalip", dest="externalip",
                   help="IP Address to use as the external ip. Specify this if you have multiple interfaces or if you are behind NAT", metavar="IP")
     parser.add_option("-b", "--bindingip", dest="bindingip", default='',
                   help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
