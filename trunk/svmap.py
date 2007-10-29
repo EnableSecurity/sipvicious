@@ -72,8 +72,10 @@ class DrinkOrSip:
         self.selecttime = selecttime
         self.localport = localport
         if externalip is None:
+            self.log.debug("external ip was not set")
             self.externalip = socket.gethostbyname(socket.gethostname())
         else:
+            self.log.debug("external ip was set")
             self.externalip = externalip
         self.log.debug("External ip: %s:%s" % (self.externalip,localport) )
         self.compact = compact
