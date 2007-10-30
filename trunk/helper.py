@@ -280,6 +280,7 @@ def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchuniq
 
 def reportBugToAuthor(trace):
     from urllib2 import urlopen,URLError
+    from urllib import urlencode
     import logging
     from sys import argv,version
     import os
@@ -296,7 +297,7 @@ def reportBugToAuthor(trace):
     data += 'msg: %s' % raw_input("Extra details (optional): ")
     data += '\r\n'
     data += "python version: \r\n"
-    #data += "%s\r\n" % version
+    data += "%s\r\n" % version
     #data += """2.5 (r25:51918, Sep 19 2006, 08:49:13)
     #data += "[GCC ]"
     #data += "A"*900
@@ -309,10 +310,8 @@ def reportBugToAuthor(trace):
     data += "Trace:\r\n"
     data += str(trace)
     data = quote(data)
-    print data
-    
     try:
-        urlopen('http://geekbazaar.org/bugreport/r.php',data)
+        urlopen('http://geekbazaar.org/bugreport/r2.php',urlencode({'d':data}))
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError,err:
         log.error( err )
