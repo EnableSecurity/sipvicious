@@ -20,7 +20,15 @@
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
 __version__ = '0.2-svn'
 
+
+import sys
+if sys.hexversion < 0x020400f0:
+    sys.stderr.write("Please update to python 2.4 or greater to run Sipvicious\r\n")
+    sys.exit(1)
+
+
 import base64,struct,socket,logging
+
 
 def getRange(rangestr):
     from helper import anotherxrange as xrange
