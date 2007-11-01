@@ -1,16 +1,35 @@
-v0.2-svn
+v0.2.1 (maintenance)
 General:
+* Feature:  updated the report function to include more information about
+	    the system. Python version and operating system is now included 
+	    in the bug report. option now supports optional feedback.
+
+* Feature:  Store information about the state of a session. Sessions can be 
+	complete or incomplete, so that you can resume incomplete sessions 
+	but not complete ones.
+
+* Bug fix:  Added a check to make sure that the python version is supported. 
+	Anything less than version 2.4 is not supported
+
+* Bug fix:  IP in the SIP msg was being set to localhost when not explicitly 
+	set. This is not correct behavior and was fixed. As a result of this 
+	behavior some devices, such as Grandstream BT100 were not being detected.
+	Thanks to robert&someone from bulgaria for reporting this
+
 * Bug fix:  fixed a bug in the database which was reported anonymously via the --reportback / -R option.
-            Thanks whoever reported that. Bug concerns the dbm which does not
-	    support certain methods supported other database modules referenced
-	    by anydbm.
+	Thanks whoever reported that. Bug concerns the dbm which does not
+	support certain methods supported other database modules referenced
+	by anydbm. Reproduced on FreeBSD. Thanks to Anthony Williams for help i
+	dentifying this
+
 * Bug fix:  Ranges of extensions in svwar could not take long numeric extensions
-            (xrange does not support long / large numbers).
+	(xrange does not support long / large numbers). Thanks to Joern for reporting this
+
 * Bug fix:  svwar was truncating extension names containing certain characters. Fixed.
+
 * Cosmetic: Certain PBXs reply with "603 Declined" when svwar finds that the
-            extension does not exist. This creates extra noise. It is now being
-	    suppressed.
-* Feature:  -R / --reportback option now supports optional feedback
+	extension does not exist. This creates extra noise. It is now being
+	suppressed.
 
 v0.2
 General:
