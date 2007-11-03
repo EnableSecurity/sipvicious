@@ -73,7 +73,11 @@ class DrinkOrSip:
         self.localport = localport
         if externalip is None:
             self.log.debug("external ip was not set")
-            self.externalip = socket.gethostbyname(socket.gethostname())
+            if len(self.bindingip) > 0:
+                 self.log.debug("but bindingip was set! we'll set it to the binding ip")
+                 self.externalip = self.bindingip
+            else:
+                 self.externalip = socket.gethostbyname(socket.gethostname())
         else:
             self.log.debug("external ip was set")
             self.externalip = externalip
