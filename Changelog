@@ -27,6 +27,8 @@ General:
 
 * Bug fix:  svwar was truncating extension names containing certain characters. Fixed.
 
+* Bug fix:  when binding to a specific interface, the IP within the SIP message could be incorrect (when there are multiple interfaces). This has been fixed.
+
 * Cosmetic: Certain PBXs reply with "603 Declined" when svwar finds that the
 	extension does not exist. This creates extra noise. It is now being
 	suppressed.
