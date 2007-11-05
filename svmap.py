@@ -33,7 +33,7 @@ from struct import pack,unpack
 
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
-                 fromname='sipvicious',fromaddr='sip:100@1.1.1.1', 
+                 fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060):
         import logging,anydbm
         import os.path
@@ -90,6 +90,7 @@ class DrinkOrSip:
         self.nomoretoscan = False
         self.originallocalport = self.localport
         self.nextip = None
+        self.extension = extension
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
     
@@ -199,7 +200,7 @@ class DrinkOrSip:
                 callid = '%s' % random.getrandbits(80)
                 contact = None
                 if method != 'REGISTER':
-                    contact = 'sip:1000@%s:%s' % (self.externalip,self.localport)
+                    contact = 'sip:%s@%s:%s' % (self.extension,self.externalip,self.localport)
                 data = makeRequest(
                                 method,
                                 fromaddr,
@@ -213,7 +214,8 @@ class DrinkOrSip:
                                 localtag=localtag,
                                 contact=contact,
                                 accept='application/sdp',
-                                localport=self.localport
+                                localport=self.localport,
+                                extension=self.extension
                                 )
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
@@ -283,6 +285,8 @@ if __name__ == '__main__':
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
                   )
+    parser.add_option("-e", "--extension", dest="extension", 
+                  help="Specify an extension - by default this is not set")
     parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
@@ -412,6 +416,7 @@ if __name__ == '__main__':
                     externalip=options.externalip,
                     bindingip=options.bindingip,
                     sessionpath=exportpath,
+                    extension=options.extension
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )

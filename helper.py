@@ -228,8 +228,15 @@ def makeRedirect(previousHeaders,rediraddr):
     return(r)
     
 
-def makeRequest(method,fromaddr,toaddr,dsthost,port,callid,srchost='',branchunique=None,cseq=1,auth=None,localtag=None,compact=False,contact=None,accept='application/sdp',contentlength=0,localport=5060):
-    uri = 'sip:%s' % dsthost    
+def makeRequest(
+                method,fromaddr,toaddr,dsthost,port,callid,srchost='',
+                branchunique=None,cseq=1,auth=None,localtag=None,compact=False
+                ,contact=None,accept='application/sdp',contentlength=0,
+                localport=5060,extension=None):
+    if extension is None:
+        uri = 'sip:%s' % dsthost
+    else:
+        uri = 'sip:%s@%s' % (extension,dsthost)
     headers = dict()
     finalheaders = dict()
     superheaders = dict()
