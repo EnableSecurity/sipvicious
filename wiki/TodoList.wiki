@@ -6,7 +6,7 @@
   * feature: a way to know that a session is complete (and cannot be resumed) or not (*done*)
 
 = svmap =
-  * add option to specify an extension. used for -m INVITE
+  * add option to specify an extension. used for -m INVITE (*done*)
   * support for NAPTR
   * support for e164
 
