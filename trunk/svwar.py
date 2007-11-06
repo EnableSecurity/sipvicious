@@ -96,9 +96,9 @@ class TakeASip:
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
         localtag=username
-        contact = None
-        if m == 'INVITE' or m == 'OPTIONS':
-            contact = 'sip:%s@%s' % (username,self.dsthost)
+        #contact = None
+        #if m == 'INVITE' or m == 'OPTIONS':
+        contact = 'sip:%s@%s' % (username,self.dsthost)
         register = makeRequest(
                                 m,
                                 '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
