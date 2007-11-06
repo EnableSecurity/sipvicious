@@ -8,6 +8,9 @@ General:
 	complete or incomplete, so that you can resume incomplete sessions 
 	but not complete ones.
 
+* Feature:  Added -e option to svmap. Allows you to specify an extension. This
+	is useful when using -m INVITE options on a SIP phone.
+
 * Bug fix:  Added a check to make sure that the python version is supported. 
 	Anything less than version 2.4 is not supported
 

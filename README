@@ -13,7 +13,8 @@ ranges of ip address space, it will identify any SIP servers
 which it finds on the way. Also has the option to scan hosts 
 on ranges of ports.
 
-svwar - identifies working extension lines on a PBX. 
+svwar - identifies working extension lines on a PBX. A working
+extension is one that can be registered. 
 Also tells you if the extension line requires authentication or not. 
 
 svcrack - a password cracker making use of digest authentication. 
