@@ -109,6 +109,7 @@ class ASipOfRedWine:
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
         localtag=None
+        contact = 'sip:%s@%s' % (extension,remotehost)
         if auth is not None:
             cseq = 2
             localtag=base64.b64encode('%s:%s' % (self.auth['username'],self.auth['password']))
