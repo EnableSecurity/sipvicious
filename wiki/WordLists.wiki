@@ -1,0 +1,8 @@
+#summary Files that will help you with a dictionary attack
+#labels Featured
+
+A list of dictionary / wordlists that could be used by svwar and svcrack:
+
+ftp://ftp.ibiblio.org/pub/linux/distributions/openwall/wordlists/
+
+http://wordlist.sourceforge.net/
