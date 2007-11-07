@@ -3,10 +3,9 @@
 = general = 
   * others : improve documentation
   * feature: STUN support - NAT is a major PITA 
-  * feature: a way to know that a session is complete (and cannot be resumed) or not (*done*)
+
 
 = svmap =
-  * add option to specify an extension. used for -m INVITE (*done*)
   * support for NAPTR
   * support for e164
 
