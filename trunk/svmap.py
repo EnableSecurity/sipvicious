@@ -365,11 +365,11 @@ if __name__ == '__main__':
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         if options.randomize:
-	    scanrandomstore = '.sipviciousrandomtmp'
-	    resumescan = False
-	    if options.save is not None:
-		scanrandomstore = os.path.join(exportpath,'random')
-		resumescan = True
+            scanrandomstore = '.sipviciousrandomtmp'
+            resumescan = False
+            if options.save is not None:
+                scanrandomstore = os.path.join(exportpath,'random')
+                resumescan = True
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:
             if options.resume is not None:
@@ -381,9 +381,9 @@ if __name__ == '__main__':
                 except IOError:
                     logging.critical('Could not read from %s' % lastipsrc)
                     exit(1)
-		logging.debug('Previous args: %s' % args)
+                logging.debug('Previous args: %s' % args)
                 args = resumeFromIP(previousip,args)
-		logging.debug('New args: %s' % args)
+                logging.debug('New args: %s' % args)
                 logging.info('Resuming from %s' % previousip)
 
             # normal consecutive scan
@@ -448,7 +448,7 @@ if __name__ == '__main__':
             logging.warn('Could not save state to %s' % lastipdst)
     elif options.save is None:
         if scanrandomstore is not None: 
-	#if options.randomize or options.randomscan:
+        #if options.randomize or options.randomscan:
             try:
                     logging.debug('removing %s' % scanrandomstore)
                     os.unlink(scanrandomstore)
