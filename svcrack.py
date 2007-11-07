@@ -133,12 +133,7 @@ class ASipOfRedWine:
     def getResponse(self):
         from helper import getNonce,getCredentials,getRealm,getCID
         # we got stuff to read off the socket              
-        from socket import error as socketerror 
-        try: 
-            buff,srcaddr = self.sock.recvfrom(8192)
-        except socketerror,err:
-            self.log.error("socket error: %s" % err)
-            return
+        buff,srcaddr = self.sock.recvfrom(8192)
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
@@ -217,6 +212,9 @@ class ASipOfRedWine:
         except socket.timeout:
             self.log.error("no server response")
             return
+        except socket.error,err:
+            self.log.error("socket error:%s" % err)
+            return
         if self.noauth is True:
             return
         while 1:
@@ -230,14 +228,17 @@ class ASipOfRedWine:
                 if self.passwordcracked:
                     break                
                 # we got stuff to read off the socket
-                self.getResponse()
+                try:
+                    self.getResponse()
+                except socket.error,err:
+                    self.log.warn("socket error: %s" % err)
             else:
                 if self.passwordcracked:
                     break
                 if self.nomore is True:
                     try:
                         while not self.passwordcracked:
-                            self.getResponse()                            
+                                self.getResponse()
                     except socket.timeout:
                         break
                 # no stuff to read .. its our turn to send back something
