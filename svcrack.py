@@ -21,7 +21,7 @@ __GPL__ = """
 """
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__= '0.2-svn'
+__version__= '0.2.1'
 __prog__   = 'svcrack'
 import socket
 import select
