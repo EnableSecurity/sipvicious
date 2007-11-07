@@ -18,7 +18,7 @@
 
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.2-svn'
+__version__ = '0.2.1'
 
 
 import sys
