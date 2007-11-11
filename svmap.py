@@ -408,6 +408,10 @@ if __name__ == '__main__':
             optionsdst = os.path.join(exportpath,'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
             pickle.dump([options,args],open(optionsdst,'w'))
+    try:
+        options.extension
+    except AttributeError:
+        options.extension = None
     sipvicious = DrinkOrSip(
                     scaniter,
                     selecttime=options.selecttime,
