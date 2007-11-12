@@ -1,3 +1,9 @@
+v0.2.svn
+* Feature:  added the ability for svreport to count results when doing a list
+
+* Bug fix:  fixed a bug related to resuming a scan which does not have an
+	    an extension
+
 v0.2.1 (maintenance)
 General:
 * Feature:  updated the report function to include more information about
