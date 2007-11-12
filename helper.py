@@ -559,16 +559,29 @@ def findsession(chosensessiontype=None):
 				listresult[sessiontype] = os.listdir(p)
 	return listresult
 	
-def listsessions(chosensessiontype=None):	
-        import os.path
+def listsessions(chosensessiontype=None,count=False):	
+        import os.path,anydbm
 	listresult = findsession(chosensessiontype)
 	for k in listresult.keys():
 		print "Type of scan: %s" % k
 		for r in listresult[k]:
                         sessionstatus = 'Incomplete'
-                        if os.path.exists(os.path.join('.sipvicious',k,r,'closed')):
-                                 sessionstatus = 'Complete'
-			print "\t- %s\t\t%s" % (r,sessionstatus)
+			dblen = ''
+			if count:
+				sessionpath=os.path.join('.sipvicious',k,r)
+	                	if k == 'svmap':
+        	                	dbloc = os.path.join(sessionpath,'resultua')
+                		elif k == 'svwar':
+                        		dbloc = os.path.join(sessionpath,'resultauth')
+	                	elif k == 'svcrack':
+        	                	dbloc = os.path.join(sessionpath,'resultpasswd')
+                		if os.path.exists(dbloc):
+                   		     	logging.debug('The database could not be found: %s'%dbloc)
+                			db = anydbm.open(dbloc,'r')
+					dblen = len(db)
+        	                if os.path.exists(os.path.join('.sipvicious',k,r,'closed')):
+                                	sessionstatus = 'Complete'
+			print "\t- %s\t\t%s\t\t%s" % (r,sessionstatus,dblen)
 		print
 
 def deletesessions(chosensession,chosensessiontype):

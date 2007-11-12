@@ -60,6 +60,8 @@ if __name__ == "__main__":
 			help="Output filename")
 	parser.add_option("-n", dest="resolve", default=True,
                           action="store_false", help="Do not resolve the ip address")
+        parser.add_option("-c", "--count", dest="count", default=False,
+                          action="store_true", help="Used togather with 'list' command to count the number of entries")
 	(options,args) = parser.parse_args()
 	if len(args) < 1:
 		parser.error("Please specify a command.\r\n")
@@ -83,7 +85,7 @@ if __name__ == "__main__":
         sessiontypes = ['svmap','svwar','svcrack']
         logging.debug('started logging')        
 	if command == 'list':
-		listsessions(options.sessiontype)
+		listsessions(options.sessiontype,count=options.count)
 	if command == 'delete':
 		if options.session is None:
 			parser.error("Please specify a valid session.")
