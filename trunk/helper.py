@@ -566,9 +566,9 @@ def listsessions(chosensessiontype=None,count=False):
 		print "Type of scan: %s" % k
 		for r in listresult[k]:
                         sessionstatus = 'Incomplete'
-			dblen = ''
+	                sessionpath=os.path.join('.sipvicious',k,r)
+		        dblen = ''
 			if count:
-				sessionpath=os.path.join('.sipvicious',k,r)
 	                	if k == 'svmap':
         	                	dbloc = os.path.join(sessionpath,'resultua')
                 		elif k == 'svwar':
@@ -579,7 +579,7 @@ def listsessions(chosensessiontype=None,count=False):
                    		     	logging.debug('The database could not be found: %s'%dbloc)
                 			db = anydbm.open(dbloc,'r')
 					dblen = len(db)
-        	                if os.path.exists(os.path.join('.sipvicious',k,r,'closed')):
+        	        if os.path.exists(os.path.join(sessionpath,'closed')):
                                 	sessionstatus = 'Complete'
 			print "\t- %s\t\t%s\t\t%s" % (r,sessionstatus,dblen)
 		print
