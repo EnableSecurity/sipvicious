@@ -3,6 +3,7 @@
 = general = 
   * others : improve documentation
   * feature: STUN support - NAT is a major PITA 
+  * feature: change behavior of -R. When an exception is not caught give option to send a bug report. When -R is specified, send output (needs to be part of logging) no matter what.
 
 
 = svmap =
