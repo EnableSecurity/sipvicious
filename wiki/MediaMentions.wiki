@@ -2,7 +2,7 @@
 
 = Presentations =
 
-[http://www.hack.lu/pres/hacklu07_VoIP_workshop.pdf VoIP security workshop at hack.lu ]
+[http://www.hack.lu/pres/hacklu07_VoIP_workshop.pdf VoIP (in)security workshop at hack.lu]
 
 http://www.arlinx.com/ITExpoWest07.pdf
 
