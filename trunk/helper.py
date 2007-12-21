@@ -18,7 +18,7 @@
 
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.2.1'
+__version__ = '0.2.1-svn'
 
 
 import sys
@@ -100,34 +100,37 @@ def getCID(pkt):
     return None
 
 def parseHeader(buff,type='response'):
+    import re
     SEP = '\r\n\r\n'
+    HeadersSEP = '\r*\n(?![\t\x20])'
     import logging
     log = logging.getLogger('parseHeader')
     if SEP in buff:
         header,body = buff.split(SEP,1)
     else:
-        header = buff
-    headerlines = header.splitlines()
+        header = buff    
+    headerlines = re.split(HeadersSEP, header)
+    
     if len(headerlines) > 1:
         r = dict()
         if type == 'response':
-	    _t = headerlines[0].split(' ',2)
-	    if len(_t) == 3:
-            	sipversion,_code,description = _t
-	    else:
-		log.warn('Could not parse the first header line: %s' % `_t`)
-		return r
+            _t = headerlines[0].split(' ',2)
+            if len(_t) == 3:
+                sipversion,_code,description = _t
+            else:
+                log.warn('Could not parse the first header line: %s' % `_t`)
+                return r
             try:
                 r['code'] = int(_code)
             except ValueError:
                 return r
         elif type == 'request':
-	    _t = headerlines[0].split(' ',2)
-	    if len(_t) == 3:
-            	method,uri,sipversion = _t     
-	    else:
-		log.warn('Could not parse the first header line: %s' % `_t`)
-		return r  
+            _t = headerlines[0].split(' ',2)
+            if len(_t) == 3:
+                method,uri,sipversion = _t     
+        else:
+            log.warn('Could not parse the first header line: %s' % `_t`)
+            return r  
         r['headers'] = dict()
         for headerline in headerlines[1:]:
             SEP = ':'
@@ -139,6 +142,9 @@ def parseHeader(buff,type='response'):
                 name,val = headerline.lower(),None
             r['headers'][name] = val
         return r
+    
+
+        
 
 def fingerPrint(request,src=None,dst=None):
     # work needs to be done here
