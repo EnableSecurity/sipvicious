@@ -20,9 +20,8 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from helper import __author__, __version__
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.2.1'
-__prog__ = 'svmap'
 
 import socket
 import select
