@@ -20,8 +20,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__= '0.2.1'
+from helper import __author__, __version__
 __prog__   = 'svcrack'
 import socket
 import select
@@ -440,6 +439,7 @@ if __name__ == '__main__':
                     reusenonce=options.reusenonce,
                     extension=options.extension,
                     sessionpath=exportpath,
+                    port=options.port
                     )
     
     start_time = datetime.now()

@@ -96,7 +96,7 @@ class DrinkOrSip:
     
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
-        srcip,srcport = srcaddr                
+        srcip,srcport = srcaddr
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '): 
@@ -109,8 +109,8 @@ class DrinkOrSip:
         self.log.debug("running fingerPrintPacket()")
         res = fingerPrintPacket(buff)
         if res is not None:
-            if res.has_key('name'):                
-                uaname = res['name'][0]                
+            if res.has_key('name'):
+                uaname = res['name'][0]
             else:
                 uaname = 'unknown'
                 self.log.debug(`buff`)
@@ -416,7 +416,7 @@ if __name__ == '__main__':
                     scaniter,
                     selecttime=options.selecttime,
                     compact=options.enablecompact,
-                    localport=options.localport,                    
+                    localport=options.localport,
                     externalip=options.externalip,
                     bindingip=options.bindingip,
                     sessionpath=exportpath,
