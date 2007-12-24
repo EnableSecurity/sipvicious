@@ -29,6 +29,74 @@ if sys.hexversion < 0x020400f0:
 
 import base64,struct,socket,logging
 
+import optparse
+def standardoptions(parser):
+    parser.add_option('-v', '--verbose', dest="verbose", action="count",
+                      help="Increase verbosity")
+    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
+                      default=False,
+                      help="Quiet mode")
+    parser.add_option("-p", "--port", dest="port", default="5060",
+                  help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
+    parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
+                  help="Source port for our packets", metavar="PORT")
+    parser.add_option("-x", "--externalip", dest="externalip",
+                  help="IP Address to use as the external ip. Specify this if you have multiple interfaces or if you are behind NAT", metavar="IP")
+    parser.add_option("-b", "--bindingip", dest="bindingip", default='0.0.0.0',
+                  help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
+    parser.add_option("-t", "--timeout", dest="selecttime", type="float",
+                      default=0.005,
+                    help="Timeout for the select() function. Change this if you're losing packets",
+                  metavar="SELECTTIME")        
+    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
+                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
+                  )
+    return parser
+
+def standardscanneroptions(parser):
+    parser.add_option("-s", "--save", dest="save",
+                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
+    parser.add_option("--resume", dest="resume",
+                  help="resume a previous scan", metavar="NAME")    
+    parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
+                  help="enable compact mode. Makes packets smaller but possibly less compatable",
+                  action="store_true",
+                  )
+    return parser
+
+def calcloglevel(options):
+    logginglevel = 30
+    if options.verbose is not None:
+        if options.verbose >= 3:
+            logginglevel = 10
+        else:
+            logginglevel = 30-(options.verbose*10)
+    if options.quiet:
+        logginglevel = 50
+    return logginglevel
+
+
+def bindto(bindingip,startport,s):
+    import logging
+    log = logging.getLogger('bindto')
+    localport = startport
+    log.debug("binding to %s:%s" % (bindingip,localport))
+    while 1:
+        if localport > 65535:
+            log.critical("Could not bind to any port")
+            return
+        try:
+            s.bind((bindingip,localport))
+            break
+        except socket.error:
+            log.debug("could not bind to %s" % localport)
+            localport += 1            
+    if startport != localport:
+        log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % \
+                 (bindingip,startport, localport))
+        log.info("Make use of the -P option to specify a port to bind to yourself")
+    return localport,s
+
 
 def getRange(rangestr):
     from helper import anotherxrange as xrange
@@ -151,32 +219,32 @@ def fingerPrint(request,src=None,dst=None):
     import re
     server = dict()
     if request.has_key('headers'):
-    	    header = request['headers']
-    	    if (src is not None) and (dst is not None):
-    		server['ip'] = src[0]
-    		server['srcport'] = src[1]
-    		if server['srcport'] == dst[1]:
-    			server['behindnat'] = False
-    		else:
-    			server['behindnat'] = True
-    	    if header.has_key('user-agent'):
-                server['name'] = header['user-agent']
-    		server['uatype'] = 'uac' 
-    	    if header.has_key('server'):
-    	        server['name'] = header['server']
-    		server['uatype'] = 'uas'
-    	    if header.has_key('contact'):
-    	        m = re.match('<sip:(.*?)>',header['contact'][0])
-    		if m: 
-    			server['contactip'] = m.group(1)
-    	    if header.has_key('supported'):
-    		server['supported'] = header['supported']
-    	    if header.has_key('accept-language'):
-    		server['accept-language'] = header['accept-language']
-    	    if header.has_key('allow-events'):
-    		server['allow-events'] = header['allow-events']
-    	    if header.has_key('allow'):
-    		server['allow'] = header['allow']
+                 header = request['headers']
+                 if (src is not None) and (dst is not None):
+                      server['ip'] = src[0]
+                      server['srcport'] = src[1]
+                      if server['srcport'] == dst[1]:
+                               server['behindnat'] = False
+                      else:
+                               server['behindnat'] = True
+                 if header.has_key('user-agent'):
+                    server['name'] = header['user-agent']
+                    server['uatype'] = 'uac' 
+                 if header.has_key('server'):
+                    server['name'] = header['server']
+                    server['uatype'] = 'uas'
+                 if header.has_key('contact'):
+                    m = re.match('<sip:(.*?)>',header['contact'][0])
+                    if m: 
+                        server['contactip'] = m.group(1)
+                 if header.has_key('supported'):
+                    server['supported'] = header['supported']
+                 if header.has_key('accept-language'):
+                    server['accept-language'] = header['accept-language']
+                 if header.has_key('allow-events'):
+                    server['allow-events'] = header['allow-events']
+                 if header.has_key('allow'):
+                    server['allow'] = header['allow']
     return server
 
 def fingerPrintPacket(buff,src=None):
@@ -516,15 +584,15 @@ def resumeFromIP(ip,args):
     rargs = list()
     nip = dottedQuadToNum(ip)
     for arg in args:
-    	startip,endip = getranges(arg)
-	if not foundit:
-		if startip <= nip and endip >= nip:
-			ipranges.append((nip,endip))
-			foundit = True
-	else:
-		ipranges.append((startip,endip))
+            startip,endip = getranges(arg)
+            if not foundit:
+                  if startip <= nip and endip >= nip:
+                           ipranges.append((nip,endip))
+                           foundit = True
+            else:
+                ipranges.append((startip,endip))
     for iprange in ipranges:
-    	rargs.append('-'.join(map(numToDottedQuad,iprange)))
+             rargs.append('-'.join(map(numToDottedQuad,iprange)))
     return rargs
 
 
@@ -544,66 +612,66 @@ def resumeFrom(val,rangestr):
     return ','.join(map(lambda x: '-'.join(map(str,x)),tmp))
 
 def packetcounter(n):
-	i = 0
-	while 1:
-		if i == n:
-			i = 0
-			r = True
-		else:
-			i += 1
-			r = False
-		yield(r)
+         i = 0
+         while 1:
+                  if i == n:
+                           i = 0
+                           r = True
+                  else:
+                           i += 1
+                           r = False
+                  yield(r)
 
 sessiontypes = ['svmap','svwar','svcrack']
 def findsession(chosensessiontype=None):
         import os
-	listresult = dict()
-	for sessiontype in sessiontypes:
-		if chosensessiontype in [None,sessiontype]:
-			p = os.path.join('.sipvicious',sessiontype)
-			if os.path.exists(p):
-				listresult[sessiontype] = os.listdir(p)
-	return listresult
-	
-def listsessions(chosensessiontype=None,count=False):	
+        listresult = dict()
+        for sessiontype in sessiontypes:
+            if chosensessiontype in [None,sessiontype]:
+                p = os.path.join('.sipvicious',sessiontype)
+                if os.path.exists(p):
+                    listresult[sessiontype] = os.listdir(p)
+        return listresult
+         
+def listsessions(chosensessiontype=None,count=False):         
         import os.path,anydbm
-	listresult = findsession(chosensessiontype)
-	for k in listresult.keys():
-		print "Type of scan: %s" % k
-		for r in listresult[k]:
-                        sessionstatus = 'Incomplete'
-	                sessionpath=os.path.join('.sipvicious',k,r)
-		        dblen = ''
-			if count:
-	                	if k == 'svmap':
-        	                	dbloc = os.path.join(sessionpath,'resultua')
-                		elif k == 'svwar':
-                        		dbloc = os.path.join(sessionpath,'resultauth')
-	                	elif k == 'svcrack':
-        	                	dbloc = os.path.join(sessionpath,'resultpasswd')
-                		if os.path.exists(dbloc):
-                   		     	logging.debug('The database could not be found: %s'%dbloc)
-                			db = anydbm.open(dbloc,'r')
-					dblen = len(db)
-        	        if os.path.exists(os.path.join(sessionpath,'closed')):
-                                	sessionstatus = 'Complete'
-			print "\t- %s\t\t%s\t\t%s" % (r,sessionstatus,dblen)
-		print
+        listresult = findsession(chosensessiontype)
+        for k in listresult.keys():
+                print "Type of scan: %s" % k
+                for r in listresult[k]:
+                    sessionstatus = 'Incomplete'
+                    sessionpath=os.path.join('.sipvicious',k,r)
+                    dblen = ''
+                    if count:
+                        if k == 'svmap':
+                                dbloc = os.path.join(sessionpath,'resultua')
+                        elif k == 'svwar':
+                                dbloc = os.path.join(sessionpath,'resultauth')
+                        elif k == 'svcrack':
+                                dbloc = os.path.join(sessionpath,'resultpasswd')
+                        if not os.path.exists(dbloc):
+                                         logging.debug('The database could not be found: %s'%dbloc)
+                        else:
+                            db = anydbm.open(dbloc,'r')
+                            dblen = len(db)
+                    if os.path.exists(os.path.join(sessionpath,'closed')):
+                                    sessionstatus = 'Complete'
+                    print "\t- %s\t\t%s\t\t%s" % (r,sessionstatus,dblen)
+                print
 
 def deletesessions(chosensession,chosensessiontype):
-	import shutil,os, logging
+        import shutil,os, logging
         log = logging.getLogger('deletesessions')
-	sessionpath = list()
-	if chosensessiontype is None:
-		for sessiontype in sessiontypes:
-			p = os.path.join('.sipvicious',sessiontype,chosensession)
-			if os.path.exists(p):
-				sessionpath.append(p)
-	else:
-		p = os.path.join('.sipvicious',chosensessiontype,chosensession)
-		if os.path.exists(p):
-			sessionpath.append(p)
-			#sessiontype = chosensessiontype
+        sessionpath = list()
+        if chosensessiontype is None:
+            for sessiontype in sessiontypes:
+                p = os.path.join('.sipvicious',sessiontype,chosensession)
+                if os.path.exists(p):
+                        sessionpath.append(p)
+        else:
+                p = os.path.join('.sipvicious',chosensessiontype,chosensession)
+                if os.path.exists(p):
+                    sessionpath.append(p)
         if len(sessionpath) == 0:
             return
         for sp in sessionpath:

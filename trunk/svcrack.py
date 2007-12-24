@@ -63,7 +63,7 @@ class ASipOfRedWine:
         self.localhost = 'localhost'
         self.crackmode = crackmode
         self.crackargs = crackargs
-        self.dsthost,self.dstport =host,port
+        self.dsthost,self.dstport =host,int(port)
         if crackmode == 1:            
             self.passwdgen = numericbrute(*crackargs)
         elif crackmode == 2:
@@ -284,35 +284,23 @@ class ASipOfRedWine:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
-    from helper import getRange, resumeFrom
+    from helper import getRange, resumeFrom,calcloglevel
     import anydbm
     import os
     from sys import exit
     import logging
     import pickle
+    from helper import standardoptions, standardscanneroptions
 
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
     usage += "%prog -u100 -d dictionary.txt 10.0.0.1\r\n"
     usage += "%prog -u100 -r1-9999 -z4 10.0.0.1\r\n"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
-    parser.add_option('-v', '--verbose', dest="verbose", action="count",
-                      help="Increase verbosity")
-    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
-                      default=False,
-                      help="Quiet mode")
-    parser.add_option("-s", "--save", dest="save",
-                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
-    parser.add_option("--resume", dest="resume",
-                  help="resume a previous scan", metavar="NAME")        
-    parser.add_option("-p", "--port", dest="port", default=5060, type="int",
-                  help="destination port of the SIP Registrar", metavar="PORT")
+    parser = standardoptions(parser)
+    parser = standardscanneroptions(parser)
     parser.add_option("-u", "--username", dest="username",
                   help="username to try crack", metavar="USERNAME")
-    parser.add_option("-t", "--timeout", dest="selecttime", type="float",
-                      default=0.005,
-                  help="timeout for the select() function. Change this if you're losing packets",
-                  metavar="SELECTTIME")        
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
                   help="specify a dictionary file with passwords",
                   metavar="DICTIONARY")        
@@ -326,60 +314,45 @@ if __name__ == '__main__':
                   help="""the number of zeros used to padd the password.
                   the options "-r 1-9999 -z 4" would give 0001 0002 0003 ... 9999""",
                   metavar="PADDING")
-    parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
-                  help="enable compact mode. Makes packets smaller but possibly less compatable",
-                  action="store_true",
-                  )
     parser.add_option("-n", "--reusenonce", dest="reusenonce", default=False, 
                   help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making them vulnerable to replay attacks). Speeds up the cracking.",
                   action="store_true",
                   )
-    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
-                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
-                  )
     (options, args) = parser.parse_args()
-    logginglevel = 30
-    if options.verbose is not None:
-	if options.verbose >= 3:
-		logginglevel = 10
-	else:
-		logginglevel = 30-(options.verbose*10)
-    if options.quiet:
-        logginglevel = 50
     exportpath = None
-    logging.basicConfig(level=logginglevel)
+    logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
         if os.path.exists(os.path.join(exportpath,'closed')):
             logging.error("Cannot resume a session that is complete")
             exit(1)
-	if not os.path.exists(exportpath):
-		logging.critical('A session with the name %s was not found'% options.resume)
-		exit(1)
+        if not os.path.exists(exportpath):
+                logging.critical('A session with the name %s was not found'% options.resume)
+                exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
-	previousresume = options.resume
+        previousresume = options.resume
         previousverbose = options.verbose
         options,args = pickle.load(open(optionssrc,'r'))        
-	options.resume = previousresume
+        options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join('.sipvicious',__prog__,options.save)
         logging.debug('Session path: %s' % exportpath)
     
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
-	if not os.path.exists(exportpath):
-		logging.critical('A session with the name %s was not found'% options.resume)
-		exit(1)
+        if not os.path.exists(exportpath):
+                logging.critical('A session with the name %s was not found'% options.resume)
+                exit(1)
         optionssrc = os.path.join(exportpath,'options.pkl')
-	previousresume = options.resume
+        previousresume = options.resume
         previousverbose = options.verbose
         options,args = pickle.load(open(optionssrc,'r'))        
-	options.resume = previousresume
+        options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-	exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join('.sipvicious',__prog__,options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:

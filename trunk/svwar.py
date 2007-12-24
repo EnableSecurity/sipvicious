@@ -61,7 +61,7 @@ class TakeASip:
         self.challenges = list()
         self.localhost = 'localhost'
         self.realm = None
-        self.dsthost,self.dstport = host,port
+        self.dsthost,self.dstport = host,int(port)
         self.guessmode = guessmode
         self.guessargs = guessargs
         if guessmode == 1:
@@ -293,32 +293,20 @@ if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
     import anydbm
-    from helper import resumeFrom
+    from helper import resumeFrom, calcloglevel
     import os
     from sys import exit
     import logging
     import pickle
-    #logging.basicConfig(level=logging.DEBUG)
+    from helper import standardoptions, standardscanneroptions
+    
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
     usage += "%prog -e100-999 10.0.0.1\r\n"
     usage += "%prog -d dictionary.txt 10.0.0.2\r\n"
     parser = OptionParser(usage,version="%prog v"+str(__version__)+__GPL__)
-    parser.add_option('-v', '--verbose', dest="verbose", action="count",
-                      help="Increase verbosity")
-    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
-                      default=False,
-                      help="Quiet mode")
-    parser.add_option("-s", "--save", dest="save",
-                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
-    parser.add_option("--resume", dest="resume",
-                  help="resume a previous scan", metavar="NAME")    
-    parser.add_option("-p", "--port", dest="port", default=5060, type="int",
-                  help="destination port of the SIP UA", metavar="PORT")
-    parser.add_option("-t", "--timeout", dest="selecttime", type="float",
-                      default=0.005,
-                  help="timeout for the select() function. Change this if you're losing packets",
-                  metavar="SELECTTIME")        
+    parser = standardoptions(parser)
+    parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
                   help="specify a dictionary file with possible extension names",
                   metavar="DICTIONARY")        
@@ -334,27 +322,12 @@ if __name__ == '__main__':
                   the options "-e 1-9999 -z 4" would give 0001 0002 0003 ... 9999""",
                   default=0,
                   metavar="PADDING")
-    parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
-                  help="enable compact mode. Makes packets smaller but possibly less compatable",
-                  action="store_true",
-                  )
-    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
-                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
-                  )
     parser.add_option('--force', dest="force", action="store_true",
                       default=False,
                       help="Force scan, ignoring initial sanity checks.")
     (options, args) = parser.parse_args()
     exportpath = None
-    logginglevel = 30
-    if options.verbose is not None:
-        if options.verbose >= 3:
-            logginglevel = 10
-        else:
-            logginglevel = 30-(options.verbose*10)
-    if options.quiet:
-        logginglevel = 50
-    logging.basicConfig(level=logginglevel)
+    logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
     if options.force:
         initialcheck = False

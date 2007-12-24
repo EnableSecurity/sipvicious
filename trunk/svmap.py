@@ -96,6 +96,7 @@ class DrinkOrSip:
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
         srcip,srcport = srcaddr
+        uaname = 'unknown'
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '): 
@@ -238,6 +239,7 @@ if __name__ == '__main__':
     from datetime import datetime
     import anydbm
     import os
+    from helper import standardoptions, standardscanneroptions, calcloglevel
     from sys import exit
     import logging
     import pickle
@@ -250,45 +252,19 @@ if __name__ == '__main__':
     usage += "%prog --resume session1 -v\r\n"
     usage += "%prog -p5060-5062 10.0.0.3-20 -m INVITE\r\n"
     parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
-    parser.add_option('-v', '--verbose', dest="verbose", action="count",
-                      help="Increase verbosity")
-    parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
-                      default=False,
-                      help="Quiet mode")
-    parser.add_option("-s", "--save", dest="save",
-                  help="save the session. Has the benefit of allowing you to resume a previous scan and allows you to export scans", metavar="NAME")    
-    parser.add_option("--resume", dest="resume",
-                  help="resume a previous scan", metavar="NAME")    
+    parser = standardoptions(parser)
+    parser = standardscanneroptions(parser)
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
                       default=False,
                   help="Scan random IP addresses")
     parser.add_option("-i", "--input", dest="input",
                   help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
-    parser.add_option("-p", "--port", dest="port", default='5060',
-                  help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
-    parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
-                  help="Source port for our packets", metavar="PORT")
-    parser.add_option("-x", "--externalip", dest="externalip",
-                  help="IP Address to use as the external ip. Specify this if you have multiple interfaces or if you are behind NAT", metavar="IP")
-    parser.add_option("-b", "--bindingip", dest="bindingip", default='',
-                  help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
-    parser.add_option("-t", "--timeout", dest="selecttime", type="float",
-                      default=0.005,
-                    help="Timeout for the select() function. Change this if you're losing packets",
-                  metavar="SELECTTIME")        
-    parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
-                  help="enable compact mode. Makes packets smaller but possibly less compatable",
-                  action="store_true",
-                  )
     parser.add_option("-m", "--method", dest="method", 
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
                   )
     parser.add_option("-e", "--extension", dest="extension", 
                   help="Specify an extension - by default this is not set")
-    parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
-                  help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
-                  )
     parser.add_option("--randomize", dest="randomize", action="store_true",
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
@@ -312,15 +288,7 @@ if __name__ == '__main__':
         options.verbose = previousverbose
     elif options.save is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.save)
-    logginglevel = 30
-    if options.verbose is not None:
-        if options.verbose >= 3:
-            logginglevel = 10
-        else:
-            logginglevel = 30-(options.verbose*10)
-    if options.quiet:
-        logginglevel = 50
-    logging.basicConfig(level=logginglevel)
+    logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
     scanrandomstore = None 
     if options.input is not None:
