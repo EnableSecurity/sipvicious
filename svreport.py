@@ -32,10 +32,10 @@ import logging
 import socket
 
 if __name__ == "__main__":
-	commandsusage = """Supported commands:
-		- list:\tlists all scans
-		- export:\texports the given scan to a given format
-		- delete:\tdeletes the scan
+        commandsusage = """Supported commands:
+                - list:\tlists all scans
+                - export:\texports the given scan to a given format
+                - delete:\tdeletes the scan
 """
         commandsusage += "examples:\r\n"
         commandsusage += "      %s.py list\r\n" % __prog__
@@ -43,69 +43,61 @@ if __name__ == "__main__":
         commandsusage += "      %s.py delete -s scan1\r\n" % __prog__
         usage = "%prog [command] [options]\r\n\r\n"
         usage += commandsusage
-	parser = OptionParser(usage=usage)
+        parser = OptionParser(usage=usage)
         parser.add_option('-v', '--verbose', dest="verbose", action="count",
                           help="Increase verbosity")
         parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                           default=False,
                           help="Quiet mode")
-	parser.add_option("-t", "--type", dest="sessiontype",
-			help="Type of session. This is usually either svmap, svwar or svcrack. If not set I will try to find the best match")
-	parser.add_option("-s", "--session", dest="session",
-			help="Name of the session")
-	parser.add_option("-f", "--format", dest="format",
-			help="Format type. Can be stdout, pdf, xml, csv or txt")
-	parser.add_option("-o", "--output", dest="outputfile",
-			help="Output filename")
-	parser.add_option("-n", dest="resolve", default=True,
+        parser.add_option("-t", "--type", dest="sessiontype",
+                        help="Type of session. This is usually either svmap, svwar or svcrack. If not set I will try to find the best match")
+        parser.add_option("-s", "--session", dest="session",
+                        help="Name of the session")
+        parser.add_option("-f", "--format", dest="format",
+                        help="Format type. Can be stdout, pdf, xml, csv or txt")
+        parser.add_option("-o", "--output", dest="outputfile",
+                        help="Output filename")
+        parser.add_option("-n", dest="resolve", default=True,
                           action="store_false", help="Do not resolve the ip address")
         parser.add_option("-c", "--count", dest="count", default=False,
                           action="store_true", help="Used togather with 'list' command to count the number of entries")
-	(options,args) = parser.parse_args()
-	if len(args) < 1:
-		parser.error("Please specify a command.\r\n")
-		exit(1)
-	command = args[0]
-	from helper import listsessions,deletesessions,createReverseLookup, dbexists
-        from helper import getsessionpath,getasciitable,outputtoxml,outputtopdf
-        logginglevel = 30
-        if options.verbose is not None:
-            if options.verbose >= 3:
-                    logginglevel = 10
-            else:
-                    logginglevel = 30-(options.verbose*10)
-        if options.quiet:
-            logginglevel = 50
+        (options,args) = parser.parse_args()
+        if len(args) < 1:
+                parser.error("Please specify a command.\r\n")
+                exit(1)
+        command = args[0]
+        from helper import listsessions,deletesessions,createReverseLookup, dbexists
+        from helper import getsessionpath,getasciitable,outputtoxml,outputtopdf, calcloglevel
         validcommands = ['list','export','delete']
         if command not in validcommands:
                 parser.error('%s is not a supported command' % command)
                 exit(1)
-        logging.basicConfig(level=logginglevel)
+        logging.basicConfig(level=calcloglevel(options))
         sessiontypes = ['svmap','svwar','svcrack']
         logging.debug('started logging')        
-	if command == 'list':
-		listsessions(options.sessiontype,count=options.count)
-	if command == 'delete':
-		if options.session is None:
-			parser.error("Please specify a valid session.")
-			exit(1)
-		sessionpath = deletesessions(options.session,options.sessiontype)
-		if sessionpath is None:
-			parser.error('Session could not be found. Make sure it exists by making use of %s.py list' % __prog__)
-			exit(1)
-	elif command == 'export':
-		from datetime import datetime
-		start_time = datetime.now()
-		if options.session is None:
-			parser.error("Please specify a valid session")
-			exit(1)
-		if options.outputfile is None and options.format not in [None,'stdout']:
-			parser.error("Please specify an output file")
-			exit(1)
+        if command == 'list':
+                listsessions(options.sessiontype,count=options.count)
+        if command == 'delete':
+                if options.session is None:
+                        parser.error("Please specify a valid session.")
+                        exit(1)
+                sessionpath = deletesessions(options.session,options.sessiontype)
+                if sessionpath is None:
+                        parser.error('Session could not be found. Make sure it exists by making use of %s.py list' % __prog__)
+                        exit(1)
+        elif command == 'export':
+                from datetime import datetime
+                start_time = datetime.now()
+                if options.session is None:
+                        parser.error("Please specify a valid session")
+                        exit(1)
+                if options.outputfile is None and options.format not in [None,'stdout']:
+                        parser.error("Please specify an output file")
+                        exit(1)
                 tmp = getsessionpath(options.session,options.sessiontype)                
-		if tmp is None:
-			parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
-			exit(1)
+                if tmp is None:
+                        parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
+                        exit(1)
                 sessionpath,sessiontype = tmp
                 resolve = False
                 resdb = None
@@ -136,10 +128,10 @@ if __name__ == "__main__":
                                 resdb = anydbm.open(resdbloc,'r')
 
                 if options.outputfile is not None:
-			if options.outputfile.find('.') < 0:
-				if options.format is None:
-					options.format = 'txt'
-				options.outputfile += '.%s' % options.format
+                        if options.outputfile.find('.') < 0:
+                                if options.format is None:
+                                        options.format = 'txt'
+                                options.outputfile += '.%s' % options.format
 
                 if options.format in [None,'stdout','txt']:
                         o = getasciitable(labels,db,resdb)
@@ -166,4 +158,4 @@ if __name__ == "__main__":
                                         else:
                                                 row.append('N/A')
                                 writer.writerow(row)
-		logging.info( "That took %s" % (datetime.now() - start_time))
+                logging.info( "That took %s" % (datetime.now() - start_time))
