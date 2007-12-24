@@ -21,7 +21,7 @@ __GPL__ = """
 """
 
 from helper import __author__, __version__
-__author__ = "Sandro Gauci <sandrogauc@gmail.com>"
+__prog__ = "svmap"
 
 import socket
 import select
