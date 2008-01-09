@@ -307,10 +307,13 @@ def makeRequest(
                 branchunique=None,cseq=1,auth=None,localtag=None,compact=False
                 ,contact=None,accept='application/sdp',contentlength=0,
                 localport=5060,extension=None):
+    import random
     if extension is None:
         uri = 'sip:%s' % dsthost
     else:
         uri = 'sip:%s@%s' % (extension,dsthost)
+    if branchunique is None:
+        branchunique = '%s' % random.getrandbits(32)
     headers = dict()
     finalheaders = dict()
     superheaders = dict()
