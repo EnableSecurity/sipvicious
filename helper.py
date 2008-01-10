@@ -167,6 +167,33 @@ def getCID(pkt):
             return(_tmp[0])
     return None
 
+def parseSDP(buff):
+    r = dict()
+    for line in buff.splitlines():
+        _tmp = line.split('=',1)
+        if len(_tmp) == 2:
+            k,v = _tmp
+            if not r.has_key(k):
+                r[k] = list()
+            r[k].append(v)
+    return r
+
+def getAudioPort(sdp):
+    if sdp.has_key('m'):
+        for media in sdp['m']:
+            if media.startswith('audio'):
+                mediasplit = media.split()
+                if len(mediasplit) > 2:
+                    port = mediasplit[1]
+                    return port
+
+def getAudioPortFromBuff(buff):
+    sip = parseHeader(buff)
+    if sip.has_key('body'):
+        body = sip['body']
+        sdp = parseSDP(body)
+        return getAudioPort(sdp)
+
 def parseHeader(buff,type='response'):
     import re
     SEP = '\r\n\r\n'
@@ -176,7 +203,8 @@ def parseHeader(buff,type='response'):
     if SEP in buff:
         header,body = buff.split(SEP,1)
     else:
-        header = buff    
+        header = buff
+        body = ''
     headerlines = re.split(HeadersSEP, header)
     
     if len(headerlines) > 1:
@@ -209,10 +237,10 @@ def parseHeader(buff,type='response'):
             else:
                 name,val = headerline.lower(),None
             r['headers'][name] = val
+        r['body'] = body
         return r
     
 
-        
 
 def fingerPrint(request,src=None,dst=None):
     # work needs to be done here
@@ -275,6 +303,15 @@ def getTag(buff):
     return
     
 
+def getToTag(buff):
+    import re
+    tagRE='(To|t): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'    
+    _tmp = re.findall(tagRE,buff)
+    if _tmp is not None:
+        if len(_tmp) > 0:
+            _tmp2 = _tmp[0][1]
+            return _tmp2
+    return
 
 def challengeResponse(username,realm,passwd,method,uri,nonce):
     import md5
@@ -305,8 +342,8 @@ def makeRedirect(previousHeaders,rediraddr):
 def makeRequest(
                 method,fromaddr,toaddr,dsthost,port,callid,srchost='',
                 branchunique=None,cseq=1,auth=None,localtag=None,compact=False
-                ,contact=None,accept='application/sdp',contentlength=0,
-                localport=5060,extension=None):
+                ,contact=None,accept='application/sdp',contentlength=None,
+                localport=5060,extension=None,contenttype=None,body=''):
     import random
     if extension is None:
         uri = 'sip:%s' % dsthost
@@ -339,7 +376,14 @@ def makeRequest(
     headers['CSeq'] = '%s %s' % (cseq,method)
     headers['Max-Forwards'] = 70
     headers['Accept'] = accept
-    headers['Content-Length'] = contentlength
+    if contentlength is None:
+        headers['Content-Length'] = len(body)
+    else:
+        headers['Content-Length'] = contentlength
+    if contenttype is None and len(body) > 0:
+        contenttype = 'application/sdp'
+    if contenttype is not None:
+        headers['Content-Type'] = contenttype
     if auth is not None:
         response = challengeResponse(auth['username'],auth['realm'],auth['password'],method,uri,auth['nonce'])        
         if auth['proxy']:
@@ -365,6 +409,7 @@ def makeRequest(
     for h in finalheaders.iteritems():
         r += '%s: %s\r\n' % h
     r += '\r\n'
+    r += body
     return(r)
 
 
