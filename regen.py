@@ -104,7 +104,10 @@ def cleanact(stuff):
     for thing in stuff:
         for looser in loosers:
             if thing.startswith(looser):
-                stuff.remove(thing)
+                try:
+                    stuff.remove(thing)
+                except ValueError:
+                    pass
     return stuff
 
 def getbestmatch(stuff):
