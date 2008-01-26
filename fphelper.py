@@ -270,7 +270,7 @@ def sipfingerprint(response):
     res = getwinners(fp)
     if len(res) > 6:
         bestmatch = getbestmatch(res)
-        if len(bestmatch) == 0:
+        if len(bestmatch) < 3:
             return
         return [bestmatch]
     return res
