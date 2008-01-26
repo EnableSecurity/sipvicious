@@ -37,6 +37,8 @@ class DrinkOrSip:
         import logging,anydbm
         import os.path
         from helper import packetcounter
+        from fphelper import sipfingerprint
+        self.sipfingerprint = sipfingerprint
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         self.sessionpath = sessionpath
@@ -44,6 +46,7 @@ class DrinkOrSip:
         if self.sessionpath is not  None:
             self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
             self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
+            self.resultfp = anydbm.open(os.path.join(self.sessionpath,'resultfp'),'c')
             try:
                 self.resultip.sync()
                 self.dbsyncs = True
@@ -54,6 +57,7 @@ class DrinkOrSip:
         else:
             self.resultip = dict()
             self.resultua = dict()
+            self.resultfp = dict()
         # we do UDP
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -118,6 +122,12 @@ class DrinkOrSip:
             else:
                 uaname = 'unknown'
                 self.log.debug(`buff`)
+            fp = self.sipfingerprint(buff)
+            if fp is None:
+                fpname = 'unknown'
+            else:
+                fpname = ' / '.join(fp)
+            self.log.debug('Fingerprint: %s' % fpname)
             self.log.debug("Uaname: %s" % uaname)
             #print buff
             originaldst = getTag(buff)
@@ -127,13 +137,15 @@ class DrinkOrSip:
             except (ValueError,TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
                 dstip,dstport = 'unknown','unknown'            
-            resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t' % (dstip,dstport,srcip,srcport,uaname)
+            resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname,fpname)
             self.log.info( resultstr )
             self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
             self.resultua['%s:%s' % (srcip,srcport)] = uaname
+            self.resultfp['%s:%s' % (srcip,srcport)] = fpname
             if self.sessionpath is not None and self.dbsyncs:
                     self.resultip.sync()
                     self.resultua.sync()
+                    self.resultfp.sync()
         else:
             self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
             self.log.debug('Packet: %s' % `buff`)
@@ -438,10 +450,10 @@ if __name__ == '__main__':
             if (lenres < 400 and options.save is not None) or options.save is None:
                 from pptable import indent,wrap_onspace
                 width = 60
-                labels = ('SIP Device','User Agent')
+                labels = ('SIP Device','User Agent','Fingerprint')
                 rows = list()
                 for k in sipvicious.resultua.keys():
-                    rows.append((k,sipvicious.resultua[k]))
+                    rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))
                 print indent([labels]+rows,hasHeader=True,
                     prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
             else:
