@@ -29,5 +29,5 @@ A normal svmap scan:
 ./svmap.py 1.1.1.1
 | SIP Device          | User Agent   | Fingerprint |
 ----------------------------------------------------
-| 1.1.1.1:5060 | Asterisk PBX | Asterisk    |
+| 1.1.1.1:5060        | Asterisk PBX | Asterisk    |
 }}}
