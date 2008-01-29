@@ -22,5 +22,5 @@
   * add sipvicious logo to reports
 
 = future = 
-  * feature: work more on fingerprinting
+  * feature: work more on fingerprinting *in svn*
  
