@@ -78,7 +78,7 @@ def fpdynamicstore(servername,regex,fpfile="totag"):
             dynamicmatch = shelve.open(fpfile,flag='c')
             dynamicmatch.close()
             return True
-        except shelve.error:
+        except OSError:
             return
 
 def fpdynamic(dyn,fpfile="totag"):
@@ -87,7 +87,7 @@ def fpdynamic(dyn,fpfile="totag"):
     log = logging.getLogger("fpdynamic")
     try:
         dynamicmatch = shelve.open(fpfile,flag='c')
-    except shelve.error:
+    except OSError:
         return    
     import re
     result = list()
