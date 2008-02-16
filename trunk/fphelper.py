@@ -81,6 +81,19 @@ def fpdynamicstore(servername,regex,fpfile="totag"):
         except OSError:
             return
 
+def fpexists(fpname,fpfile="totag"):
+    import shelve,logging
+    log = logging.getLogger("fpexists")
+    try:
+        dynamicmatch = shelve.open(fpfile,flag='c')
+    except OSError:
+        return
+    r = False
+    if fpname in dynamicmatch.keys():
+        r = True
+    dynamicmatch.close()
+    return r
+
 def fpdynamic(dyn,fpfile="totag"):
     import shelve
     import logging
