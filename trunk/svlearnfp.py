@@ -1,6 +1,23 @@
 #!/usr/bin/env python
 # helps create new signatures for the SIP fingerprinting tool
 
+
+def prompt_yesno(msg,default='y'):
+    import sys
+    response = "Boo!"
+    while response not in ['y','n']:
+        sys.stdout.write("%s: " % (msg))
+        response = sys.stdin.readline().lower().strip()
+        if response == '':
+            response = '%s' % default
+    if response == 'n':
+        r = False
+    elif response == 'y':
+        r = True
+    else:
+        raise ValueError
+    return r
+
 def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005,noisy=False,samples=1000,method='OPTIONS',localip=None):
     import logging, socket, select, random
     from time import sleep
@@ -90,7 +107,7 @@ def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005
 
 if __name__ == '__main__':
     from fphelper import fpdynamic, fpstatic, getdynamic, getstatic, hashstatic,fpstore, fpdynamicstore
-    from fphelper import getfingerprints, getheader, fpexists
+    from fphelper import getfingerprints, getheader, fpexists, uploadfp
     from optparse import OptionParser
     from helper import makeRequest, calcloglevel, fingerPrintPacket, standardoptions, bindto
     from regen import generateregex
@@ -155,12 +172,8 @@ if __name__ == '__main__':
     else:
         # interactive friendly mode
         try:
-            while response not in ['y','n']:
-                sys.stdout.write("Would you like to define this fingerprint? [Y]: ")
-                response = sys.stdin.readline().lower().strip()
-                if response == '':
-                    response = 'y'
-            if response == 'n':
+            ok = prompt_yesno("Would you like to define this fingerprint? [Y]","y")
+            if not ok:
                 sys.exit(1)    
             if options.re:
                 regexisbad = True
@@ -187,18 +200,14 @@ if __name__ == '__main__':
             logging.debug("to tag regex: %s" % totagregex)
             logging.debug("checking if server name already exists")
             if fpexists(servername):
-                defaultresponse = 'n'
-                friendlymsg = " (server name alreday exists)"
+                sys.stdout.write("WARNING: A fingerprint for this server was already defined\r\n")
+                defaultresponse = 'n'                
+                question = "Save? [N]"
             else:
+                question = "Save? [Y]"
                 defaultresponse = 'y'
-                friendlymsg = str()
-            response = "Boo!"
-            while response not in ['y','n']:
-                sys.stdout.write("Save? [%s]%s: " % (defaultresponse,friendlymsg))
-                response = sys.stdin.readline().lower().strip()
-                if response == '':
-                    response = '%s' % defaultresponse
-            if response == 'n':
+            ok = prompt_yesno(question,defaultresponse)
+            if not ok:
                 sys.exit(1)
         except KeyboardInterrupt:
             logging.warn("Caught keyboard interrupt")
@@ -207,3 +216,11 @@ if __name__ == '__main__':
     for fullhash,orderhash,headerhashes in statichashes:
         fpstore(servername,fullhash,headerhashes)
     fpdynamicstore(servername,totagregex)
+    if not options.auto:
+        ok = prompt_yesno("Send this fingerprint to the author (recommended)? [Y]",'y')
+        if not ok:
+            logging.debug("That's not so nice")
+            sys.exit(1)
+        emailaddr = raw_input("Your email address (optional): ")
+        if uploadfp(servername,statichashes,totagregex,emailaddr) is not None:
+            sys.stdout.write("Thanks!\r\n")

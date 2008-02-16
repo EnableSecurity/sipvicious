@@ -160,6 +160,27 @@ def fpstatic(buffer,fullfn='staticfull',headersfn='staticheaders'):
             headerguess.extend(headersdb[hashedheader])
     return fullguess,headerguess
 
+def uploadfp(servername,statichashes,totagregex,emailaddr):
+    from urllib2 import urlopen,URLError
+    from urllib import urlencode
+    import logging
+    params = dict()
+    params['servername'] = servername
+    params['statichashes'] = statichashes
+    params['totagregex'] = totagregex
+    params['emailaddr'] = emailaddr
+    log = logging.getLogger('uploadfp')
+    data =  "Server name: %(servername)s\r\n\r\n"
+    data += "Static hashes: %(statichashes)s\r\n\r\n"
+    data += "To tag regex: %(totagregex)s\r\n\r\n"
+    data += "Email: %(emailaddr)s\r\n\r\n"
+    data = data % params
+    try:
+        urlopen('http://geekbazaar.org/bugreport/fpadd.php',urlencode({'d':data}))        
+    except URLError,err:
+        log.error( err )
+        return
+    return True
 
 
 def fpstore(servername,fullhash,headerhashes,fullfn='staticfull',headersfn='staticheaders'):
