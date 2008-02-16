@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # helps create new signatures for the SIP fingerprinting tool
 
-def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005,noisy=False,samples=1000,method='OPTIONS'):
+def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005,noisy=False,samples=1000,method='OPTIONS',localip=None):
     import logging, socket, select, random
     from time import sleep
     from sys import stdout
@@ -12,10 +12,14 @@ def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005
     if bindresult is None:
         sys.exit(1)
     localport,s = bindresult
-    try:
-        myaddr = ':'.join(map(str,(socket.gethostbyname(socket.gethostname()),localport)))
-    except socket.error:
-        myaddr = '0.0.0.0:%s' % localport
+    if localip is None:
+        try:
+            myaddr = ':'.join(map(str,(socket.gethostbyname(socket.gethostname()),localport)))
+        except socket.error:
+            log.warn("could not automatically find the local ip. please specify one by using -x option")
+            myaddr = '0.0.0.0:%s' % localport
+    else:
+        myaddr = localip
     externalip = bindingip
     rlist = [s]
     wlist = list()
@@ -86,7 +90,7 @@ def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005
 
 if __name__ == '__main__':
     from fphelper import fpdynamic, fpstatic, getdynamic, getstatic, hashstatic,fpstore, fpdynamicstore
-    from fphelper import getfingerprints, getheader
+    from fphelper import getfingerprints, getheader, fpexists
     from optparse import OptionParser
     from helper import makeRequest, calcloglevel, fingerPrintPacket, standardoptions, bindto
     from regen import generateregex
@@ -128,7 +132,8 @@ if __name__ == '__main__':
             selecttime=options.selecttime,
             method='OPTIONS',
             noisy=True,
-            samples=options.samples
+            samples=options.samples,
+            localip=options.externalip
             )
     except KeyboardInterrupt:
         pass
@@ -145,8 +150,10 @@ if __name__ == '__main__':
     else:
         defaultua, defaultuastr = '',''
     if options.auto:
+        # non interactive mode
         servername = defaultua        
     else:
+        # interactive friendly mode
         try:
             while response not in ['y','n']:
                 sys.stdout.write("Would you like to define this fingerprint? [Y]: ")
@@ -154,7 +161,7 @@ if __name__ == '__main__':
                 if response == '':
                     response = 'y'
             if response == 'n':
-                sys.exit(1)            
+                sys.exit(1)    
             if options.re:
                 regexisbad = True
                 while regexisbad:
@@ -178,12 +185,19 @@ if __name__ == '__main__':
                 sys.exit(1)
             logging.debug("servername: %s" % servername)
             logging.debug("to tag regex: %s" % totagregex)
+            logging.debug("checking if server name already exists")
+            if fpexists(servername):
+                defaultresponse = 'n'
+                friendlymsg = " (server name alreday exists)"
+            else:
+                defaultresponse = 'y'
+                friendlymsg = str()
             response = "Boo!"
             while response not in ['y','n']:
-                sys.stdout.write("Save? [Y]: ")
+                sys.stdout.write("Save? [%s]%s: " % (defaultresponse,friendlymsg))
                 response = sys.stdin.readline().lower().strip()
                 if response == '':
-                    response = 'y'
+                    response = '%s' % defaultresponse
             if response == 'n':
                 sys.exit(1)
         except KeyboardInterrupt:
