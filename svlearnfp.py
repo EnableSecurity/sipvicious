@@ -120,7 +120,8 @@ if __name__ == '__main__':
     parser = standardoptions(parser)
     parser.add_option("-S","--samples", dest="samples", type="int", default=222,
                   help="Number of samples to take")
-    parser.add_option("--customregex", dest="re", action="store_true", default=False)
+    parser.add_option("--customregex", dest="re", action="store_true", default=False,
+                      help="Specify a regular expression and override the automatically generated one. Do not use unless you know what you're doing")
     parser.add_option("--auto", dest="auto", action="store_true", default=False,
                       help="automatically process and save the fingerprint")
     (options, args) = parser.parse_args()
