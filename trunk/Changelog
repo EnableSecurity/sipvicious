@@ -1,3 +1,10 @@
+v0.2.9
+* Feature:  Fingerprinting support for svmap. Included fphelper.py and 
+            3 databases used for fingerprinting. 
+
+* Feature:  Added svlearnfp.py which allows one to add new signatures to 
+            db and send them to the author. 
+
 v0.2.svn
 * Feature:  added the ability for svreport to count results when doing a list
 
