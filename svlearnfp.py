@@ -126,7 +126,7 @@ if __name__ == '__main__':
                       help="automatically process and save the fingerprint")
     (options, args) = parser.parse_args()
     if len(args) < 1:
-        parser.error("please specify a sip host and a server name")
+        parser.error("please specify a sip host")
         sys.exit(2)
     dsthosts = args
     
@@ -215,6 +215,9 @@ if __name__ == '__main__':
             sys.exit(1)
     logging.info("saving as %s with regex %s" % (servername,totagregex))
     for fullhash,orderhash,headerhashes in statichashes:
+        logging.debug("Saving fullhash: %s" % fullhash)
+        logging.debug("Saving orderhash: %s" % orderhash)
+        logging.debug("Saving headerhashes: %s" % headerhashes)
         fpstore(servername,fullhash,headerhashes)
     fpdynamicstore(servername,totagregex)
     if not options.auto:

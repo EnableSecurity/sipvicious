@@ -76,6 +76,7 @@ def fpdynamicstore(servername,regex,fpfile="totag"):
     if regex is not None:
         try:
             dynamicmatch = shelve.open(fpfile,flag='c')
+            dynamicmatch[servername] = regex
             dynamicmatch.close()
             return True
         except OSError:
@@ -184,13 +185,19 @@ def uploadfp(servername,statichashes,totagregex,emailaddr):
 
 
 def fpstore(servername,fullhash,headerhashes,fullfn='staticfull',headersfn='staticheaders'):
-    import shelve
-    fulldb = shelve.open(fullfn,writeback=True)
-    headersdb = shelve.open(headersfn,writeback=True)
+    import shelve,logging
+    log = logging.getLogger("fpstore")
+    fulldb = shelve.open(fullfn)
+    headersdb = shelve.open(headersfn)    
     if fulldb.has_key(fullhash):
+        log.debug("fulldb has this key already defined")
         if servername not in fulldb[fullhash]:
+            log.debug("server not already in therefore appending")
             fulldb[fullhash].append(servername)
+        else:
+            log.debug("server known therefore not appending")
     else:
+        log.debug("key not defined therefore creating")
         fulldb[fullhash] = [servername]
     for headerhash in headerhashes:
         if headersdb.has_key(headerhash):
@@ -198,7 +205,9 @@ def fpstore(servername,fullhash,headerhashes,fullfn='staticfull',headersfn='stat
                 headersdb[headerhash].append(servername)
         else:
             headersdb[headerhash] = [servername]
+    fulldb.sync()
     fulldb.close()
+    headersdb.sync()
     headersdb.close()
 
 def _fpcalc(dyn,static):
@@ -221,6 +230,8 @@ def _fpcalc(dyn,static):
     return s
 
 def fpcalc(dyn,static):
+    import logging
+    log = logging.getLogger('fpcalc')
     results = dict()
     if len(dyn) > 0:
         for d in dyn:
@@ -235,6 +246,7 @@ def fpcalc(dyn,static):
             if not results.has_key(s):
                 results[s] = 0
             results[s] += 1
+    log.debug(results)
     return results
 
 def getfingerprints(responses):
@@ -278,7 +290,7 @@ def getwinners(r):
             res = [k]
             l = r[k]
         elif r[k] == l:
-            res.append(k)    
+            res.append(k)
     return res
 
 def getheader(buff):
@@ -288,6 +300,8 @@ def getheader(buff):
 
 def sipfingerprint(response):
     from regen import getbestmatch
+    import logging
+    log = logging.getLogger('sipfingerprint')
     response = getheader(response)
     dyn = getdynamic(response)
     totag=''
@@ -302,6 +316,7 @@ def sipfingerprint(response):
     #print fpstaticres
     fp = fpcalc(fptotagres,fpstaticres)
     res = getwinners(fp)
+    log.debug("get winners returned: %s" % res)
     if len(res) > 6:
         bestmatch = getbestmatch(res)
         if len(bestmatch) < 3:
