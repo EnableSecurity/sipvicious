@@ -21,6 +21,8 @@
 = svreport =
   * add sipvicious logo to reports
 
+= svlearnfp = 
+  * add a place for users to add comments
 
 = future = 
   * feature: work more on fingerprinting *in svn*
