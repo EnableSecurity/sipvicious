@@ -320,7 +320,7 @@ def sipfingerprint(response):
     if len(res) > 6:
         bestmatch = getbestmatch(res)
         if len(bestmatch) < 3:
-            return
+            return res
         return [bestmatch]
     return res
 
