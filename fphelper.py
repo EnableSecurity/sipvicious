@@ -307,15 +307,16 @@ def groupwherepossible(fpnames,groupdb='groupdb'):
     except IOError:
         log.error("groupdb was not found: %s" % groupdb)
         return
-    res = list()
+    res = dict()
     while len(fpnames) > 0:
         fpname = fpnames.pop()
         for k in groupnames.keys():
             if re.search(k, fpname):
                 fpname = groupnames[k]
                 break
-        if fpname not in res:
-            res.append(fpname)
+        if fpname not in res.keys():
+            res[fpname] = 0
+        res[fpname] += 1
     return res
         
 
@@ -339,7 +340,8 @@ def sipfingerprint(response):
     res = getwinners(fp)
     log.debug("get winners returned: %s" % res)
     if len(res) > 6:
-        res = groupwherepossible(res)
+        grouped = groupwherepossible(res)
+        res = getwinners(grouped)
     return res
 
 if __name__ == "__main__":
