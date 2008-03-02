@@ -166,7 +166,7 @@ if __name__ == '__main__':
         defaultua = fp['name'][0]
         defaultuastr = '[%s]' % defaultua
     else:
-        defaultua, defaultuastr = '',''
+        defaultua, defaultuastr = '','(could not guess name - please specify)'
     if options.auto:
         # non interactive mode
         servername = defaultua        
