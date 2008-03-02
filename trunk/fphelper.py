@@ -339,14 +339,7 @@ def sipfingerprint(response):
     res = getwinners(fp)
     log.debug("get winners returned: %s" % res)
     if len(res) > 6:
-<<<<<<< .mine
         res = groupwherepossible(res)
-=======
-        bestmatch = getbestmatch(res)
-        if len(bestmatch) < 3:
-            return res
-        return [bestmatch]
->>>>>>> .r307
     return res
 
 if __name__ == "__main__":
