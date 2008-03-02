@@ -338,10 +338,10 @@ def sipfingerprint(response):
     #print fpstaticres
     fp = fpcalc(fptotagres,fpstaticres)
     res = getwinners(fp)
-    log.debug("get winners returned: %s" % res)
     if len(res) > 6:
-        grouped = groupwherepossible(res)
-        res = getwinners(grouped)
+        grouped = groupwherepossible(res)    
+        res = getwinners(fp)
+    log.debug("get winners returned: %s" % res)
     return res
 
 if __name__ == "__main__":

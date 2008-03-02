@@ -30,13 +30,20 @@ def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005
         sys.exit(1)
     localport,s = bindresult
     if localip is None:
-        try:
-            myaddr = ':'.join(map(str,(socket.gethostbyname(socket.gethostname()),localport)))
-        except socket.error:
-            log.warn("could not automatically find the local ip. please specify one by using -x option")
-            myaddr = '0.0.0.0:%s' % localport
+        log.debug("local ip was not set")
+        if bindingip != '0.0.0.0':
+            log.debug("but bindingip was set! we'll set it to the binding ip")
+            localip = bindingip
+        else:
+            try:
+                log.info("trying to get self ip .. might take a while")
+                localip = socket.gethostbyname(socket.gethostname())
+                log.info("ok got %s" % localip)
+            except socket.error:
+                localip = '127.0.0.1'
     else:
-        myaddr = localip
+        log.debug("external ip was set")
+    myaddr = ':'.join((localip,str(localport)))
     externalip = bindingip
     rlist = [s]
     wlist = list()
