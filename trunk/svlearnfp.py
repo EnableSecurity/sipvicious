@@ -112,7 +112,7 @@ if __name__ == '__main__':
     from helper import makeRequest, calcloglevel, fingerPrintPacket, standardoptions, bindto
     from regen import generateregex
     import logging
-    import sys
+    import sys,re
     log = logging.getLogger('')
     usage = '%prog [siphost]\r\n'
     usage += 'example: %prog 10.0.0.2\r\n'
