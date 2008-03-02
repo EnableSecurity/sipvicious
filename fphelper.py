@@ -298,6 +298,27 @@ def getheader(buff):
     splitbuff = buff.split(SEP,2)
     return(splitbuff[0])
 
+def groupwherepossible(fpnames,groupdb='groupdb'):
+    import shelve, logging, re
+    log = logging.getLogger('grouphwerepossible')
+    log.debug("entered")
+    try:
+        groupnames = shelve.open(groupdb)
+    except IOError:
+        log.error("groupdb was not found: %s" % groupdb)
+        return
+    res = list()
+    while len(fpnames) > 0:
+        fpname = fpnames.pop()
+        for k in groupnames.keys():
+            if re.search(k, fpname):
+                fpname = groupnames[k]
+                break
+        if fpname not in res:
+            res.append(fpname)
+    return res
+        
+
 def sipfingerprint(response):
     from regen import getbestmatch
     import logging
@@ -318,13 +339,15 @@ def sipfingerprint(response):
     res = getwinners(fp)
     log.debug("get winners returned: %s" % res)
     if len(res) > 6:
+<<<<<<< .mine
+        res = groupwherepossible(res)
+=======
         bestmatch = getbestmatch(res)
         if len(bestmatch) < 3:
             return res
         return [bestmatch]
+>>>>>>> .r307
     return res
-
-
 
 if __name__ == "__main__":
     testbuff = ('SIP/2.0 404 Not Found',
