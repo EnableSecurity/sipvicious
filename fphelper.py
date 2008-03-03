@@ -312,11 +312,13 @@ def groupwherepossible(fpnames,groupdb='groupdb'):
         fpname = fpnames.pop()
         for k in groupnames.keys():
             if re.search(k, fpname):
+                log.debug("found using %s %s" % (k,fpname))
                 fpname = groupnames[k]
                 break
         if fpname not in res.keys():
             res[fpname] = 0
         res[fpname] += 1
+    log.debug(res)
     return res
         
 
@@ -340,7 +342,7 @@ def sipfingerprint(response):
     res = getwinners(fp)
     if len(res) > 6:
         grouped = groupwherepossible(res)    
-        res = getwinners(fp)
+        res = getwinners(grouped)
     log.debug("get winners returned: %s" % res)
     return res
 
