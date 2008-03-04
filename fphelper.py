@@ -344,7 +344,7 @@ def sipfingerprint(response):
         grouped = groupwherepossible(res)    
         res = getwinners(grouped)
         if len(res) > 3:
-            res = ["too many to display"]
+            res = ["Too many matches"]
     log.debug("get winners returned: %s" % res)
     return res
 
