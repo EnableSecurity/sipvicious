@@ -46,7 +46,7 @@ def standardoptions(parser):
                   help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float",
                       default=0.005,
-                    help="Timeout for the select() function. Change this if you're losing packets",
+                    help="This option allows you to trottle the speed at which packets are sent. Change this if you're losing packets. For example try 0.5.",
                   metavar="SELECTTIME")        
     parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
@@ -187,11 +187,30 @@ def getAudioPort(sdp):
                     port = mediasplit[1]
                     return port
 
-def getAudioPortFromBuff(buff):
+def getAudioIP(sdp):
+    if sdp.has_key('c'):
+        for connect in sdp['c']:
+            if connect.startswith('IN IP4'):
+                connectsplit = connect.split()
+                if len(connectsplit) > 2:
+                    ip = connectsplit[2]
+                    return ip
+
+def getSDP(buff):
     sip = parseHeader(buff)
     if sip.has_key('body'):
         body = sip['body']
         sdp = parseSDP(body)
+        return sdp
+
+def getAudioIPFromBuff(buff):
+    sdp = getSDP(buff)
+    if sdp is not None:
+        return getAudioIP(sdp)
+
+def getAudioPortFromBuff(buff):
+    sdp = getSDP(buff)
+    if sdp is not None:
         return getAudioPort(sdp)
 
 def parseHeader(buff,type='response'):
