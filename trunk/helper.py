@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 #   Helper.py keeps the rest of the tools clean - part of SIPVicious tools
 #   Copyright (C) 2007  Sandro Gauci <sandrogauc@gmail.com>
 #
