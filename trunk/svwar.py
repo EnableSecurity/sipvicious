@@ -31,7 +31,7 @@ import logging
 
 
 class TakeASip:
-    def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
+    def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True):
         from helper import dictionaryattack, numericbrute, packetcounter
@@ -58,8 +58,7 @@ class TakeASip:
         self.rlist = [self.sock]
         self.wlist = list()
         self.xlist = list()
-        self.challenges = list()
-        self.localhost = 'localhost'
+        self.challenges = list()        
         self.realm = None
         self.dsthost,self.dstport = host,int(port)
         self.guessmode = guessmode
@@ -76,6 +75,21 @@ class TakeASip:
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         self.initialcheck = initialcheck
+        if externalip is None:
+            self.log.debug("external ip was not set")
+            if self.bindingip != '0.0.0.0':
+                self.log.debug("but bindingip was set! we'll set it to the binding ip")
+                self.externalip = self.bindingip
+            else:
+                try:
+                    self.log.info("trying to get self ip .. might take a while")
+                    self.externalip = socket.gethostbyname(socket.gethostname())
+                except socket.error:
+                    self.externalip = '127.0.0.1'
+        else:
+            self.log.debug("external ip was set")
+            self.externalip = externalip
+
 
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
@@ -105,7 +119,7 @@ class TakeASip:
                                 self.dsthost,
                                 self.dstport,
                                 cid,
-                                self.localhost,
+                                self.externalip,
                                 branchunique,
                                 cseq,
                                 auth,
@@ -405,7 +419,8 @@ if __name__ == '__main__':
                     guessmode=guessmode,
                     guessargs=guessargs,
                     sessionpath=exportpath,
-                    initialcheck=initialcheck
+                    initialcheck=initialcheck,
+                    externalip=options.externalip
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
