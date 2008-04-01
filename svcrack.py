@@ -31,6 +31,7 @@ import base64
 
 class ASipOfRedWine:
     def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
+                 externalip=None,
                  username=None,crackmode=1,crackargs=None,realm=None,sessionpath=None,
                  selecttime=0.005,compact=False,reusenonce=False,extension=None):
         from helper import dictionaryattack, numericbrute, packetcounter
@@ -59,8 +60,7 @@ class ASipOfRedWine:
         self.rlist = [self.sock]
         self.wlist = list()
         self.xlist = list()
-        self.challenges = list()
-        self.localhost = 'localhost'
+        self.challenges = list()        
         self.crackmode = crackmode
         self.crackargs = crackargs
         self.dsthost,self.dstport =host,int(port)
@@ -90,6 +90,21 @@ class ASipOfRedWine:
         self.originallocalport = localport
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
+        if externalip is None:
+            self.log.debug("external ip was not set")
+            if self.bindingip != '0.0.0.0':
+                self.log.debug("but bindingip was set! we'll set it to the binding ip")
+                self.externalip = self.bindingip
+            else:
+                try:
+                    self.log.info("trying to get self ip .. might take a while")
+                    self.externalip = socket.gethostbyname(socket.gethostname())
+                except socket.error:
+                    self.externalip = '127.0.0.1'
+        else:
+            self.log.debug("external ip was set")
+            self.externalip = externalip
+
 
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
@@ -119,7 +134,7 @@ class ASipOfRedWine:
                                     self.dsthost,
                                     self.dstport,
                                     callid=cid,
-                                    srchost=self.localhost,
+                                    srchost=self.externalip,
                                     branchunique=branchunique,
                                     cseq=cseq,
                                     auth=auth,
@@ -412,7 +427,8 @@ if __name__ == '__main__':
                     reusenonce=options.reusenonce,
                     extension=options.extension,
                     sessionpath=exportpath,
-                    port=options.port
+                    port=options.port,
+                    externalip=options.externalip
                     )
     
     start_time = datetime.now()
