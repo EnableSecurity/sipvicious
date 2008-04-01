@@ -76,7 +76,7 @@ class DrinkOrSip:
         self.localport = localport
         if externalip is None:
             self.log.debug("external ip was not set")
-            if self.bindingip != '0.0.0.0':
+            if (self.bindingip != '0.0.0.0') and (len(self.bindingip) > 0):
                 self.log.debug("but bindingip was set! we'll set it to the binding ip")
                 self.externalip = self.bindingip
             else:
@@ -444,7 +444,7 @@ if __name__ == '__main__':
                     pass
     # display results
     if not options.quiet:
-        lenres = len(sipvicious.resultua)        
+        lenres = len(sipvicious.resultua)
         if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
