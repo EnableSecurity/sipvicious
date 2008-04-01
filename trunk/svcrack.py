@@ -92,7 +92,7 @@ class ASipOfRedWine:
             self.packetcount = packetcounter(50)
         if externalip is None:
             self.log.debug("external ip was not set")
-            if self.bindingip != '0.0.0.0':
+            if (self.bindingip != '0.0.0.0') and (len(self.bindingip) > 0):
                 self.log.debug("but bindingip was set! we'll set it to the binding ip")
                 self.externalip = self.bindingip
             else:
