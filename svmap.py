@@ -98,6 +98,7 @@ class DrinkOrSip:
         self.originallocalport = self.localport
         self.nextip = None
         self.extension = extension
+        self.fpworks = True
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
     
@@ -122,7 +123,14 @@ class DrinkOrSip:
             else:
                 uaname = 'unknown'
                 self.log.debug(`buff`)
-            fp = self.sipfingerprint(buff)
+            if self.fpworks:
+                try:
+                    fp = self.sipfingerprint(buff)
+                except:
+                    self.log.error("fingerprinting gave errors - will be disabled")
+                    self.fpworks = False
+            if not self.fpworks:
+                fp = None
             if fp is None:
                 fpname = 'unknown'
             else:
@@ -284,9 +292,12 @@ if __name__ == '__main__':
     parser.add_option("--randomize", dest="randomize", action="store_true",
                       default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
+    parser.add_option("--srv", dest="srvscan", action="store_true",
+                      default=False,
+                  help="Make use of SRV records")
     (options, args) = parser.parse_args()        
     from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
-        ip4range, resumeFromIP, scanfromdb, dbexists
+        ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
@@ -354,6 +365,9 @@ if __name__ == '__main__':
                 scanrandomstore = os.path.join(exportpath,'random')
                 resumescan = True
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+        elif options.srvscan:
+            logging.debug("making use of SRV records")
+            scaniter = getTargetFromSRV(args,options.method.split(','))
         else:
             if options.resume is not None:
                 lastipsrc = os.path.join(exportpath,'lastip.pkl')
