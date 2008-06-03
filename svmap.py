@@ -294,7 +294,8 @@ if __name__ == '__main__':
                   help="Randomize scanning instead of scanning consecutive ip addresses")
     parser.add_option("--srv", dest="srvscan", action="store_true",
                       default=False,
-                  help="Make use of SRV records")
+                  help="Scan the SRV records for SIP on the destination domain name." \
+                       "The targets have to be domain names - example.org domain1.com")
     (options, args) = parser.parse_args()        
     from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
