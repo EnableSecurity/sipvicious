@@ -963,7 +963,7 @@ def getTargetFromSRV(domainnames,methods):
                 log.debug('trying to resolve SRV for %s' % name)
                 ans = dns.resolver.query(name,'SRV')
             except (dns.resolver.NXDOMAIN,dns.resolver.NoAnswer), err:
-                log.error('DNS resolution error: %s' % err)
+                log.info('Could not resolve %s' % name)
                 continue
             for a in ans.response.answer:
                 log.info('got an answer %s' % a.to_text())
