@@ -945,6 +945,39 @@ class anotherxrange(object):
     def _index(self, i):
         return self.start + self.step * i    
 
+
+def getTargetFromSRV(domainnames,methods):
+    import logging
+    import socket
+    log = logging.getLogger('getTargetFromSRV')
+    try:
+        import dns
+        import dns.resolver
+    except ImportError:
+        log.critical('could not import the DNS library. Get it from http://www.dnspython.org/')
+        return    
+    for domainname in domainnames:
+        for proto in ['udp','tcp']:
+            name = '_sip._'+proto+'.' + domainname + '.'            
+            try:
+                log.debug('trying to resolve SRV for %s' % name)
+                ans = dns.resolver.query(name,'SRV')
+            except (dns.resolver.NXDOMAIN,dns.resolver.NoAnswer), err:
+                log.error('DNS resolution error: %s' % err)
+                continue
+            for a in ans.response.answer:
+                log.info('got an answer %s' % a.to_text())
+                for _tmp in a:
+                    for method in methods:
+                        try:
+                            hostname = socket.gethostbyname(_tmp.target.to_text())
+                        except socket.error:
+                            log.warn("%s could not be resolved" % _tmp.target.to_text())
+                            continue
+                        log.debug("%s resolved to %s" % (_tmp.target.to_text(),hostname))
+                        yield(hostname,_tmp.port,method)
+
+
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
     seq = getranges('google.com/24')    
