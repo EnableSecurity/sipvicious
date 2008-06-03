@@ -132,7 +132,10 @@ class DrinkOrSip:
             if not self.fpworks:
                 fp = None
             if fp is None:
-                fpname = 'unknown'
+                if self.fpworks:
+                    fpname = 'unknown'
+                else:
+                    fpname = 'disabled'
             else:
                 fpname = ' / '.join(fp)
             self.log.debug('Fingerprint: %s' % fpname)
