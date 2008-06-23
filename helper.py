@@ -19,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandrogauc@gmail.com>"
-__version__ = '0.2.1-svn'
+__version__ = '0.2.3'
 
 
 import sys
