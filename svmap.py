@@ -247,7 +247,7 @@ class DrinkOrSip:
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.log.debug("packet: %s" % `data`)
-                    self.sock.sendto(data,dsthost)                    
+                    self.sock.sendto(data,dsthost)    
                     if self.sessionpath is not None:
                         if self.packetcount.next():
                             try:

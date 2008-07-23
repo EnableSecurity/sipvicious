@@ -388,6 +388,7 @@ def makeRequest(
         headers['Max-Forwards'] = 70    
         headers['To'] = toaddr
         headers['From'] = fromaddr
+        headers['User-Agent'] = 'your friendly voip security scanner'
         if localtag is not None:
             headers['From'] += '; tag=%s' % localtag
         headers['Call-ID'] = callid
