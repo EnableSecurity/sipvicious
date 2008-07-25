@@ -19,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 
 import sys
@@ -121,10 +121,18 @@ def getRange(rangestr):
     return numericrange
 
 
-def numericbrute(rangelist,zeropedding=0):
-    format = '%%0%su' % zeropedding
+def numericbrute(rangelist,zeropadding=0,template=None):
+    """numericbrute gives a yield generator. accepts either zeropadding or template as optional argument"""
+    if zeropadding > 0:
+        format = '%%0%su' % zeropadding
+    elif template is not None:
+        format = template
+    else:
+        format = '%u'
+    # format string test
+    format % 1 
     for x in rangelist:
-        for y in x:            
+        for y in x:          
             r = format % y
             yield(r)
 
@@ -362,8 +370,17 @@ def makeRedirect(previousHeaders,rediraddr):
 def makeRequest(
                 method,fromaddr,toaddr,dsthost,port,callid,srchost='',
                 branchunique=None,cseq=1,auth=None,localtag=None,compact=False
-                ,contact=None,accept='application/sdp',contentlength=None,
-                localport=5060,extension=None,contenttype=None,body=''):
+                ,contact='sip:123@1.1.1.1',accept='application/sdp',contentlength=None,
+                localport=5060,extension=None,contenttype=None,body='',
+                useragent='friendly-scanner'):
+    """makeRequest builds up a SIP request
+    method - OPTIONS / INVITE etc
+    toaddr = to address
+    dsthost = destination host
+    port = destination port
+    callid = callerid
+    srchost = source host
+    """
     import random
     if extension is None:
         uri = 'sip:%s' % dsthost
@@ -381,19 +398,19 @@ def makeRequest(
         if localtag is not None:
             headers['f'] += ';tag=%s' % localtag
         headers['i'] = callid
-        if contact is not None:
-            headers['m'] = contact
+        #if contact is not None:
+        headers['m'] = contact
     else:
         superheaders['Via'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,localport,branchunique)
         headers['Max-Forwards'] = 70    
         headers['To'] = toaddr
         headers['From'] = fromaddr
-        headers['User-Agent'] = 'your friendly voip security scanner'
+        headers['User-Agent'] = useragent
         if localtag is not None:
             headers['From'] += '; tag=%s' % localtag
         headers['Call-ID'] = callid
-        if contact is not None:
-            headers['Contact'] = contact
+        #if contact is not None:
+        headers['Contact'] = contact
     headers['CSeq'] = '%s %s' % (cseq,method)
     headers['Max-Forwards'] = 70
     headers['Accept'] = accept

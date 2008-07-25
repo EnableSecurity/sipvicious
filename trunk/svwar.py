@@ -33,7 +33,8 @@ import logging
 class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
-                 sessionpath=None,compact=False,socktimeout=3,initialcheck=True):
+                 sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
+                 ):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
@@ -52,7 +53,7 @@ class TakeASip:
             self.resultauth = dict()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
-        self.bindingip = bindingip
+        self.bindingip = bindingip        
         self.localport = localport
         self.originallocalport = localport
         self.rlist = [self.sock]
@@ -63,10 +64,10 @@ class TakeASip:
         self.dsthost,self.dstport = host,int(port)
         self.guessmode = guessmode
         self.guessargs = guessargs
-        if guessmode == 1:
-            self.usernamegen = numericbrute(*guessargs)
+        if self.guessmode == 1:
+            self.usernamegen = numericbrute(*self.guessargs)            
         elif guessmode == 2:
-            self.usernamegen = dictionaryattack(guessargs)
+            self.usernamegen = dictionaryattack(self.guessargs)
         self.selecttime = selecttime
         self.compact=compact
         self.nomore=False
@@ -101,18 +102,23 @@ class TakeASip:
     NOTALLOWED = 'SIP/2.0 405 '
     UNAVAILABLE = 'SIP/2.0 480 '
     DECLINED = 'SIP/2.0 603 '
-
+    
+    # Returned by Excel CSP (Cantata, former Lucent Excel)
+    BADREQUEST = 'SIP/2.0 400 '
+    
+    # Returned by MERA MVTS SIPHIT converter
+    SERVICEUN = 'SIP/2.0 503 '
+    
     def createRequest(self,m,username,remotehost,auth=None,cid=None):
+        from base64 import b64encode
         from helper import makeRequest
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag=username
-        #contact = None
-        #if m == 'INVITE' or m == 'OPTIONS':
+        localtag=b64encode(str(username))
         contact = 'sip:%s@%s' % (username,self.dsthost)
-        register = makeRequest(
+        request = makeRequest(
                                 m,
                                 '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
                                 '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
@@ -125,17 +131,19 @@ class TakeASip:
                                 auth,
                                 localtag,
                                 self.compact,
+                                contact=contact,
                                 localport=self.localport,
                                 extension=username
                               )
-        return register
+        return request
 
     def getResponse(self):
         from helper import getNonce,getCredentials,getRealm,getCID,getTag
+        from base64 import b64decode
         # we got stuff to read off the socket
         from socket import error as socketerror
         buff,srcaddr = self.sock.recvfrom(8192)
-        extension = getTag(buff)
+        extension = b64decode(getTag(buff))
         if extension is None:
             self.nomore = True
             return
@@ -285,8 +293,12 @@ class TakeASip:
                 except StopIteration:
                     self.nomore = True
                     continue
+                except TypeError:
+                    self.nomore = True
+                    self.log.exception('Bad format string')
                 data = self.createRequest(self.method,self.nextuser,self.dsthost)                
                 try:
+                    self.log.debug("sending request for %s" % self.nextuser)
                     self.sock.sendto(data,(self.dsthost,self.dstport))
                     if self.sessionpath is not None:
                         if self.packetcount.next():
@@ -306,13 +318,14 @@ class TakeASip:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
-    import anydbm
-    from helper import resumeFrom, calcloglevel
+    import anydbm    
     import os
     from sys import exit
     import logging
     import pickle
+    from helper import resumeFrom, calcloglevel
     from helper import standardoptions, standardscanneroptions
+    from helper import getRange 
     
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
@@ -339,6 +352,10 @@ if __name__ == '__main__':
     parser.add_option('--force', dest="force", action="store_true",
                       default=False,
                       help="Force scan, ignoring initial sanity checks.")
+    parser.add_option('--template', '-T', action="store", dest="template",
+                      help="""A format string which allows us to specify a template for the extensions
+                      example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
+                      """)
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -347,6 +364,7 @@ if __name__ == '__main__':
         initialcheck = False
     else:
         initialcheck = True
+        
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
         if os.path.exists(os.path.join(exportpath,'closed')):
@@ -380,7 +398,6 @@ if __name__ == '__main__':
             dictionary.seek(previousposition)
         guessargs = dictionary
     else:
-        from helper import getRange 
         guessmode = 1
         if options.resume is not None:
             lastextensionsrc = os.path.join(exportpath,'lastextension.pkl')
@@ -394,7 +411,7 @@ if __name__ == '__main__':
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previousextension)
         extensionstotry = getRange(options.range)
-        guessargs = (extensionstotry,options.zeropadding)
+        guessargs = (extensionstotry,options.zeropadding,options.template)
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join('.sipvicious',__prog__,options.save)
@@ -420,7 +437,7 @@ if __name__ == '__main__':
                     guessargs=guessargs,
                     sessionpath=exportpath,
                     initialcheck=initialcheck,
-                    externalip=options.externalip
+                    externalip=options.externalip,
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
