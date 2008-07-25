@@ -333,6 +333,10 @@ if __name__ == '__main__':
                   help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making them vulnerable to replay attacks). Speeds up the cracking.",
                   action="store_true",
                   )
+    parser.add_option('--template', '-T', action="store", dest="template",
+                      help="""A format string which allows us to specify a template for the extensions
+                      example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
+                      """)
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -401,7 +405,7 @@ if __name__ == '__main__':
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previouspasswd)
         rangelist = getRange(options.range)        
-        crackargs = (rangelist,options.zeropadding)
+        crackargs = (rangelist,options.zeropadding,options.template)
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join('.sipvicious',__prog__,options.save)
