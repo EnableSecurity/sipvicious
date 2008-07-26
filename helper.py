@@ -309,27 +309,33 @@ def fingerPrintPacket(buff,src=None):
         return fingerPrint(header,src)
     
 def getCredentials(buff):
-    _tmp1 = getTag(buff)    
-    if _tmp1 is not None:
-        try:
-            _tmp3 = base64.b64decode(_tmp1)
-        except TypeError:
-            return
-        _tmp2 = _tmp3.split(':')
-        if len(_tmp2) > 0:
-            return(_tmp2)
-    return
+    data = getTag(buff)
+    if data is None:
+        return    
+    userpass = data.split(':')
+    if len(userpass) > 0:
+        return(userpass)    
     
 def getTag(buff):
     import re
+    from binascii import a2b_hex
     tagRE='(From|f): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'    
     _tmp = re.findall(tagRE,buff)
     if _tmp is not None:
         if len(_tmp) > 0:
             _tmp2 = _tmp[0][1]
-            return _tmp2
-    return
+            _tmp2 = a2b_hex(_tmp2)
+            if _tmp2.find('\x01') > 0:
+                c,rand = _tmp2.split('\x01')
+            else:
+                c = _tmp2
+            return c
     
+def createTag(data):
+    from binascii import b2a_hex
+    from random import getrandbits
+    rnd = getrandbits(32)
+    return b2a_hex(str(data)+'\x01'+str(rnd))
 
 def getToTag(buff):
     import re

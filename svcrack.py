@@ -126,11 +126,11 @@ class ASipOfRedWine:
         contact = 'sip:%s@%s' % (extension,remotehost)
         if auth is not None:
             cseq = 2
-            localtag=base64.b64encode('%s:%s' % (self.auth['username'],self.auth['password']))
+            localtag=createTag('%s:%s' % (self.auth['username'],self.auth['password']))
         register = makeRequest(
                                     m,
-                                    '"%s"<sip:%s@%s>' % (extension,extension,self.dsthost),
-                                    '"%s"<sip:%s@%s>' % (extension,extension,self.dsthost),
+                                    '"%s" <sip:%s@%s>' % (extension,extension,self.dsthost),
+                                    '"%s" <sip:%s@%s>' % (extension,extension,self.dsthost),
                                     self.dsthost,
                                     self.dstport,
                                     callid=cid,

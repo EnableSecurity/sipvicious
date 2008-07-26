@@ -162,7 +162,7 @@ class DrinkOrSip:
             self.log.debug('Packet: %s' % `buff`)
                 
     def start(self):
-        from helper import makeRequest
+        from helper import makeRequest, createTag
         import socket
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
@@ -220,7 +220,7 @@ class DrinkOrSip:
                 dsthost = (dstip,dstport)
                 branchunique = '%s' % random.getrandbits(32)
                 
-                localtag = '%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1])
+                localtag = createTag('%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
                 cseq = 1
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
                 toaddr = fromaddr

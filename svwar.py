@@ -112,11 +112,12 @@ class TakeASip:
     def createRequest(self,m,username,remotehost,auth=None,cid=None):
         from base64 import b64encode
         from helper import makeRequest
+        from helper import createTag
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag=b64encode(str(username))
+        localtag=createTag(username)
         contact = 'sip:%s@%s' % (username,self.dsthost)
         request = makeRequest(
                                 m,
@@ -143,7 +144,11 @@ class TakeASip:
         # we got stuff to read off the socket
         from socket import error as socketerror
         buff,srcaddr = self.sock.recvfrom(8192)
-        extension = b64decode(getTag(buff))
+        try:
+            extension = getTag(buff)
+        except TypeError:
+            self.log.error('could not decode to tag')
+            extension = None
         if extension is None:
             self.nomore = True
             return
