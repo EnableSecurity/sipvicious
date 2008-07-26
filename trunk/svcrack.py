@@ -54,7 +54,6 @@ class ASipOfRedWine:
                 pass
         else:
             self.resultpasswd = dict()
-        #self.sock.bind(('',localport))
         self.nomore = False
         self.passwordcracked = False
         self.rlist = [self.sock]

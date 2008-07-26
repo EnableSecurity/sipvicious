@@ -92,6 +92,8 @@ class TakeASip:
             self.externalip = externalip
 
 
+#   SIP response codes, also mapped to ISDN Q.931 disconnect causes.
+
     PROXYAUTHREQ = 'SIP/2.0 407 '
     AUTHREQ = 'SIP/2.0 401 '
     OKEY = 'SIP/2.0 200 '
@@ -103,10 +105,15 @@ class TakeASip:
     UNAVAILABLE = 'SIP/2.0 480 '
     DECLINED = 'SIP/2.0 603 '
     
-    # Returned by Excel CSP (Cantata, former Lucent Excel)
+    # Mapped to ISDN Q.931 codes - 88 (Incompatible destination), 95 (Invalid message), 111 (Protocol error)
+    # If we get something like this, then most probably the remote device SIP stack has troubles with
+    # understanding / parsing our messages (a.k.a. interopability problems).
     BADREQUEST = 'SIP/2.0 400 '
     
-    # Returned by MERA MVTS SIPHIT converter
+    # Mapped to ISDN Q.931 codes - 34 (No circuit available), 38 (Network out of order), 41 (Temporary failure),
+    # 42 (Switching equipment congestion), 47 (Resource unavailable)
+    # Should be handled in the very same way as SIP response code 404 - the prefix is not correct and we should
+    # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
     
     def createRequest(self,m,username,remotehost,auth=None,cid=None):
@@ -171,7 +178,7 @@ class TakeASip:
                 pass
             elif buff.startswith(self.RINGING):
                 pass
-            elif buff.startswith(self.OKEY):            
+            elif buff.startswith(self.OKEY):
                 self.log.info("extension '%s' exists - authentication not required" % extension)
                 self.resultauth[extension] = 'noauth'
                 if self.sessionpath is not None and self.dbsyncs:
@@ -182,8 +189,12 @@ class TakeASip:
                 self.resultauth[extension] = 'weird'
                 if self.sessionpath is not None and self.dbsyncs:
                     self.resultauth.sync()
-        elif buff.startswith(self.NOTFOUND):            
+        elif buff.startswith(self.NOTFOUND):
             self.log.debug("User '%s' not found" % extension)
+        
+        # Prefix not found, lets go to the next one. Should we add a warning here???
+        elif buff.startswith(self.SERVICEUN):
+            pass
         elif buff.startswith(self.TRYING):
             pass
         elif buff.startswith(self.RINGING):
@@ -194,6 +205,10 @@ class TakeASip:
             pass
         elif buff.startswith(self.NOTALLOWED):
             self.log.warn("method not allowed")
+            self.nomore = True
+            return
+        elif buff.startswith(self.BADREQUEST):
+            self.log.error("Protocol / interopability error! The remote side most probably has problems with parsing your SIP messages!")
             self.nomore = True
             return
         else:
