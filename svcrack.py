@@ -116,6 +116,7 @@ class ASipOfRedWine:
         
     def Register(self,extension,remotehost,auth=None,cid=None):
         from helper import makeRequest
+        from helper import createTag
         m = 'REGISTER'
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
