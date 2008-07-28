@@ -330,7 +330,7 @@ def getTag(buff):
             else:
                 c = _tmp2
             return c
-    
+
 def createTag(data):
     from binascii import b2a_hex
     from random import getrandbits
