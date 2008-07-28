@@ -116,14 +116,13 @@ class TakeASip:
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
     
-    def createRequest(self,m,username,remotehost,auth=None,cid=None):
+    def createRequest(self,m,username,auth=None,cid=None,cseq=1):
         from base64 import b64encode
         from helper import makeRequest
         from helper import createTag
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
-        cseq = 1
         localtag=createTag(username)
         contact = 'sip:%s@%s' % (username,self.dsthost)
         request = makeRequest(
@@ -146,8 +145,10 @@ class TakeASip:
         return request
 
     def getResponse(self):
-        from helper import getNonce,getCredentials,getRealm,getCID,getTag
+        from helper import getNonce,getCredentials,getRealm,getCID,getTag        
         from base64 import b64decode
+        from helper import parseHeader
+        import re
         # we got stuff to read off the socket
         from socket import error as socketerror
         buff,srcaddr = self.sock.recvfrom(8192)
@@ -164,6 +165,37 @@ class TakeASip:
         except (ValueError,IndexError,AttributeError):
             self.log.error("could not get the 1st line")
             return
+
+        # send an ack to any responses which match
+        _tmp = parseHeader(buff)
+        if _tmp['code'] >= 200:
+            self.log.debug('will try to send an ACK response')
+            if _tmp['code'] >= 300:
+                # handle differently
+                pass
+            if not _tmp.has_key('headers'):
+                self.log.debug('no headers?')
+                return
+            if not _tmp['headers'].has_key('from'):
+                self.log.debug('no from?')
+                return
+            if not _tmp['headers'].has_key('cseq'):
+                self.log.debug('no cseq')
+                return
+            if not _tmp['headers'].has_key('call-id'):
+                self.log.debug('no caller id')
+                return
+            username = _tmp['headers']['from'][0].split('"')[1]
+            cseq = _tmp['headers']['cseq'][0]
+            cid = _tmp['headers']['call-id'][0]
+            ackreq = self.createRequest('ACK',
+                                   username=username,
+                                   cid=cid,
+                                   cseq=cseq,
+                                   )
+            self.log.debug('here is your ack request: %s' % ackreq)
+            self.sock.sendto(ackreq,(self.dsthost,self.dstport))
+
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) \
             or buff.startswith(self.INVALIDPASS) \
@@ -244,7 +276,7 @@ class TakeASip:
         # perform a test 1st .. we want to see if we get a 404
         # some other error for unknown users
         self.nextuser = random.getrandbits(32)
-        data = self.createRequest(self.method,self.nextuser,self.dsthost)
+        data = self.createRequest(self.method,self.nextuser)
         try:
             self.sock.sendto(data,(self.dsthost,self.dstport))
         except socket.error,err:
@@ -316,7 +348,7 @@ class TakeASip:
                 except TypeError:
                     self.nomore = True
                     self.log.exception('Bad format string')
-                data = self.createRequest(self.method,self.nextuser,self.dsthost)                
+                data = self.createRequest(self.method,self.nextuser)
                 try:
                     self.log.debug("sending request for %s" % self.nextuser)
                     self.sock.sendto(data,(self.dsthost,self.dstport))
