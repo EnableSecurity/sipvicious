@@ -163,6 +163,7 @@ class DrinkOrSip:
                 
     def start(self):
         from helper import makeRequest, createTag
+        from helper import mysendto
         import socket
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
@@ -247,7 +248,8 @@ class DrinkOrSip:
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.log.debug("packet: %s" % `data`)
-                    self.sock.sendto(data,dsthost)    
+                    mysendto(self.sock,data,dsthost)
+                    #self.sock.sendto(data,dsthost)    
                     if self.sessionpath is not None:
                         if self.packetcount.next():
                             try:
@@ -290,7 +292,7 @@ if __name__ == '__main__':
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
                   )
-    parser.add_option("-e", "--extension", dest="extension", 
+    parser.add_option("-e", "--extension", dest="extension", default='100',
                   help="Specify an extension - by default this is not set")
     parser.add_option("--randomize", dest="randomize", action="store_true",
                       default=False,
