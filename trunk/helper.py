@@ -176,6 +176,11 @@ def getCID(pkt):
             return(_tmp[0])
     return None
 
+def mysendto(sock,data,dst):
+    while data:
+        bytes_sent = sock.sendto(data[:8192],dst)
+        data = data[bytes_sent:]
+
 def parseSDP(buff):
     r = dict()
     for line in buff.splitlines():

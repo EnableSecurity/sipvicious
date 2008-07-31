@@ -148,6 +148,7 @@ class TakeASip:
         from helper import getNonce,getCredentials,getRealm,getCID,getTag        
         from base64 import b64decode
         from helper import parseHeader
+        from helper import mysendto
         import re
         # we got stuff to read off the socket
         from socket import error as socketerror
@@ -194,7 +195,8 @@ class TakeASip:
                                    cseq=cseq,
                                    )
             self.log.debug('here is your ack request: %s' % ackreq)
-            self.sock.sendto(ackreq,(self.dsthost,self.dstport))
+            mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
+            #self.sock.sendto(ackreq,(self.dsthost,self.dstport))
 
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) \
@@ -254,6 +256,7 @@ class TakeASip:
     
     def start(self):        
         import socket, pickle
+        from helper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -278,7 +281,8 @@ class TakeASip:
         self.nextuser = random.getrandbits(32)
         data = self.createRequest(self.method,self.nextuser)
         try:
-            self.sock.sendto(data,(self.dsthost,self.dstport))
+            mysendto(self.sock,data,(self.dsthost,self.dstport))
+            #self.sock.sendto(data,(self.dsthost,self.dstport))
         except socket.error,err:
             self.log.error("socket error: %s" % err)
             return
@@ -351,7 +355,8 @@ class TakeASip:
                 data = self.createRequest(self.method,self.nextuser)
                 try:
                     self.log.debug("sending request for %s" % self.nextuser)
-                    self.sock.sendto(data,(self.dsthost,self.dstport))
+                    mysendto(self.sock,data,(self.dsthost,self.dstport))
+                    #self.sock.sendto(data,(self.dsthost,self.dstport))
                     if self.sessionpath is not None:
                         if self.packetcount.next():
                             try:

@@ -195,6 +195,7 @@ class ASipOfRedWine:
     def start(self):
         #from helper import ,getCredentials,getRealm,getCID
         import socket, pickle
+        from helper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -217,7 +218,7 @@ class ASipOfRedWine:
         # perform a test 1st ..
         data = self.Register(self.extension,self.dsthost)
         try:
-            self.sock.sendto(data,(self.dsthost,self.dstport))            
+            mysendto(self.sock,data,(self.dsthost,self.dstport))
         except socket.error,err:
             self.log.error("socket error: %s" % err)
             return
@@ -280,7 +281,8 @@ class ASipOfRedWine:
                     cid = None
                 data = self.Register(self.extension,self.dsthost,self.auth,cid)                
                 try:
-                    self.sock.sendto(data,(self.dsthost,self.dstport))
+                    mysendto(self.sock,data,(self.dsthost,self.dstport))
+                    #self.sock.sendto(data,(self.dsthost,self.dstport))
                     if self.sessionpath is not None:
                         if self.packetcount.next():                    
                             try:                                    
