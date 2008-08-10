@@ -1,3 +1,19 @@
+v0.2.4
+* Feature:  svwar.py can now scan for templated numbers. This allows more flexible
+            usage of ranges of numbers, allowing for prefixes and suffixes as
+            need be ;-)
+
+* Bug fix:  svwar.py now sends ACK to be nice to other devices.
+
+* Bug fix:  each tag is padded with a unique 32 bit
+
+* Bug fix:  Contact header is always added to the request to always send well
+            formed SIP requests
+            
+* Bug fix:  Large data is sent fragmented now (mysendto)
+
+* Bug fix:  svwar.py now handles new SIP response codes
+
 v0.2.3
 * Feature:  Fingerprinting support for svmap. Included fphelper.py and 
             3 databases used for fingerprinting. 
