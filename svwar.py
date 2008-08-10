@@ -421,7 +421,12 @@ if __name__ == '__main__':
         initialcheck = False
     else:
         initialcheck = True
-        
+    if options.template is not None:
+        try:
+            options.template % 1
+        except TypeError:
+            logging.critical("The format string template is not correct. Please provide an appropiate one")
+            exit(1)
     if options.resume is not None:
         exportpath = os.path.join('.sipvicious',__prog__,options.resume)
         if os.path.exists(os.path.join(exportpath,'closed')):
