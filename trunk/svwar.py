@@ -186,9 +186,13 @@ class TakeASip:
             if not _tmp['headers'].has_key('call-id'):
                 self.log.debug('no caller id')
                 return
-            username = _tmp['headers']['from'][0].split('"')[1]
-            cseq = _tmp['headers']['cseq'][0]
-            cid = _tmp['headers']['call-id'][0]
+            try:
+                username = _tmp['headers']['from'][0].split('"')[1]
+                cseq = _tmp['headers']['cseq'][0]
+                cid = _tmp['headers']['call-id'][0]
+            except IndexError:
+                self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
+                username = 'XXX'
             ackreq = self.createRequest('ACK',
                                    username=username,
                                    cid=cid,
