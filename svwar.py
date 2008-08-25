@@ -187,7 +187,7 @@ class TakeASip:
                 self.log.debug('no caller id')
                 return
             try:
-                username = _tmp['headers']['from'][0].split('"')[1]
+                username = getTag(buff)#_tmp['headers']['from'][0].split('"')[1]
             except IndexError:
                 self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
                 username = 'XXX'
