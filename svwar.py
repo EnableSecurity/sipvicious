@@ -104,6 +104,7 @@ class TakeASip:
     NOTALLOWED = 'SIP/2.0 405 '
     UNAVAILABLE = 'SIP/2.0 480 '
     DECLINED = 'SIP/2.0 603 '
+    INEXISTENTTRANSACTION = 'SIP/2.0 481'
     
     # Mapped to ISDN Q.931 codes - 88 (Incompatible destination), 95 (Invalid message), 111 (Protocol error)
     # If we get something like this, then most probably the remote device SIP stack has troubles with
@@ -229,6 +230,8 @@ class TakeASip:
                     self.resultauth.sync()
         elif buff.startswith(self.NOTFOUND):
             self.log.debug("User '%s' not found" % extension)
+        elif buff.startswith(self.INEXISTENTTRANSACTION):
+            pass
         
         # Prefix not found, lets go to the next one. Should we add a warning here???
         elif buff.startswith(self.SERVICEUN):
