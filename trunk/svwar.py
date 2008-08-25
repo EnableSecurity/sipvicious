@@ -102,7 +102,7 @@ class TakeASip:
     TRYING = 'SIP/2.0 100 '
     RINGING = 'SIP/2.0 180 '
     NOTALLOWED = 'SIP/2.0 405 '
-    UNAVAILABLE = 'SIP/2.0 48'
+    UNAVAILABLE = 'SIP/2.0 480 '
     DECLINED = 'SIP/2.0 603 '
     
     # Mapped to ISDN Q.931 codes - 88 (Incompatible destination), 95 (Invalid message), 111 (Protocol error)
