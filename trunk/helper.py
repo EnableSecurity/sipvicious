@@ -121,8 +121,35 @@ def getRange(rangestr):
     return numericrange
 
 
-def numericbrute(rangelist,zeropadding=0,template=None):
+def numericbrute(rangelist,zeropadding=0,template=None,defaults=True):
     """numericbrute gives a yield generator. accepts either zeropadding or template as optional argument"""
+    if defaults:
+        for i in xrange(1000,9999,100):
+            yield('%04i' % i)
+        
+        for i in xrange(1001,9999,100):
+            yield('%04i' % i)
+            
+        for i in xrange(0,9):
+            for l in xrange(1,8):
+                yield(('%s' % i) * l)
+        
+        for i in xrange(100,999):
+            yield('%s' % i)
+    
+        for i in xrange(10000,99999,100):
+            yield('%04i' % i)
+        
+        for i in xrange(10001,99999,100):
+            yield('%04i' % i)
+        
+        for i in [1234,2345,3456,4567,5678,6789,7890,0123]:
+            yield('%s' % i)
+    
+        for i in [12345,23456,34567,45678,56789,67890,01234]:
+            yield('%s' % i)
+    
+
     if zeropadding > 0:
         format = '%%0%su' % zeropadding
     elif template is not None:
