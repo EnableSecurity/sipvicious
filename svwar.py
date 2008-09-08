@@ -34,12 +34,14 @@ class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
+                 disableack=False,
                  ):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
         self.sessionpath = sessionpath
         self.dbsyncs = False
+        self.disableack = disableack
         if self.sessionpath is not  None:
             self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth'),'c')
             try:
@@ -167,41 +169,41 @@ class TakeASip:
         except (ValueError,IndexError,AttributeError):
             self.log.error("could not get the 1st line")
             return
-
-        # send an ack to any responses which match
-        _tmp = parseHeader(buff)
-        if _tmp['code'] >= 200:
-            self.log.debug('will try to send an ACK response')
-            if _tmp['code'] >= 300:
-                # handle differently
-                pass
-            if not _tmp.has_key('headers'):
-                self.log.debug('no headers?')
-                return
-            if not _tmp['headers'].has_key('from'):
-                self.log.debug('no from?')
-                return
-            if not _tmp['headers'].has_key('cseq'):
-                self.log.debug('no cseq')
-                return
-            if not _tmp['headers'].has_key('call-id'):
-                self.log.debug('no caller id')
-                return
-            try:
-                username = getTag(buff)#_tmp['headers']['from'][0].split('"')[1]
-            except IndexError:
-                self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
-                username = 'XXX'
-            cseq = _tmp['headers']['cseq'][0]
-            cid = _tmp['headers']['call-id'][0]
-            ackreq = self.createRequest('ACK',
-                                   username=username,
-                                   cid=cid,
-                                   cseq=cseq,
-                                   )
-            self.log.debug('here is your ack request: %s' % ackreq)
-            mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
-            #self.sock.sendto(ackreq,(self.dsthost,self.dstport))
+        if not self.disableack:
+            # send an ack to any responses which match
+            _tmp = parseHeader(buff)
+            if _tmp['code'] >= 200:
+                self.log.debug('will try to send an ACK response')
+                if _tmp['code'] >= 300:
+                    # handle differently
+                    pass
+                if not _tmp.has_key('headers'):
+                    self.log.debug('no headers?')
+                    return
+                if not _tmp['headers'].has_key('from'):
+                    self.log.debug('no from?')
+                    return
+                if not _tmp['headers'].has_key('cseq'):
+                    self.log.debug('no cseq')
+                    return
+                if not _tmp['headers'].has_key('call-id'):
+                    self.log.debug('no caller id')
+                    return
+                try:
+                    username = getTag(buff)#_tmp['headers']['from'][0].split('"')[1]
+                except IndexError:
+                    self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
+                    username = 'XXX'
+                cseq = _tmp['headers']['cseq'][0]
+                cid = _tmp['headers']['call-id'][0]
+                ackreq = self.createRequest('ACK',
+                                       username=username,
+                                       cid=cid,
+                                       cseq=cseq,
+                                       )
+                self.log.debug('here is your ack request: %s' % ackreq)
+                mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
+                #self.sock.sendto(ackreq,(self.dsthost,self.dstport))
 
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) \
@@ -420,6 +422,15 @@ if __name__ == '__main__':
                       help="""A format string which allows us to specify a template for the extensions
                       example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
                       """)
+    parser.add_option('--disableack', '-D', action="store_true", dest="disableack",
+                      default=False,
+                      help="""Disable ACK responses.
+                      This functionality was added so that we play nice. If it
+                      slows things down simply use this option to disable ACKs""")
+    parser.add_option('--disabledefaults', action="store_false", dest="defaults",
+                      default=True, help="""Scan for default / typical extensions such as
+                      1000,2000,3000 ... 1100, etc. This option is on by default.
+                      Use --disabledefaults to disable this functionality""")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -480,7 +491,7 @@ if __name__ == '__main__':
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previousextension)
         extensionstotry = getRange(options.range)
-        guessargs = (extensionstotry,options.zeropadding,options.template)
+        guessargs = (extensionstotry,options.zeropadding,options.template,options.defaults)
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join('.sipvicious',__prog__,options.save)
@@ -495,7 +506,7 @@ if __name__ == '__main__':
                 exit(1)
             optionsdst = os.path.join(exportpath,'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
-            pickle.dump([options,args],open(optionsdst,'w'))
+            pickle.dump([options,args],open(optionsdst,'w'))    
     sipvicious = TakeASip(
                     host,
                     port=options.port,
@@ -507,6 +518,7 @@ if __name__ == '__main__':
                     sessionpath=exportpath,
                     initialcheck=initialcheck,
                     externalip=options.externalip,
+                    disableack=options.disableack
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
