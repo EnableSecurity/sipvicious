@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 
@@ -528,6 +529,32 @@ def reportBugToAuthor(trace):
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError,err:
         log.error( err )
+        
+    log.info('Checking if we are running the latest version')
+    
+def islatest():
+    import os
+    try:
+        svn = os.popen('svn info')
+    except OSError:
+        return
+    svnout = svn.readlines()
+    svn.close()
+    svninfo = dict()
+    for svnline in svnout:
+        tmplist = map(lambda x: x.strip(), svnline.split(':'))
+        if len(tmplist) != 2:
+            continue
+        k,v = tmplist
+        svninfo[k] = v
+    try:
+        remotever = int(svninfo['Last Changed Rev'])
+        localver = int(svninfo['Revision'])
+    except (TypeError,KeyError):
+        return
+    if remotever > localver:
+        return False
+    return True
 
 def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
