@@ -529,24 +529,9 @@ def reportBugToAuthor(trace):
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError,err:
         log.error( err )
-        
-    log.info('Checking if we are running the latest version')
-    if not islatest():
-        log.warn('Please try the latest version of SIPVicious (svn version) \
+    log.warn('Make sure you are running the latest version of SIPVicious (svn version) \
                  by running "svn update" in the current directory')
     
-def islatest():
-    import os
-    try:
-        svn = os.popen('svn status')
-    except OSError:
-        return
-    svnout = svn.readlines()
-    svn.close()
-    for svnline in svnout:
-        if svnline.startswith('M '):
-            return False
-    return True
 
 def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
