@@ -172,11 +172,8 @@ class TakeASip:
         if not self.disableack:
             # send an ack to any responses which match
             _tmp = parseHeader(buff)
-            if _tmp['code'] >= 200:
-                self.log.debug('will try to send an ACK response')
-                if _tmp['code'] >= 300:
-                    # handle differently
-                    pass
+            if 300 > _tmp['code'] >= 200:
+                self.log.debug('will try to send an ACK response')                
                 if not _tmp.has_key('headers'):
                     self.log.debug('no headers?')
                     return
