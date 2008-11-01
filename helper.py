@@ -535,26 +535,17 @@ def reportBugToAuthor(trace):
 def islatest():
     import os
     try:
-        svn = os.popen('svn info')
+        svn = os.open('svn status')
     except OSError:
         return
     svnout = svn.readlines()
     svn.close()
-    svninfo = dict()
     for svnline in svnout:
-        tmplist = map(lambda x: x.strip(), svnline.split(':'))
-        if len(tmplist) != 2:
-            continue
-        k,v = tmplist
-        svninfo[k] = v
-    try:
-        remotever = int(svninfo['Last Changed Rev'])
-        localver = int(svninfo['Revision'])
-    except (TypeError,KeyError):
-        return
-    if remotever > localver:
-        return False
+        if svnline.startswith('M '):
+            return False
     return True
+
+
 
 def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
