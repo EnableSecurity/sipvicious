@@ -531,6 +531,9 @@ def reportBugToAuthor(trace):
         log.error( err )
         
     log.info('Checking if we are running the latest version')
+    if not islatest():
+        log.warn('Please try the latest version of SIPVicious (svn version) \
+                 by running "svn update" in the current directory')
     
 def islatest():
     import os
@@ -544,8 +547,6 @@ def islatest():
         if svnline.startswith('M '):
             return False
     return True
-
-
 
 def scanlist(iprange,portranges,methods):
     for ip in iter(iprange):
