@@ -535,7 +535,7 @@ def reportBugToAuthor(trace):
 def islatest():
     import os
     try:
-        svn = os.open('svn status')
+        svn = os.popen('svn status')
     except OSError:
         return
     svnout = svn.readlines()
