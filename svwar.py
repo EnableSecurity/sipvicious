@@ -419,11 +419,6 @@ if __name__ == '__main__':
                       help="""A format string which allows us to specify a template for the extensions
                       example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
                       """)
-    parser.add_option('--disableack', '-D', action="store_true", dest="disableack",
-                      default=False,
-                      help="""Disable ACK responses.
-                      This functionality was added so that we play nice. If it
-                      slows things down simply use this option to disable ACKs""")
     parser.add_option('--disabledefaults', action="store_false", dest="defaults",
                       default=True, help="""Scan for default / typical extensions such as
                       1000,2000,3000 ... 1100, etc. This option is on by default.
@@ -515,7 +510,7 @@ if __name__ == '__main__':
                     sessionpath=exportpath,
                     initialcheck=initialcheck,
                     externalip=options.externalip,
-                    disableack=options.disableack
+                    disableack=True
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
