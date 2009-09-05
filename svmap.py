@@ -33,7 +33,8 @@ from struct import pack,unpack
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
-                 sessionpath=None,socktimeout=3,externalip=None,localport=5060):
+                 sessionpath=None,socktimeout=3,externalip=None,localport=5060,
+                 printdebug=False,first=None):
         import logging,anydbm
         import os.path
         from helper import packetcounter
@@ -99,8 +100,11 @@ class DrinkOrSip:
         self.nextip = None
         self.extension = extension
         self.fpworks = True
+        self.printdebug = printdebug
+        self.first = first
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
+        self.sentpackets = 0
     
     def getResponse(self,buff,srcaddr):
         from helper import fingerPrintPacket,getTag
@@ -195,6 +199,9 @@ class DrinkOrSip:
                     buff,srcaddr = self.sock.recvfrom(8192)
                     self.log.debug('got data from %s:%s' % srcaddr)
                     self.log.debug('data: %s' % `buff`)
+                    if self.printdebug:
+                        print srcaddr
+                        print buff
                 except socket.error:
                     continue
                 self.getResponse(buff,srcaddr)
@@ -207,6 +214,9 @@ class DrinkOrSip:
                         self.log.debug("Come to daddy")
                         while 1:
                             buff,srcaddr = self.sock.recvfrom(8192)
+                            if self.printdebug:
+                                print srcaddr
+                                print buff
                             self.getResponse(buff,srcaddr)
                     except socket.error:
                         break
@@ -249,6 +259,7 @@ class DrinkOrSip:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.log.debug("packet: %s" % `data`)
                     mysendto(self.sock,data,dsthost)
+                    self.sentpackets += 1
                     #self.sock.sendto(data,dsthost)    
                     if self.sessionpath is not None:
                         if self.packetcount.next():
@@ -259,6 +270,10 @@ class DrinkOrSip:
                                 self.log.debug('logged last ip %s' % self.nextip)
                             except IOError:
                                 self.log.warn('could not log the last ip scanned')
+                    if self.first is not None:
+                        if self.sentpackets >= self.first:
+                            self.log.info('Reached the limit to scan the first %s packets' % self.first)
+                            self.nomoretoscan = True
                 except socket.error,err:
                     self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
                     pass
@@ -288,9 +303,19 @@ if __name__ == '__main__':
                   help="Scan random IP addresses")
     parser.add_option("-i", "--input", dest="input",
                   help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
+    parser.add_option("-I", "--inputtext", dest="inputtext",
+                  help="Scan IPs from a text file - use the same syntax as command line but with new lines instead of commas. Pass the file name as the argument", metavar="scan1")
     parser.add_option("-m", "--method", dest="method", 
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
+                  )
+    parser.add_option("-d", "--debug", dest="printdebug", 
+                  help="Print SIP messages received",
+                  default=False, action="store_true"
+                  )
+    parser.add_option("--first", dest="first", 
+                  help="Only send the first given number of messages (i.e. usually used to scan only X IPs)",
+                  type="long",
                   )
     parser.add_option("-e", "--extension", dest="extension", default='100',
                   help="Specify an extension - by default this is not set")
@@ -358,6 +383,33 @@ if __name__ == '__main__':
                         randomstore=scanrandomstore,
                         resume=resumescan
                         )
+    elif options.inputtext:
+        logging.debug('Using IP addresses from input text file')
+        try:
+            f = open(options.inputtext,'r')
+            args = f.readlines()
+            f.close()
+        except IOError:
+            logging.critical('Could not open %s' % options.inputtext)
+            exit(1)
+        args = map(lambda x: x.strip(), args)
+        args = filter(lambda x: len(x) > 0, args)
+        logging.debug('ip addresses %s' % args)
+        try:
+            iprange = ip4range(*args)
+        except ValueError,err:
+            logging.error(err)
+            exit(1)
+        portrange = getRange(options.port)
+        if options.randomize:
+            scanrandomstore = '.sipviciousrandomtmp'
+            resumescan = False
+            if options.save is not None:
+                scanrandomstore = os.path.join(exportpath,'random')
+                resumescan = True
+            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+        else:
+            scaniter = scanlist(iprange,portrange,options.method.split(','))            
     else:
         if len(args) < 1:
             parser.error('Provide at least one target')
@@ -423,7 +475,9 @@ if __name__ == '__main__':
                     externalip=options.externalip,
                     bindingip=options.bindingip,
                     sessionpath=exportpath,
-                    extension=options.extension
+                    extension=options.extension,
+                    printdebug=options.printdebug,
+                    first=options.first,
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )

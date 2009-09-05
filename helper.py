@@ -122,7 +122,7 @@ def getRange(rangestr):
     return numericrange
 
 
-def numericbrute(rangelist,zeropadding=0,template=None,defaults=True):
+def numericbrute(rangelist,zeropadding=0,template=None,defaults=False):
     """numericbrute gives a yield generator. accepts either zeropadding or template as optional argument"""
     if defaults:
         for i in xrange(1000,9999,100):

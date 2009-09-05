@@ -36,6 +36,8 @@ if __name__ == "__main__":
                 - list:\tlists all scans
                 - export:\texports the given scan to a given format
                 - delete:\tdeletes the scan
+                - stats:\tprint out some statistics of interest
+                - search:\tsearch for a specific string in the user agent (svmap)
 """
         commandsusage += "examples:\r\n"
         commandsusage += "      %s.py list\r\n" % __prog__
@@ -68,7 +70,7 @@ if __name__ == "__main__":
         command = args[0]
         from helper import listsessions,deletesessions,createReverseLookup, dbexists
         from helper import getsessionpath,getasciitable,outputtoxml,outputtopdf, calcloglevel
-        validcommands = ['list','export','delete']
+        validcommands = ['list','export','delete','stats','search']
         if command not in validcommands:
                 parser.error('%s is not a supported command' % command)
                 exit(1)
@@ -159,3 +161,84 @@ if __name__ == "__main__":
                                                 row.append('N/A')
                                 writer.writerow(row)
                 logging.info( "That took %s" % (datetime.now() - start_time))
+        elif command == 'stats':
+                from operator import itemgetter
+                import re                
+                if options.session is None:
+                        parser.error("Please specify a valid session")
+                        exit(1)
+                if options.outputfile is None and options.format not in [None,'stdout']:
+                        parser.error("Please specify an output file")
+                        exit(1)
+                tmp = getsessionpath(options.session,options.sessiontype)                
+                if tmp is None:
+                        parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
+                        exit(1)
+                sessionpath,sessiontype = tmp
+                if sessiontype != 'svmap':
+                        parser.error('Only takes svmap sessions for now')
+                        exit(1)
+                dbloc = os.path.join(sessionpath,'resultua')
+                if not dbexists(dbloc):
+                        logging.error('The database could not be found: %s'%dbloc)
+                        exit(1)
+                db = anydbm.open(dbloc,'r')
+                useragents = dict()
+                useragentconames = dict()
+                for k in db.keys():
+                        v = db[k]
+                        if not useragents.has_key(v):
+                                useragents[v] = 0
+                        useragents[v]+=1
+                        useragentconame = re.split('[ /]',v)[0]
+                        if not useragentconames.has_key(useragentconame):
+                                useragentconames[useragentconame] = 0
+                        useragentconames[useragentconame] += 1
+                        
+                _useragents = sorted(useragents.iteritems(), key=itemgetter(1), reverse=True)
+                suseragents = map(lambda x: '\t- %s (%s)' % (x[0],x[1]), _useragents)
+                _useragentsnames = sorted(useragentconames.iteritems(), key=itemgetter(1), reverse=True)
+                suseragentsnames = map(lambda x: '\t- %s (%s)' % (x[0],x[1]), _useragentsnames)
+                print "Total number of SIP devices found: %s" % len(db.keys())
+                print "Total number of useragents: %s\r\n" % len(suseragents)
+                print "Total number of useragent names: %s\r\n" % len(suseragentsnames)
+                
+                print "Most popular top 30 useragents:\r\n"
+                print '\r\n'.join(suseragents[:30])
+                print '\r\n\r\n'
+                print "Most unpopular top 30 useragents:\r\n\t"
+                print '\r\n'.join(suseragents[-30:])
+                print "\r\n\r\n"
+                print "Most popular top 30 useragent names:\r\n"
+                print '\r\n'.join(suseragentsnames[:30])
+                print '\r\n\r\n'
+                print "Most unpopular top 30 useragent names:\r\n\t" 
+                print '\r\n'.join(suseragentsnames[-30:])
+                print "\r\n\r\n"
+        elif command == 'search':
+                if options.session is None:
+                        parser.error("Please specify a valid session")
+                        exit(1)
+                if len(args) < 2:
+                        parser.error('You need to specify a search string')
+                searchstring = args[1]
+                tmp = getsessionpath(options.session,options.sessiontype)                
+                if tmp is None:
+                        parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
+                        exit(1)
+                sessionpath,sessiontype = tmp
+                if sessiontype != 'svmap':
+                        parser.error('Only takes svmap sessions for now')
+                        exit(1)
+                dbloc = os.path.join(sessionpath,'resultua')
+                if not dbexists(dbloc):
+                        logging.error('The database could not be found: %s'%dbloc)
+                        exit(1)
+                db = anydbm.open(dbloc,'r')
+                useragents = dict()
+                useragentconames = dict()
+                labels = ['Host','User Agent']
+                for k in db.keys():
+                        v = db[k]
+                        if searchstring.lower() in v.lower():
+                                print k+'\t'+v
