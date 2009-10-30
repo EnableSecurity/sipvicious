@@ -61,7 +61,7 @@ def standardscanneroptions(parser):
     parser.add_option("--resume", dest="resume",
                   help="resume a previous scan", metavar="NAME")    
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, 
-                  help="enable compact mode. Makes packets smaller but possibly less compatable",
+                  help="enable compact mode. Makes packets smaller but possibly less compatible",
                   action="store_true",
                   )
     return parser
