@@ -131,8 +131,8 @@ def getstatic(buffer,dynamic):
     return buffer
 
 def hashstatic(buffer):
-    import sha, re
-    totalhashed = sha.new(buffer).hexdigest()
+    import hashlib, re
+    totalhashed = hashlib.sha1(buffer).hexdigest()
     SEP = '\r\n\r\n'
     HeadersSEP = '\r*\n(?![\t\x20])'
     if SEP in buffer:
@@ -142,7 +142,7 @@ def hashstatic(buffer):
     headerlines = re.split(HeadersSEP, header)
     hashedheaders = list()
     for headerline in headerlines:
-        hashedheader = sha.new(headerline).hexdigest()
+        hashedheader = hashlib.sha1(headerline).hexdigest()
         hashedheaders.append(hashedheader)
     orderhash = ''
     return totalhashed,orderhash,hashedheaders
