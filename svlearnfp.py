@@ -125,6 +125,8 @@ if __name__ == '__main__':
     usage += 'example: %prog 10.0.0.2\r\n'
     parser = OptionParser(usage)
     parser = standardoptions(parser)
+    parser.add_option('--force',dest="force", action="store_true", default=False,
+                      help="This tool is not supported anymore and is being rewritten. If you really want to use it you need force ;-)")
     parser.add_option("-S","--samples", dest="samples", type="int", default=222,
                   help="Number of samples to take")
     parser.add_option("--customregex", dest="re", action="store_true", default=False,
@@ -132,6 +134,9 @@ if __name__ == '__main__':
     parser.add_option("--auto", dest="auto", action="store_true", default=False,
                       help="automatically process and save the fingerprint")
     (options, args) = parser.parse_args()
+    if not options.force:
+        parser.error("This tool is not supported anymore and is being rewritten. If you really want to use it you need force ;-)")
+        sys.exit()
     if len(args) < 1:
         parser.error("please specify a sip host")
         sys.exit(2)
