@@ -27,19 +27,22 @@ import select
 import random
 import logging
 import base64
-
+import time
 
 class ASipOfRedWine:
     def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,
                  externalip=None,
                  username=None,crackmode=1,crackargs=None,realm=None,sessionpath=None,
-                 selecttime=0.005,compact=False,reusenonce=False,extension=None):
+                 selecttime=0.005,compact=False,reusenonce=False,extension=None,
+                 maxlastrecvtime=10):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(10)
         self.sessionpath = sessionpath
+        self.maxlastrecvtime = maxlastrecvtime
+        self.lastrecvtime = time.time()
         self.dbsyncs = False
         if self.sessionpath is not  None:
             self.resultpasswd = anydbm.open(
@@ -224,6 +227,7 @@ class ASipOfRedWine:
             return
         try:
             self.getResponse()
+            self.lastrecvtime = time.time()
         except socket.timeout:
             self.log.error("no server response")
             return
@@ -245,9 +249,17 @@ class ASipOfRedWine:
                 # we got stuff to read off the socket
                 try:
                     self.getResponse()
+                    self.lastrecvtime = time.time()
                 except socket.error,err:
                     self.log.warn("socket error: %s" % err)
             else:
+                # check if its been a while since we had a response to prevent
+                # flooding - otherwise stop
+                timediff = time.time() - self.lastrecvtime
+                if timediff > self.maxlastrecvtime:
+                    self.nomore = True
+                    self.log.warn('It has been %s seconds since we last received a response - stopping' % timediff)
+                    continue
                 if self.passwordcracked:
                     break
                 if self.nomore is True:
@@ -339,6 +351,10 @@ if __name__ == '__main__':
                       help="""A format string which allows us to specify a template for the extensions
                       example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
                       """)
+    parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
+                      default=10,
+                      help="""Maximum time in seconds to keep sending requests without
+                      receiving a response back""")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -434,7 +450,8 @@ if __name__ == '__main__':
                     extension=options.extension,
                     sessionpath=exportpath,
                     port=options.port,
-                    externalip=options.externalip
+                    externalip=options.externalip,
+                    maxlastrecvtime=options.maximumtime,
                     )
     
     start_time = datetime.now()
