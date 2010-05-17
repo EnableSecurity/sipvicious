@@ -27,18 +27,19 @@ import socket
 import select
 import random
 import logging
-
+import time
 
 
 class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
-                 disableack=False,
+                 disableack=False,maxlastrecvtime=15
                  ):
         from helper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
+        self.maxlastrecvtime = maxlastrecvtime
         self.sessionpath = sessionpath
         self.dbsyncs = False
         self.disableack = disableack
@@ -78,6 +79,7 @@ class TakeASip:
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         self.initialcheck = initialcheck
+        self.lastrecvtime = time.time()
         if externalip is None:
             self.log.debug("external ip was not set")
             if (self.bindingip != '0.0.0.0') and (len(self.bindingip) > 0):
@@ -348,8 +350,16 @@ class TakeASip:
             if r:
                 # we got stuff to read off the socket
                 self.getResponse()
+                self.lastrecvtime = time.time()
             else:
-                # no stuff to read .. its our turn to send back something
+                # check if its been a while since we had a response to prevent
+                # flooding - otherwise stop
+                timediff = time.time() - self.lastrecvtime
+                if timediff > self.maxlastrecvtime:
+                    self.nomore = True
+                    self.log.warn('It has been %s seconds since we last received a response - stopping' % timediff)
+                    continue
+                # no stuff to read .. its our turn to send back something                
                 try:
                     self.nextuser = self.usernamegen.next()
                 except StopIteration:
@@ -419,10 +429,14 @@ if __name__ == '__main__':
                       help="""A format string which allows us to specify a template for the extensions
                       example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
                       """)
-    parser.add_option('--disabledefaults', action="store_false", dest="defaults",
-                      default=True, help="""Scan for default / typical extensions such as
-                      1000,2000,3000 ... 1100, etc. This option is on by default.
-                      Use --disabledefaults to disable this functionality""")
+    parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
+                      default=False, help="""Scan for default / typical extensions such as
+                      1000,2000,3000 ... 1100, etc. This option is off by default.
+                      Use --enabledefaults to enable this functionality""")
+    parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
+                      default=10,
+                      help="""Maximum time in seconds to keep sending requests without
+                      receiving a response back""")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -510,7 +524,8 @@ if __name__ == '__main__':
                     sessionpath=exportpath,
                     initialcheck=initialcheck,
                     externalip=options.externalip,
-                    disableack=True
+                    disableack=True,
+                    maxlastrecvtime=options.maximumtime,
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
