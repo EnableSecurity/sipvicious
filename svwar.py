@@ -4,7 +4,7 @@
 __GPL__ = """
 
    Sipvicious extension line scanner scans SIP PaBXs for valid extension lines
-   Copyright (C) 2008  Sandro Gauci <sandrogauc@gmail.com>
+   Copyright (C) 2010  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

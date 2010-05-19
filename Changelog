@@ -1,3 +1,42 @@
+v0.2.5 (20100519)
+* Feature:  svwar.py has "scan for default / typical extensions" option. This
+	    option tries to guess numeric extensions which have certain patterns
+	    such as 1212 etc. Option is -D, --enabledefaults
+
+* General:  svwar.py and svcrack.py now have a new option which allows you to set
+	    how long the tools will scan without receiving any response back.
+	    This allows us to prevent flooding the target. Some PBX servers now
+	    have built-in firewalls / intrusion prevention systems which will
+	    blacklist the IP address of anyone using svwar or svcrack. Therefore
+	    if the IP is blacklisted it makes sense to stop scanning the target.
+	    The default for this option is 10 seconds. Set this option by using
+	    --maximumtime [seconds]
+
+* Removed:  svlearnfp.py is now discontinued. The tool is still included for
+	    historic reasons but disabled.
+
+* Feature:  svmap.py now includes the following new features:
+			--debug - shows messages as they are received (useful for
+				    developers)
+			--first - scans the first X number of hosts, useful for
+				    random or large address pool scanning
+			--inputtext - scans IP ranges taken from a text file
+			--fromname - sets the from header to something specific
+				    useful for abusing other security issues or
+				    when svmap is used in a more flexible way
+				    then usual ;-)
+
+* Feature:  svreport.py now has two new modes:
+			- stats, which lists some statistics
+			- search, allows you to search through logs looking for
+				    specific user agents
+
+* Bug fix:  svwar.py now by default does not send ACK messages (was a buggy feature
+	    that did not follow the standard)
+
+* Bug fix:  svwar.py - the template passed through --template option is now checked
+	    sanity. 
+
 v0.2.4
 * Feature:  svwar.py can now scan for templated numbers. This allows more flexible
             usage of ranges of numbers, allowing for prefixes and suffixes as
