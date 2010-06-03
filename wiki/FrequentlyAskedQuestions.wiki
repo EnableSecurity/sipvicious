@@ -15,6 +15,11 @@ That might mean two things:
   # You do not have any valid extensions in your guess method. If you know any valid extension on the target PBX try that out and make sure that it shows up in the results. You can specify numeric ranges to try via the -e (or -r) option, or dictionary files containing possible extension names via the -d option.
   # You're running svwar against a PBX that does not differentiate responses between existing and non-existing extensions. You can try different methods, such as INVITE and see what comes up.
 
+=== Why does svcrack.py send so many REGISTER messages for the same extensions but only few of them actually trying Auth? ===
+
+This is done to generate a new nonce because on some systems, the nonce expires. However not all servers expire the nonce so if you would like to reuse the nonce, svcrack has an option "-n". 
+
+
 === Why is my question not here? ===
 
 Probably because my telepathic skills leave a lot to be desired. Don't hesitate to email me sandrogauc@gmail.com
