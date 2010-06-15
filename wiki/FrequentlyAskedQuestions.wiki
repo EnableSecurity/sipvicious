@@ -21,6 +21,12 @@ That might mean two things:
 
 This is done to generate a new nonce because on some systems, the nonce expires. However not all servers expire the nonce so if you would like to reuse the nonce, {{{svcrack}}} has an option {{{-n}}}. 
 
+=== What is a stateless scanner? ===
+
+A stateless scanner does not keep the state in conventional computer memory. This can make scanning large ranges more efficient in terms of resource usage. The way that this works in SIPVicious is that the tools send SIP messages and store the state in those messages. When SIPVicious tools receive a response back, then they decode the state in the response and determine the result. 
+
+In the case of {{{svmap}}}, {{{svwar}}} and {{{svcrack}}}, the data is stored in the tags in the "To" or "From" header.
+
 === I have a question about {{{svcrash}}} ===
 
 Check out the SvcrashFrequentlyAskedQuestions
