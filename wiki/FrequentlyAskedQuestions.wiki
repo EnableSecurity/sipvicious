@@ -19,6 +19,9 @@ That might mean two things:
 
 This is done to generate a new nonce because on some systems, the nonce expires. However not all servers expire the nonce so if you would like to reuse the nonce, svcrack has an option "-n". 
 
+=== I have a question about svcrack ===
+
+Check out the SvcrackFrequentlyAskedQuestions
 
 === Why is my question not here? ===
 
