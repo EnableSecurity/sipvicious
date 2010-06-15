@@ -21,7 +21,7 @@ This is done to generate a new nonce because on some systems, the nonce expires.
 
 === I have a question about svcrack ===
 
-Check out the SvcrackFrequentlyAskedQuestions
+Check out the SvcrashFrequentlyAskedQuestions
 
 === Why is my question not here? ===
 
