@@ -2,7 +2,7 @@
 
 === Does SIPVicious have a backdoor? ===
 
-Nope - no backdoors. The code is open source and open to inspection. It did have a bug that causes a crash when handling malformed tags. This is what svcrash.py exploits.
+Nope - no backdoors. The code is open source and open to inspection. It did have a bug that causes a crash when handling malformed tags. This is what {{{svcrash.py}}} abuses.
 
 
 === I do not think this is the right solution. Don't you? ===
@@ -19,6 +19,8 @@ Note: This is obviously not a long term solution.
 
 I expect unofficial fixes for old versions of {{{svwar}}} and {{{svcrack}}} in the near future. Keep in mind that new versions of SIPVicious ({{{svwar}}} and {{{svcrack}}}}) try not flood the network when the tool receives no response. 
 
+This bug is fixed in the latest versions (containing {{{svcrash}}}). 
+
 The logic: flooding VoIP providers doesn't do anyone good (granted that the attackers want free phone calls). Therefore the timeout added in SIPVicious version 0.2.5 is actually beneficial for both the victims and the attackers.
 
 === So SIPVicious can be used for DoS? ===
@@ -32,7 +34,7 @@ If what attackers want is to DoS (bandwidth saturation attack) a network, then t
 
 Yep! Hopefully those attackers are also smart enough to know that flooding a network is not the way to make phonecalls for free. Heck, I hope they get a real job and stop bothering your network ;-) 
 
-The tool svcrash.py is meant to temporarily stop network floods caused by old versions of unmodified SIPVicious.
+The tool {{{svcrash.py}}} is meant to temporarily stop network floods caused by old versions of unmodified SIPVicious.
 
 
 === Can I use the tool for fun? ===
