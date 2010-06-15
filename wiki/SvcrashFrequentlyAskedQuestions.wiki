@@ -17,7 +17,7 @@ Note: This is obviously not a long term solution.
 
 === Won't the attackers catch up and fix the bug? ===
 
-I expect unofficial fixes for old versions of {{{svwar}}} and {{{svcrack}}} in the near future. Keep in mind that new versions of SIPVicious ({{{svwar}}} and {{{svcrack}}}}) try not flood the network when the tool receives no response. 
+I expect unofficial fixes for old versions of {{{svwar}}} and {{{svcrack}}} in the near future. Keep in mind that new versions of SIPVicious ({{{svwar}}} and {{{svcrack}}}) try not flood the network when the tool receives no response. 
 
 This bug is fixed in the latest versions (containing {{{svcrash}}}). 
 
