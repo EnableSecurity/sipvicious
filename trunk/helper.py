@@ -359,7 +359,10 @@ def getTag(buff):
             _tmp2 = _tmp[0][1]
             _tmp2 = a2b_hex(_tmp2)
             if _tmp2.find('\x01') > 0:
-                c,rand = _tmp2.split('\x01')
+                try:
+                    c,rand = _tmp2.split('\x01')
+                except ValueError:
+                    c = 'svcrash detected'
             else:
                 c = _tmp2
             return c
