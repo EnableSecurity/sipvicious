@@ -1,5 +1,10 @@
 #summary Changelog
 #labels Featured
+= v0.2.6 (in svn) =
+  * Feature: svcrash.py introduced - aimed at mitigating attacks by svwar.py and svcrack.py
+  * Bug fix: helper.py updated to prevent choking on malformed tags
+
+
 = v0.2.5 =
    * Feature:  svwar.py has "scan for default / typical extensions" option. This option tries to guess numeric extensions which have certain patterns such as 1212 etc. Option is -D, --enabledefaults
    * General:  svwar.py and svcrack.py now have a new option which allows you to set how long the tools will scan without receiving any response back. This allows us to prevent flooding the target. Some PBX servers now have built-in firewalls / intrusion prevention systems which will blacklist the IP address of anyone using svwar or svcrack. Therefore if the IP is blacklisted it makes sense to stop scanning the target. The default for this option is 10 seconds. Set this option by using --maximumtime [[seconds]]
