@@ -126,17 +126,29 @@ class sniffnsend:
     def __init__(self,port=5060):
         self.port = port
         self.lastsent = 30
+        self.mytimer = dict()
 
     def checknsend(self,pkt):
         data = str(pkt.getlayer(Raw))
         ipaddr = pkt.getlayer(IP).src
         port = pkt.getlayer(UDP).sport
-        if time.time() - self.lastsent > 2:
-            if 'User-Agent: friendly-scanner' in data:            
-                if 'REGISTER ' in data:
-                    #print data
-                    self.lastsent = time.time()
-                    sendattack2(ipaddr,port)                                
+        src = ipaddr,port
+        if not src in self.mytimer:
+            #print "add %s:%s" % src
+            self.mytimer[src] = time.time() - 2
+        if time.time() - self.mytimer[src] > 2:
+            if time.time() - self.lastsent > 0.5:
+                if 'User-Agent: friendly-scanner' in data:            
+                    if 'REGISTER ' in data:
+                        #print data
+                        self.lastsent = time.time()
+                        self.mytimer[src] = time.time()
+                        sendattack2(ipaddr,port)
+        if len(self.mytimer) > 0:
+            for src in self.mytimer.keys():
+                if time.time() - self.mytimer[src] > 10:
+                    #print "del %s:%s:%s" % (str(src),time.time(),self.mytimer[src])
+                    del(self.mytimer[src])
                 
     
     def start(self):        
