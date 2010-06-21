@@ -1,3 +1,10 @@
+v0.2.6 (20100621)
+* Feature:  svcrash.py is a new tool for sending messages that crash svwar and 
+            svcrack
+
+* Bug fix:  helper.py has been fixed when decoding the tags (svcrash abuses 
+            this issue)
+
 v0.2.5 (20100519)
 * Feature:  svwar.py has "scan for default / typical extensions" option. This
 	    option tries to guess numeric extensions which have certain patterns
