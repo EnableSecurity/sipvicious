@@ -22,6 +22,7 @@ __GPL__ = """
 """
 
 from helper import __author__, __version__
+
 __prog__ = 'svcrash'
 import warnings
 warnings.filterwarnings("ignore")
