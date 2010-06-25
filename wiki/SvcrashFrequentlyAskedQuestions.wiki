@@ -1,4 +1,5 @@
 #summary svcrash FAQ - frequently asked questions
+#labels Featured
 
 === Does SIPVicious have a backdoor? ===
 
