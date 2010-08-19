@@ -59,7 +59,9 @@ def getArgs():
                       )
     parser.add_option('-p',help="specify attacker's port", dest="port",
                       type="int",default=5060
-                      )    
+                      )
+    parser.add_option('-b',help="bruteforce the attacker's port", dest="bruteforceport",
+                      default=False, action="store_true")
     (options, args) = parser.parse_args()
     if not (options.auto or options.astlog):
         if not options.ipaddr:
@@ -185,5 +187,8 @@ if __name__ == "__main__":
     elif options.astlog:
         ast=asteriskreadlognsend(options.astlog)
         ast.start()
+    elif options.bruteforceport:
+        for port in xrange(5060,5090):
+            sendattack(options.ipaddr,port)
     else:
         sendattack(options.ipaddr,options.port)
