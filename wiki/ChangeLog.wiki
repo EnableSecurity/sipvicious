@@ -1,6 +1,6 @@
 #summary Changelog
 #labels Featured
-= v0.2.6 (in svn) =
+= v0.2.6 =
   * Feature: svcrash.py introduced - aimed at mitigating attacks by svwar.py and svcrack.py
   * Bug fix: helper.py updated to prevent choking on malformed tags
 
