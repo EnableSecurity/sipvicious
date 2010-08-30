@@ -38,7 +38,7 @@ class DrinkOrSip:
         import logging,anydbm
         import os.path
         from svhelper import packetcounter
-        from fphelper import sipfingerprint
+        from svfphelper import sipfingerprint
         self.sipfingerprint = sipfingerprint
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
