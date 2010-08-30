@@ -20,7 +20,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from helper import __author__, __version__
+from svhelper import __author__, __version__
 __prog__ = "svmap"
 
 import socket
@@ -37,7 +37,7 @@ class DrinkOrSip:
                  printdebug=False,first=None):
         import logging,anydbm
         import os.path
-        from helper import packetcounter
+        from svhelper import packetcounter
         from fphelper import sipfingerprint
         self.sipfingerprint = sipfingerprint
         self.log = logging.getLogger('DrinkOrSip')
@@ -107,7 +107,7 @@ class DrinkOrSip:
         self.sentpackets = 0
     
     def getResponse(self,buff,srcaddr):
-        from helper import fingerPrintPacket,getTag
+        from svhelper import fingerPrintPacket,getTag
         srcip,srcport = srcaddr
         uaname = 'unknown'
         if buff.startswith('OPTIONS ') \
@@ -166,8 +166,8 @@ class DrinkOrSip:
             self.log.debug('Packet: %s' % `buff`)
                 
     def start(self):
-        from helper import makeRequest, createTag
-        from helper import mysendto
+        from svhelper import makeRequest, createTag
+        from svhelper import mysendto
         import socket
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
@@ -283,7 +283,7 @@ if __name__ == '__main__':
     from datetime import datetime
     import anydbm
     import os
-    from helper import standardoptions, standardscanneroptions, calcloglevel
+    from svhelper import standardoptions, standardscanneroptions, calcloglevel
     from sys import exit
     import logging
     import pickle
@@ -329,7 +329,7 @@ if __name__ == '__main__':
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
     (options, args) = parser.parse_args()        
-    from helper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
+    from svhelper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
     exportpath = None
     if options.resume is not None:
@@ -493,7 +493,7 @@ if __name__ == '__main__':
         pass
     except Exception, err:
         import traceback
-        from helper import reportBugToAuthor 
+        from svhelper import reportBugToAuthor 
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())

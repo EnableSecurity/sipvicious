@@ -20,7 +20,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from helper import __author__, __version__
+from svhelper import __author__, __version__
 __prog__ = 'svwar'
 
 import socket
@@ -36,7 +36,7 @@ class TakeASip:
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
                  disableack=False,maxlastrecvtime=15
                  ):
-        from helper import dictionaryattack, numericbrute, packetcounter
+        from svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('TakeASip')
         self.maxlastrecvtime = maxlastrecvtime
@@ -123,8 +123,8 @@ class TakeASip:
     
     def createRequest(self,m,username,auth=None,cid=None,cseq=1):
         from base64 import b64encode
-        from helper import makeRequest
-        from helper import createTag
+        from svhelper import makeRequest
+        from svhelper import createTag
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
@@ -150,10 +150,10 @@ class TakeASip:
         return request
 
     def getResponse(self):
-        from helper import getNonce,getCredentials,getRealm,getCID,getTag        
+        from svhelper import getNonce,getCredentials,getRealm,getCID,getTag        
         from base64 import b64decode
-        from helper import parseHeader
-        from helper import mysendto
+        from svhelper import parseHeader
+        from svhelper import mysendto
         import re
         # we got stuff to read off the socket
         from socket import error as socketerror
@@ -264,7 +264,7 @@ class TakeASip:
     
     def start(self):        
         import socket, pickle
-        from helper import mysendto
+        from svhelper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -396,9 +396,9 @@ if __name__ == '__main__':
     from sys import exit
     import logging
     import pickle
-    from helper import resumeFrom, calcloglevel
-    from helper import standardoptions, standardscanneroptions
-    from helper import getRange 
+    from svhelper import resumeFrom, calcloglevel
+    from svhelper import standardoptions, standardscanneroptions
+    from svhelper import getRange 
     
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
@@ -538,7 +538,7 @@ if __name__ == '__main__':
         logging.warn('caught your control^c - quiting')
     except Exception, err:
         import traceback
-        from helper import reportBugToAuthor                
+        from svhelper import reportBugToAuthor                
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
