@@ -101,7 +101,6 @@ def bindto(bindingip,startport,s):
 
 
 def getRange(rangestr):
-    from helper import anotherxrange as xrange
     _tmp1 = rangestr.split(',')
     numericrange = list()
     for _tmp2 in _tmp1:
