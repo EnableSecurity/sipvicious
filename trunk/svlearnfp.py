@@ -113,8 +113,8 @@ def collectpackets(dstaddrs,localport,fromaddr,toaddr,bindingip,selecttime=0.005
         return
 
 if __name__ == '__main__':
-    from fphelper import fpdynamic, fpstatic, getdynamic, getstatic, hashstatic,fpstore, fpdynamicstore
-    from fphelper import getfingerprints, getheader, fpexists, uploadfp
+    from svfphelper import fpdynamic, fpstatic, getdynamic, getstatic, hashstatic,fpstore, fpdynamicstore
+    from svfphelper import getfingerprints, getheader, fpexists, uploadfp
     from optparse import OptionParser
     from helper import makeRequest, calcloglevel, fingerPrintPacket, standardoptions, bindto
     from regen import generateregex
