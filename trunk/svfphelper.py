@@ -32,7 +32,7 @@ def getdynamic(buffer):
     dynamicheaders['user-agent']['ua'] = '(.*)'
 
     
-    from helper import parseHeader
+    from svhelper import parseHeader
     import re
     result = dict()
     ph = parseHeader(buffer)
