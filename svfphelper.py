@@ -86,7 +86,7 @@ def fpexists(fpname,fpfile="totag"):
     import shelve,logging
     log = logging.getLogger("fpexists")
     try:
-        dynamicmatch = shelve.open(fpfile,flag='c')
+        dynamicmatch = shelve.open(fpfile,flag='r')
     except OSError:
         return
     r = False
@@ -100,7 +100,7 @@ def fpdynamic(dyn,fpfile="totag"):
     import logging
     log = logging.getLogger("fpdynamic")
     try:
-        dynamicmatch = shelve.open(fpfile,flag='c')
+        dynamicmatch = shelve.open(fpfile,flag='r')
     except OSError:
         return    
     import re
@@ -150,8 +150,8 @@ def hashstatic(buffer):
 def fpstatic(buffer,fullfn='staticfull',headersfn='staticheaders'):
     totalhashed,orderhashed,hashedheaders = hashstatic(buffer)
     import shelve
-    fulldb = shelve.open(fullfn,writeback=True)
-    headersdb = shelve.open(headersfn,writeback=True)
+    fulldb = shelve.open(fullfn,flag='r',writeback=True)
+    headersdb = shelve.open(headersfn,flag='r',writeback=True)
     fullguess = None
     if fulldb.has_key(totalhashed):
         fullguess = fulldb[totalhashed]
@@ -303,7 +303,7 @@ def groupwherepossible(fpnames,groupdb='groupdb'):
     log = logging.getLogger('grouphwerepossible')
     log.debug("entered")
     try:
-        groupnames = shelve.open(groupdb)
+        groupnames = shelve.open(groupdb,flag='r')
     except IOError:
         log.error("groupdb was not found: %s" % groupdb)
         return
