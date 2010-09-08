@@ -34,7 +34,7 @@ class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060,
-                 printdebug=False,first=None):
+                 printdebug=False,first=None,fpworks=False):
         import logging,anydbm
         import os.path
         from svhelper import packetcounter
@@ -99,7 +99,7 @@ class DrinkOrSip:
         self.originallocalport = self.localport
         self.nextip = None
         self.extension = extension
-        self.fpworks = True
+        self.fpworks = fpworks
         self.printdebug = printdebug
         self.first = first
         if self.sessionpath is not None:
