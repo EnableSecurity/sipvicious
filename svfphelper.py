@@ -183,6 +183,33 @@ def uploadfp(servername,statichashes,totagregex,emailaddr):
         return
     return True
 
+
+def fpstore(servername,fullhash,headerhashes,fullfn='staticfull',headersfn='staticheaders'):
+    import shelve,logging
+    log = logging.getLogger("fpstore")
+    fulldb = shelve.open(fullfn)
+    headersdb = shelve.open(headersfn)    
+    if fulldb.has_key(fullhash):
+        log.debug("fulldb has this key already defined")
+        if servername not in fulldb[fullhash]:
+            log.debug("server not already in therefore appending")
+            fulldb[fullhash].append(servername)
+        else:
+            log.debug("server known therefore not appending")
+    else:
+        log.debug("key not defined therefore creating")
+        fulldb[fullhash] = [servername]
+    for headerhash in headerhashes:
+        if headersdb.has_key(headerhash):
+            if servername not in headersdb[headerhash]:
+                headersdb[headerhash].append(servername)
+        else:
+            headersdb[headerhash] = [servername]
+    fulldb.sync()
+    fulldb.close()
+    headersdb.sync()
+    headersdb.close()
+
 def _fpcalc(dyn,static):
     results = list()
     if len(dyn) > 0:
