@@ -328,6 +328,8 @@ if __name__ == '__main__':
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
+    parser.add_option('--fingerprint','--fp',dest="fpworks", default=False,
+                      action="store_true",help="enable fingerprinting (default is off)")
     (options, args) = parser.parse_args()        
     from svhelper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
@@ -481,6 +483,7 @@ if __name__ == '__main__':
                     printdebug=options.printdebug,
                     first=options.first,
                     fromname=options.fromname,
+                    fpworks=options.fpworks,
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )
