@@ -354,7 +354,11 @@ if __name__ == '__main__':
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
                       default=10,
                       help="""Maximum time in seconds to keep sending requests without
-                      receiving a response back""")    
+                      receiving a response back""")
+    parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
+                      default=False, help="""Scan for default / typical passwords such as
+                      1000,2000,3000 ... 1100, etc. This option is off by default.
+                      Use --enabledefaults to enable this functionality""")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -423,7 +427,7 @@ if __name__ == '__main__':
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previouspasswd)
         rangelist = getRange(options.range)        
-        crackargs = (rangelist,options.zeropadding,options.template)
+        crackargs = (rangelist,options.zeropadding,options.template,options.defaults,[options.username])
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join('.sipvicious',__prog__,options.save)
