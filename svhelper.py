@@ -20,7 +20,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.2.6'
+__version__ = '0.2.7'
 
 
 import sys
@@ -121,8 +121,10 @@ def getRange(rangestr):
     return numericrange
 
 
-def numericbrute(rangelist,zeropadding=0,template=None,defaults=False):
+def numericbrute(rangelist,zeropadding=0,template=None,defaults=False,staticbrute=[]):
     """numericbrute gives a yield generator. accepts either zeropadding or template as optional argument"""
+    for statictry in staticbrute:
+        yield(statictry)
     if defaults:
         for i in xrange(1000,9999,100):
             yield('%04i' % i)
