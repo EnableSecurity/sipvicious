@@ -141,7 +141,8 @@ class sniffnsend:
             self.mytimer[src] = time.time() - 2
         if time.time() - self.mytimer[src] > 2:
             if time.time() - self.lastsent > 0.5:
-                if 'User-Agent: friendly-scanner' in data:            
+                if ('User-Agent: friendly-scanner' in data) or \
+                    ('User-Agent: Asterisk PBX' in data and 'CSeq: 1 REGISTER' in data):
                     if 'REGISTER ' in data:
                         #print data
                         self.lastsent = time.time()
