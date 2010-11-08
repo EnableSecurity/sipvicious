@@ -512,7 +512,12 @@ if __name__ == '__main__':
                 exit(1)
             optionsdst = os.path.join(exportpath,'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
-            pickle.dump([options,args],open(optionsdst,'w'))    
+            pickle.dump([options,args],open(optionsdst,'w'))
+    if options.autogetip:
+        tmpsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tmpsocket.connect(("msn.com",80))
+        options.externalip=tmpsocket.getsockname()[0]
+        tmpsocket.close()
     sipvicious = TakeASip(
                     host,
                     port=options.port,

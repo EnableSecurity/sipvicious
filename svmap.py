@@ -471,6 +471,11 @@ if __name__ == '__main__':
         options.extension
     except AttributeError:
         options.extension = None
+    if options.autogetip:
+        tmpsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tmpsocket.connect(("msn.com",80))
+        options.externalip=tmpsocket.getsockname()[0]
+        tmpsocket.close()
     sipvicious = DrinkOrSip(
                     scaniter,
                     selecttime=options.selecttime,

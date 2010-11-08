@@ -53,6 +53,8 @@ def standardoptions(parser):
     parser.add_option("-R", "--reportback", dest="reportBack", default=False, action="store_true",
                   help="Send the author an exception traceback. Currently sends the command line parameters and the traceback",                  
                   )
+    parser.add_option("-A","--autogetip", dest="autogetip", default=False, action="store_true",
+                      help="Automatically get the current IP address. This is useful when you are not getting any responses back due to SIPVicious not resolving your local IP.")
     return parser
 
 def standardscanneroptions(parser):
