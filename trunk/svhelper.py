@@ -168,10 +168,11 @@ def numericbrute(rangelist,zeropadding=0,template=None,defaults=False,staticbrut
             yield(r)
 
 def dictionaryattack(dictionaryfile):
-    r = dictionaryfile.readline().strip()    
-    while r != '':
-        yield(r)
-        r = dictionaryfile.readline().strip()
+    while 1:
+        r = dictionaryfile.readline()
+        if len(r) == 0:
+            break
+        yield(r.strip())
     dictionaryfile.close()
 
 
