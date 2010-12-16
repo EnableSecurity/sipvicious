@@ -531,6 +531,7 @@ if __name__ == '__main__':
                     externalip=options.externalip,
                     disableack=True,
                     maxlastrecvtime=options.maximumtime,
+                    localport=options.localport
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))

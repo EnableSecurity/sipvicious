@@ -461,6 +461,7 @@ if __name__ == '__main__':
                     port=options.port,
                     externalip=options.externalip,
                     maxlastrecvtime=options.maximumtime,
+                    localport=options.localport,
                     )
     
     start_time = datetime.now()
