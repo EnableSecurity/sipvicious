@@ -183,7 +183,7 @@ class genericbrute:
 
 def getNonce(pkt):
     import re
-    nonceRE='nonce="([:a-zA-Z0-9]+)"'
+    nonceRE='nonce="(.+?)"'
     _tmp = re.findall(nonceRE,pkt)
     if _tmp is not None:
         if len(_tmp) > 0:
