@@ -4,7 +4,7 @@
 __GPL__ = """
 
    Sipvicious extension line scanner scans SIP PaBXs for valid extension lines
-   Copyright (C) 2010  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2011 Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
-                 disableack=False,maxlastrecvtime=15
+                 disableack=False,maxlastrecvtime=15, domain=None,
                  ):
         from svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
@@ -65,6 +65,9 @@ class TakeASip:
         self.challenges = list()        
         self.realm = None
         self.dsthost,self.dstport = host,int(port)
+        self.domain = self.dsthost
+        if domain:
+            self.domain = domain
         self.guessmode = guessmode
         self.guessargs = guessargs
         if self.guessmode == 1:
@@ -129,12 +132,12 @@ class TakeASip:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         localtag=createTag(username)
-        contact = 'sip:%s@%s' % (username,self.dsthost)
+        contact = 'sip:%s@%s' % (username,self.domain)
         request = makeRequest(
                                 m,
-                                '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
-                                '"%s"<sip:%s@%s>' % (username,username,self.dsthost),
-                                self.dsthost,
+                                '"%s"<sip:%s@%s>' % (username,username,self.domain),
+                                '"%s"<sip:%s@%s>' % (username,username,self.domain),
+                                self.domain,
                                 self.dstport,
                                 cid,
                                 self.externalip,
@@ -437,6 +440,9 @@ if __name__ == '__main__':
                       default=10,
                       help="""Maximum time in seconds to keep sending requests without
                       receiving a response back""")
+    parser.add_option('--domain', dest="domain", 
+                      help="force a specific domain name for the SIP message, eg. -d example.org")
+
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -531,7 +537,8 @@ if __name__ == '__main__':
                     externalip=options.externalip,
                     disableack=True,
                     maxlastrecvtime=options.maximumtime,
-                    localport=options.localport
+                    localport=options.localport,
+                    domain=options.domain
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
