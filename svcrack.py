@@ -4,7 +4,7 @@
 __GPL__ = """
 
    SIPvicious password cracker is an online password guessing tool for SIP devices
-   Copyright (C) 2010  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2011  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ class ASipOfRedWine:
                  externalip=None,
                  username=None,crackmode=1,crackargs=None,realm=None,sessionpath=None,
                  selecttime=0.005,compact=False,reusenonce=False,extension=None,
-                 maxlastrecvtime=10):
+                 maxlastrecvtime=10,domain=None):
         from svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
@@ -66,6 +66,9 @@ class ASipOfRedWine:
         self.crackmode = crackmode
         self.crackargs = crackargs
         self.dsthost,self.dstport =host,int(port)
+        self.domain = self.dsthost
+        if domain:
+            self.domain = domain
         if crackmode == 1:            
             self.passwdgen = numericbrute(*crackargs)
         elif crackmode == 2:
@@ -132,9 +135,9 @@ class ASipOfRedWine:
             localtag=createTag('%s:%s' % (self.auth['username'],self.auth['password']))
         register = makeRequest(
                                     m,
-                                    '"%s" <sip:%s@%s>' % (extension,extension,self.dsthost),
-                                    '"%s" <sip:%s@%s>' % (extension,extension,self.dsthost),
-                                    self.dsthost,
+                                    '"%s" <sip:%s@%s>' % (extension,extension,self.domain),
+                                    '"%s" <sip:%s@%s>' % (extension,extension,self.domain),
+                                    self.domain,
                                     self.dstport,
                                     callid=cid,
                                     srchost=self.externalip,
@@ -219,7 +222,7 @@ class ASipOfRedWine:
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
 
         # perform a test 1st ..
-        data = self.Register(self.extension,self.dsthost)
+        data = self.Register(self.extension,self.domain)
         try:
             mysendto(self.sock,data,(self.dsthost,self.dstport))
         except socket.error,err:
@@ -291,7 +294,7 @@ class ASipOfRedWine:
                 else:
                     self.auth = None
                     cid = None
-                data = self.Register(self.extension,self.dsthost,self.auth,cid)                
+                data = self.Register(self.extension,self.domain,self.auth,cid)                
                 try:
                     mysendto(self.sock,data,(self.dsthost,self.dstport))
                     #self.sock.sendto(data,(self.dsthost,self.dstport))
@@ -359,6 +362,8 @@ if __name__ == '__main__':
                       default=False, help="""Scan for default / typical passwords such as
                       1000,2000,3000 ... 1100, etc. This option is off by default.
                       Use --enabledefaults to enable this functionality""")
+    parser.add_option('--domain', dest="domain", 
+                      help="force a specific domain name for the SIP message, eg. -d example.org")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -462,6 +467,7 @@ if __name__ == '__main__':
                     externalip=options.externalip,
                     maxlastrecvtime=options.maximumtime,
                     localport=options.localport,
+                    domain=options.domain
                     )
     
     start_time = datetime.now()
