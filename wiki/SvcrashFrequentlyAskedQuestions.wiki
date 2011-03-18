@@ -41,3 +41,7 @@ The tool {{{svcrash.py}}} is meant to temporarily stop network floods caused by 
 === Can I use the tool for fun? ===
 
 I suppose you could seriously mess up some penetration testers :->
+
+=== How can I start svcrash.py automatically on bootup? ===
+
+I suggest that you consult your server documentation. Every OS and Linux distribution, BSD flavor etc has its interesting tidbits.
