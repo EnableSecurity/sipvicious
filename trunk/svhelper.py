@@ -361,7 +361,10 @@ def getTag(buff):
     if _tmp is not None:
         if len(_tmp) > 0:
             _tmp2 = _tmp[0][1]
-            _tmp2 = a2b_hex(_tmp2)
+            try:
+                _tmp2 = a2b_hex(_tmp2)
+            except TypeError:
+                return
             if _tmp2.find('\x01') > 0:
                 try:
                     c,rand = _tmp2.split('\x01')
