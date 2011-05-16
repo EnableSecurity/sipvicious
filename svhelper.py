@@ -391,10 +391,15 @@ def getToTag(buff):
     return
 
 def challengeResponse(username,realm,passwd,method,uri,nonce):
-    import md5
-    a1 = md5.new('%s:%s:%s' % (username,realm,passwd)).hexdigest()
-    a2 = md5.new('%s:%s' % (method,uri)).hexdigest()
-    res = md5.new('%s:%s:%s' % (a1,nonce,a2)).hexdigest()
+    hashlibsupported=True
+    try:
+        from hashlib import md5
+    except ImportError:
+        import md5 as md5sum
+        md5 = md5sum.new
+    a1 = md5('%s:%s:%s' % (username,realm,passwd)).hexdigest()
+    a2 = md5('%s:%s' % (method,uri)).hexdigest()
+    res = md5('%s:%s:%s' % (a1,nonce,a2)).hexdigest()
     return res
 
 def makeRedirect(previousHeaders,rediraddr):
@@ -456,7 +461,7 @@ def makeRequest(
         headers['From'] = fromaddr
         headers['User-Agent'] = useragent
         if localtag is not None:
-            headers['From'] += '; tag=%s' % localtag
+            headers['From'] += ';tag=%s' % localtag
         headers['Call-ID'] = callid
         #if contact is not None:
         headers['Contact'] = contact
