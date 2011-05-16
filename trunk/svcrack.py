@@ -128,7 +128,7 @@ class ASipOfRedWine:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag=None
+        localtag=str(random.getrandbits(32))
         contact = 'sip:%s@%s' % (extension,remotehost)
         if auth is not None:
             cseq = 2
