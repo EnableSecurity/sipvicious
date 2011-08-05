@@ -192,7 +192,7 @@ def getNonce(pkt):
 
 def getRealm(pkt):
     import re
-    nonceRE='realm="([.:a-zA-Z0-9@]+)"'
+    nonceRE='realm="(.+?)"'
     _tmp = re.findall(nonceRE,pkt)
     if _tmp is not None:
         if len(_tmp) > 0:
