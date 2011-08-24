@@ -436,7 +436,7 @@ def makeRequest(
     srchost = source host
     """
     import random
-    if extension is None:
+    if extension is None or method=='REGISTER':
         uri = 'sip:%s' % dsthost
     else:
         uri = 'sip:%s@%s' % (extension,dsthost)
