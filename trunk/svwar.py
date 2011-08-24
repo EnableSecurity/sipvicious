@@ -34,7 +34,7 @@ class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
-                 disableack=False,maxlastrecvtime=15, domain=None,
+                 disableack=False,maxlastrecvtime=15, domain=None, printdebug=False,
                  ):
         from svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
@@ -97,6 +97,7 @@ class TakeASip:
         else:
             self.log.debug("external ip was set")
             self.externalip = externalip
+        self.printdebug = printdebug
 
 
 #   SIP response codes, also mapped to ISDN Q.931 disconnect causes.
@@ -161,6 +162,10 @@ class TakeASip:
         # we got stuff to read off the socket
         from socket import error as socketerror
         buff,srcaddr = self.sock.recvfrom(8192)
+        if self.printdebug:
+            print srcaddr
+            print buff
+
         try:
             extension = getTag(buff)
         except TypeError:
@@ -303,6 +308,9 @@ class TakeASip:
             while 1:
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
+                    if self.printdebug:
+                        print srcaddr
+                        print buff
                 except socket.error,err:
                     self.log.error("socket error: %s" % err)
                     return
@@ -442,6 +450,10 @@ if __name__ == '__main__':
                       receiving a response back""")
     parser.add_option('--domain', dest="domain", 
                       help="force a specific domain name for the SIP message, eg. -d example.org")
+    parser.add_option("--debug", dest="printdebug", 
+                  help="Print SIP messages received",
+                  default=False, action="store_true"
+                  )
 
     (options, args) = parser.parse_args()
     exportpath = None
@@ -538,7 +550,8 @@ if __name__ == '__main__':
                     disableack=True,
                     maxlastrecvtime=options.maximumtime,
                     localport=options.localport,
-                    domain=options.domain
+                    domain=options.domain,
+                    printdebug=options.printdebug,
                     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))
