@@ -26,9 +26,7 @@ v0.2.7 (20120222)
 * Bug fix: changed the way shelved files are opened by the fingerprinting module
 
 * Change: fingerprinting disabled by default since it was giving too many problems
-          and very little benefits
-
-* 
+          and very little benefits 
 
 v0.2.6 (20100621)
 * Feature:  svcrash.py is a new tool for sending messages that crash svwar and 
