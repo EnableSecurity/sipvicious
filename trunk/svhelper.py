@@ -3,7 +3,7 @@
 
 
 #   Helper.py keeps the rest of the tools clean - part of SIPVicious tools
-#   Copyright (C) 2007-2011  Sandro Gauci <sandro@enablesecurity.com>
+#   Copyright (C) 2007-2012  Sandro Gauci <sandro@enablesecurity.com>
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by

@@ -5,7 +5,7 @@ __GPL__ = """
 
    Sipvicious crash exploits a bug in svwar/svcrack.py to stop unauthorized
    scans from flooding the network. 
-   Copyright (C) 2010  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2012  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
