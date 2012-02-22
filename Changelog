@@ -1,3 +1,35 @@
+v0.2.7 (20120222)
+* Feature: svcrash.py has a new option -b which bruteforces the attacker's port
+
+* Feature: svcrack.py now tries the extension as password by default, automatically
+
+* Feature: svcrack.py and svwar.py now support setting of source port
+
+* Feature: new parameter --domain can be passed to all tools which specifies
+           a custom domain in the SIP uri instead of the destination IP
+
+* Feature: new --debug switch which shows the messages recieved
+
+* Bug fix: Sometimes nonces could not be extracted due to an incorrect regex
+
+* Bug fix: Fixed an unhandled exception when decoding tags
+
+* Bug fix: now using hashlib when available instead of md5
+
+* Bug fix: removed the space after the SIP address in the From header which
+           led to newer version of Asterisk to ignore the SIP messages
+
+* Bug fix: dictionaries with new lines made svcrack.py stop without this fix
+
+* Change: renamed everything to start with sv*
+
+* Bug fix: changed the way shelved files are opened by the fingerprinting module
+
+* Change: fingerprinting disabled by default since it was giving too many problems
+          and very little benefits
+
+* 
+
 v0.2.6 (20100621)
 * Feature:  svcrash.py is a new tool for sending messages that crash svwar and 
             svcrack
