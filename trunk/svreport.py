@@ -32,20 +32,20 @@ import logging
 import socket
 
 if __name__ == "__main__":
-        commandsusage = """Supported commands:
-                - list:\tlists all scans
-                - export:\texports the given scan to a given format
-                - delete:\tdeletes the scan
-                - stats:\tprint out some statistics of interest
-                - search:\tsearch for a specific string in the user agent (svmap)
+        commandsusage = """Supported commands:\r\n
+                - list:\tlists all scans\r\n
+                - export:\texports the given scan to a given format\r\n
+                - delete:\tdeletes the scan\r\n
+                - stats:\tprint out some statistics of interest\r\n
+                - search:\tsearch for a specific string in the user agent (svmap)\r\n
 """
-        commandsusage += "examples:\r\n"
-        commandsusage += "      %s.py list\r\n" % __prog__
-        commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n" % __prog__
-        commandsusage += "      %s.py delete -s scan1\r\n" % __prog__
+        commandsusage += "examples:\r\n\r\n"
+        commandsusage += "      %s.py list\r\n\r\n" % __prog__
+        commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n\r\n" % __prog__
+        commandsusage += "      %s.py delete -s scan1\r\n\r\n" % __prog__
         usage = "%prog [command] [options]\r\n\r\n"
         usage += commandsusage
-        parser = OptionParser(usage=usage)
+        parser = OptionParser(usage=usage,version="%prog v"+str(__version__)+__GPL__)
         parser.add_option('-v', '--verbose', dest="verbose", action="count",
                           help="Increase verbosity")
         parser.add_option('-q', '--quiet', dest="quiet", action="store_true",

@@ -38,8 +38,8 @@ class DrinkOrSip:
         import logging,anydbm
         import os.path
         from svhelper import packetcounter
-        from svfphelper import sipfingerprint
-        self.sipfingerprint = sipfingerprint
+        #from svfphelper import sipfingerprint
+        #self.sipfingerprint = sipfingerprint
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         self.sessionpath = sessionpath
@@ -127,12 +127,12 @@ class DrinkOrSip:
             else:
                 uaname = 'unknown'
                 self.log.debug(`buff`)
-            if self.fpworks:
-                try:
-                    fp = self.sipfingerprint(buff)
-                except:
-                    self.log.error("fingerprinting gave errors - will be disabled")
-                    self.fpworks = False
+            #if self.fpworks:
+            #    try:
+            #        fp = self.sipfingerprint(buff)
+            #    except:
+            #        self.log.error("fingerprinting gave errors - will be disabled")
+            #        self.fpworks = False
             if not self.fpworks:
                 fp = None
             if fp is None:
@@ -288,13 +288,14 @@ if __name__ == '__main__':
     import logging
     import pickle
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
-    usage += "examples:\r\n"
-    usage += "%prog 10.0.0.1-10.0.0.255 \\\r\n"
-    usage += "> 172.16.131.1 sipvicious.org/22 10.0.1.1/24 \\\r\n"
-    usage += "> 1.1.1.1-20 1.1.2-20.* 4.1.*.*\r\n"
-    usage += "%prog -s session1 --randomize 10.0.0.1/8\r\n"
-    usage += "%prog --resume session1 -v\r\n"
-    usage += "%prog -p5060-5062 10.0.0.3-20 -m INVITE\r\n"
+    usage += 'Scans for SIP devices on a given network\r\n\r\n'
+    usage += "examples:\r\n\r\n"
+    usage += "%prog 10.0.0.1-10.0.0.255 "
+    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24"
+    usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*\r\n\r\n"
+    usage += "%prog -s session1 --randomize 10.0.0.1/8\r\n\r\n"
+    usage += "%prog --resume session1 -v\r\n\r\n"
+    usage += "%prog -p5060-5062 10.0.0.3-20 -m INVITE\r\n\r\n"
     parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
@@ -328,8 +329,6 @@ if __name__ == '__main__':
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
-    parser.add_option('--fingerprint','--fp',dest="fpworks", default=False,
-                      action="store_true",help="enable fingerprinting (default is off)")
     (options, args) = parser.parse_args()        
     from svhelper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
@@ -487,8 +486,7 @@ if __name__ == '__main__':
                     extension=options.extension,
                     printdebug=options.printdebug,
                     first=options.first,
-                    fromname=options.fromname,
-                    fpworks=options.fpworks,
+                    fromname=options.fromname,                    
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )
@@ -533,7 +531,7 @@ if __name__ == '__main__':
         if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from pptable import indent,wrap_onspace
+                from libs.pptable import indent,wrap_onspace
                 width = 60
                 labels = ('SIP Device','User Agent','Fingerprint')
                 rows = list()

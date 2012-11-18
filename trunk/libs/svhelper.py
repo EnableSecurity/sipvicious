@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 
@@ -20,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.2.7'
+__version__ = '0.2.8'
 
 
 import sys
@@ -850,7 +849,7 @@ def createReverseLookup(src,dst):
     return dstdb
 
 def getasciitable(labels,db,resdb=None,width=60):
-    from pptable import indent,wrap_onspace                        
+    from libs.pptable import indent,wrap_onspace                        
     rows = list()
     for k in db.keys():
             cols = [k,db[k]]
@@ -1051,6 +1050,9 @@ def getTargetFromSRV(domainnames,methods):
                             continue
                         log.debug("%s resolved to %s" % (_tmp.target.to_text(),hostname))
                         yield(hostname,_tmp.port,method)
+
+
+
 
 
 if __name__ == '__main__':
