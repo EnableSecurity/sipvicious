@@ -590,7 +590,7 @@ if __name__ == '__main__':
         if lenres > 0:
             logging.info("we have %s extensions" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from pptable import indent,wrap_onspace
+                from libs.pptable import indent,wrap_onspace
                 width = 60
                 labels = ('Extension','Authentication')
                 rows = list()

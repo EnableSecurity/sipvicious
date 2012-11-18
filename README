@@ -25,11 +25,6 @@ words from dictionary files.
 svreport - able to manage sessions created by the rest of the tools
 and export to pdf, xml, csv and plain text.
 
-svlearnfp - allows you to generate new fingerprints by simply running 
-the tool against a host. It will attempt to guess most values and allow 
-you to save the information to the local fingerprint db. Then you can 
-choose to upload it to the author so that it can be added to the database.
-
 svcrash - responds to svwar and svcrack SIP messages with a message that
 causes old versions to crash. 
 

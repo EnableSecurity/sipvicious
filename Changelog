@@ -1,3 +1,10 @@
+v0.2.8 (20121118)
+* Bug fix: removed fingerprinting completely
+
+* Change: moved pptable.py to libs/
+
+* Feature: man pages can be produced with --manpage
+
 v0.2.7 (20120222)
 * Feature: svcrash.py has a new option -b which bruteforces the attacker's port
 

@@ -50,7 +50,7 @@ except ImportError:
 
 
 def getArgs():
-    parser = optparse.OptionParser(usage="%prog [options]")
+    parser = optparse.OptionParser(usage="%prog [options]",version="%prog v"+str(__version__)+__GPL__)
     parser.add_option('--auto',help="Automatically send responses to attacks",
                       dest="auto",default=False, action="store_true",)
     parser.add_option('--astlog',help="Path for the asterisk full logfile",
