@@ -1,3 +1,7 @@
+## license is PSF [http://opensource.org/licenses/Python-2.0]
+## picked from http://code.activestate.com/recipes/267662-table-indentation/
+
+
 import cStringIO,operator
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
