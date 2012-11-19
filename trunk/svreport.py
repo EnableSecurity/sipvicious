@@ -20,7 +20,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from from libs.svhelper import __author__, __version__
+from libs.svhelper import __author__, __version__
 __prog__   = 'svreport'
 
 import anydbm
@@ -68,8 +68,8 @@ if __name__ == "__main__":
                 parser.error("Please specify a command.\r\n")
                 exit(1)
         command = args[0]
-        from from libs.svhelper import listsessions,deletesessions,createReverseLookup, dbexists
-        from from libs.svhelper import getsessionpath,getasciitable,outputtoxml,outputtopdf, calcloglevel
+        from libs.svhelper import listsessions,deletesessions,createReverseLookup, dbexists
+        from libs.svhelper import getsessionpath,getasciitable,outputtoxml,outputtopdf, calcloglevel
         validcommands = ['list','export','delete','stats','search']
         if command not in validcommands:
                 parser.error('%s is not a supported command' % command)

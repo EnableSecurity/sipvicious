@@ -21,7 +21,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from from libs.svhelper import __author__, __version__
+from libs.svhelper import __author__, __version__
 
 __prog__ = 'svcrash'
 import warnings
