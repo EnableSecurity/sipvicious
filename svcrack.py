@@ -174,7 +174,7 @@ class ASipOfRedWine:
         elif buff.startswith(self.OKEY):
             self.passwordcracked = True
             _tmp = getCredentials(buff)            
-            if (_tmp is not None) and len(_tmp == 2): 
+            if (_tmp is not None) and (len(_tmp) == 2): 
                 crackeduser,crackedpasswd = _tmp
                 self.log.info("The password for %s is %s" % (crackeduser,crackedpasswd))
                 self.resultpasswd[crackeduser] = crackedpasswd
