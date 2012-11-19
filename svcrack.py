@@ -20,7 +20,7 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from svhelper import __author__, __version__
+from from libs.svhelper import __author__, __version__
 __prog__   = 'svcrack'
 import socket
 import select
@@ -35,7 +35,7 @@ class ASipOfRedWine:
                  username=None,crackmode=1,crackargs=None,realm=None,sessionpath=None,
                  selecttime=0.005,compact=False,reusenonce=False,extension=None,
                  maxlastrecvtime=10,domain=None):
-        from svhelper import dictionaryattack, numericbrute, packetcounter
+        from from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
@@ -121,8 +121,8 @@ class ASipOfRedWine:
         
         
     def Register(self,extension,remotehost,auth=None,cid=None):
-        from svhelper import makeRequest
-        from svhelper import createTag
+        from from libs.svhelper import makeRequest
+        from from libs.svhelper import createTag
         m = 'REGISTER'
         if cid is None:
             cid='%s' % str(random.getrandbits(32))
@@ -151,7 +151,7 @@ class ASipOfRedWine:
         return register
 
     def getResponse(self):
-        from svhelper import getNonce,getCredentials,getRealm,getCID
+        from from libs.svhelper import getNonce,getCredentials,getRealm,getCID
         # we got stuff to read off the socket              
         buff,srcaddr = self.sock.recvfrom(8192)
         if buff.startswith(self.PROXYAUTHREQ):
@@ -199,9 +199,9 @@ class ASipOfRedWine:
         
     
     def start(self):
-        #from svhelper import ,getCredentials,getRealm,getCID
+        #from from libs.svhelper import ,getCredentials,getRealm,getCID
         import socket, pickle
-        from svhelper import mysendto
+        from from libs.svhelper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -316,13 +316,13 @@ class ASipOfRedWine:
 if __name__ == '__main__':
     from optparse import OptionParser
     from datetime import datetime
-    from svhelper import getRange, resumeFrom,calcloglevel
+    from from libs.svhelper import getRange, resumeFrom,calcloglevel
     import anydbm
     import os
     from sys import exit
     import logging
     import pickle
-    from svhelper import standardoptions, standardscanneroptions
+    from from libs.svhelper import standardoptions, standardscanneroptions
 
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
@@ -480,7 +480,7 @@ if __name__ == '__main__':
         logging.warn('caught your control^c - quiting')
     except Exception, err:
         import traceback
-        from svhelper import reportBugToAuthor
+        from from libs.svhelper import reportBugToAuthor
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
