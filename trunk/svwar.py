@@ -34,7 +34,7 @@ class TakeASip:
     def __init__(self,host='localhost',bindingip='',externalip=None,localport=5060,port=5060,
                  method='REGISTER',guessmode=1,guessargs=None,selecttime=0.005,
                  sessionpath=None,compact=False,socktimeout=3,initialcheck=True,
-                 disableack=False,maxlastrecvtime=15, domain=None, printdebug=False,
+                 enableack=False,maxlastrecvtime=15, domain=None, printdebug=False,
                  ):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
@@ -42,7 +42,7 @@ class TakeASip:
         self.maxlastrecvtime = maxlastrecvtime
         self.sessionpath = sessionpath
         self.dbsyncs = False
-        self.disableack = disableack
+        self.enableack = enableack
         if self.sessionpath is not  None:
             self.resultauth = anydbm.open(os.path.join(self.sessionpath,'resultauth'),'c')
             try:
@@ -79,6 +79,8 @@ class TakeASip:
         self.nomore=False
         self.BADUSER=None
         self.method = method.upper()
+        if self.method == 'INVITE':
+            self.log.warn('using an INVITE scan on an endpoint (i.e. SIP phone) may cause it to ring and wake up people in the middle of the night')
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         self.initialcheck = initialcheck
@@ -125,7 +127,7 @@ class TakeASip:
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
     
-    def createRequest(self,m,username,auth=None,cid=None,cseq=1):
+    def createRequest(self,m,username=None,auth=None,cid=None,cseq=1,fromaddr=None,toaddr=None,contact=None):
         from base64 import b64encode
         from libs.svhelper import makeRequest
         from libs.svhelper import createTag
@@ -133,11 +135,16 @@ class TakeASip:
             cid='%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         localtag=createTag(username)
-        contact = 'sip:%s@%s' % (username,self.domain)
+        if not contact:
+            contact = 'sip:%s@%s' % (username,self.domain)
+        if not fromaddr: 
+            fromaddr = '"%s"<sip:%s@%s>' % (username,username,self.domain)
+        if not toaddr: 
+            toaddr = '"%s"<sip:%s@%s>' % (username,username,self.domain)        
         request = makeRequest(
                                 m,
-                                '"%s"<sip:%s@%s>' % (username,username,self.domain),
-                                '"%s"<sip:%s@%s>' % (username,username,self.domain),
+                                fromaddr,
+                                toaddr,
                                 self.domain,
                                 self.dstport,
                                 cid,
@@ -179,10 +186,10 @@ class TakeASip:
         except (ValueError,IndexError,AttributeError):
             self.log.error("could not get the 1st line")
             return
-        if not self.disableack:
+        if self.enableack:        
             # send an ack to any responses which match
             _tmp = parseHeader(buff)
-            if 300 > _tmp['code'] >= 200:
+            if 699 > _tmp['code'] >= 200:
                 self.log.debug('will try to send an ACK response')                
                 if not _tmp.has_key('headers'):
                     self.log.debug('no headers?')
@@ -201,12 +208,15 @@ class TakeASip:
                 except IndexError:
                     self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
                     username = 'XXX'
-                cseq = _tmp['headers']['cseq'][0]
+                cseq = _tmp['headers']['cseq'][0].replace('INVITE','')
                 cid = _tmp['headers']['call-id'][0]
-                ackreq = self.createRequest('ACK',
-                                       username=username,
+                fromaddr = _tmp['headers']['from'][0]
+                toaddr = _tmp['headers']['to'][0]
+                ackreq = self.createRequest('ACK',                                       
                                        cid=cid,
                                        cseq=cseq,
+                                       fromaddr=fromaddr,
+                                       toaddr=toaddr,
                                        )
                 self.log.debug('here is your ack request: %s' % ackreq)
                 mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
@@ -536,6 +546,9 @@ if __name__ == '__main__':
         tmpsocket.connect(("msn.com",80))
         options.externalip=tmpsocket.getsockname()[0]
         tmpsocket.close()
+    enableack = False
+    if options.method.upper() == 'INVITE':
+        enableack = True
     sipvicious = TakeASip(
                     host,
                     port=options.port,
@@ -547,7 +560,7 @@ if __name__ == '__main__':
                     sessionpath=exportpath,
                     initialcheck=initialcheck,
                     externalip=options.externalip,
-                    disableack=True,
+                    enableack=enableack,
                     maxlastrecvtime=options.maximumtime,
                     localport=options.localport,
                     domain=options.domain,

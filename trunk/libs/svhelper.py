@@ -444,6 +444,8 @@ def makeRequest(
     headers = dict()
     finalheaders = dict()
     superheaders = dict()
+    if method == 'ACK':
+        localtag = None
     if compact:
         superheaders['v'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost,port,branchunique)        
         headers['t'] = toaddr
@@ -863,7 +865,7 @@ def getasciitable(labels,db,resdb=None,width=60):
         prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
     return o
 
-def outputtoxml(title,labels,db,resdb=None,xsl='sv.xsl'):
+def outputtoxml(title,labels,db,resdb=None,xsl='resources/sv.xsl'):
     from xml.sax.saxutils import escape
     o  = '<?xml version="1.0" ?>\r\n'
     o += '<?xml-stylesheet type="text/xsl" href="%s"?>\r\n' % escape(xsl)
