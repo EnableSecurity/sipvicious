@@ -37,4 +37,4 @@ Probably because my telepathic skills leave a lot to be desired. Don't hesitate 
 
 === Can we hire you? ===
 
-Sure, I am available for (legit) pentesting and interesting security projects especially in the UK and Malta. Get in touch [sandro@enablesecurity.com].
+Sure, I am available for (legit) pentesting and interesting security projects especially in the UK and Malta. Get in touch [mailto:sandro@enablesecurity.com].
