@@ -1,5 +1,11 @@
 #summary Changelog
 #labels Featured
+= v.0.2.8=
+   * Feature: INVITE sends a BYE and supports ACK
+   * Feature: man pages can be produced with --manpage and man pages are included
+   * Bug fix: removed fingerprinting completely
+   * Change: moved pptable.py and svhelper to libs/
+
 = v0.2.7=
    * Feature: svcrash.py has a new option -b which bruteforces the attacker's port
    * Feature: svcrack.py now tries the extension as password by default, automatically
