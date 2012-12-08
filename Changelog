@@ -1,9 +1,11 @@
-v0.2.8 (20121118)
+v0.2.8 (20121210)
+* Feature: INVITE sends a BYE and supports ACK
+
+* Feature: man pages can be produced with --manpage and man pages are included
+
 * Bug fix: removed fingerprinting completely
 
 * Change: moved pptable.py and svhelper to libs/
-
-* Feature: man pages can be produced with --manpage
                                                    
 
 v0.2.7 (20120222)
@@ -16,7 +18,7 @@ v0.2.7 (20120222)
 * Feature: new parameter --domain can be passed to all tools which specifies
            a custom domain in the SIP uri instead of the destination IP
 
-* Feature: new --debug switch which shows the messages recieved
+* Feature: new --debug switch which shows the messages received
 
 * Bug fix: Sometimes nonces could not be extracted due to an incorrect regex
 
