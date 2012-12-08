@@ -208,19 +208,30 @@ class TakeASip:
                 except IndexError:
                     self.log.warn('could not parse the from address %s' % _tmp['headers']['from'])
                     username = 'XXX'
-                cseq = _tmp['headers']['cseq'][0].replace('INVITE','')
-                cid = _tmp['headers']['call-id'][0]
-                fromaddr = _tmp['headers']['from'][0]
-                toaddr = _tmp['headers']['to'][0]
-                ackreq = self.createRequest('ACK',                                       
-                                       cid=cid,
-                                       cseq=cseq,
-                                       fromaddr=fromaddr,
-                                       toaddr=toaddr,
-                                       )
-                self.log.debug('here is your ack request: %s' % ackreq)
-                mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
-                #self.sock.sendto(ackreq,(self.dsthost,self.dstport))
+                cseq = _tmp['headers']['cseq'][0]
+                cseqmethod = cseq.split()[1]
+                if 'INVITE' == cseqmethod:
+                    cid = _tmp['headers']['call-id'][0]
+                    fromaddr = _tmp['headers']['from'][0]
+                    toaddr = _tmp['headers']['to'][0]
+                    ackreq = self.createRequest('ACK',                                       
+                                           cid=cid,
+                                           cseq=cseq.replace(cseqmethod,''),
+                                           fromaddr=fromaddr,
+                                           toaddr=toaddr,
+                                           )
+                    self.log.debug('here is your ack request: %s' % ackreq)
+                    mysendto(self.sock,ackreq,(self.dsthost,self.dstport))
+                    #self.sock.sendto(ackreq,(self.dsthost,self.dstport))
+                    if _tmp['code'] == 200:
+                        byemsg = self.createRequest('BYE',
+                                cid=cid,
+                                cseq='2',
+                                fromaddr=fromaddr,
+                                toaddr=toaddr,
+                                )
+                        self.log.debug('sending a BYE to the 200 OK for the INVITE')
+                        mysendto(self.sock,byemsg,(self.dsthost,self.dstport))
 
         if firstline != self.BADUSER:
             if buff.startswith(self.PROXYAUTHREQ) \
