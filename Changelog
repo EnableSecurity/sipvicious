@@ -1,7 +1,7 @@
 v0.2.8 (20121118)
 * Bug fix: removed fingerprinting completely
 
-* Change: moved pptable.py to libs/
+* Change: moved pptable.py and svhelper to libs/
 
 * Feature: man pages can be produced with --manpage
                                                    
