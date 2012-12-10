@@ -6,7 +6,10 @@ v0.2.8 (20121210)
 * Bug fix: removed fingerprinting completely
 
 * Change: moved pptable.py and svhelper to libs/
-                                                   
+
+* Change: Number of changes to adhere to Debian's guidelines (copyright/license notices etc)
+
+* Bug fix: fixed an svcrack unhandled exception
 
 v0.2.7 (20120222)
 * Feature: svcrash.py has a new option -b which bruteforces the attacker's port
