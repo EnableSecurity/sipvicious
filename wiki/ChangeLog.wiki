@@ -5,7 +5,8 @@
    * Feature: man pages can be produced with --manpage and man pages are included
    * Bug fix: removed fingerprinting completely
    * Change: moved pptable.py and svhelper to libs/
-
+   * Change: Number of changes to adhere to Debian's guidelines (copyright/license notices etc)
+   * Bug fix: fixed an svcrack unhandled exception
 = v0.2.7=
    * Feature: svcrash.py has a new option -b which bruteforces the attacker's port
    * Feature: svcrack.py now tries the extension as password by default, automatically
