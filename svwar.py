@@ -491,7 +491,7 @@ if __name__ == '__main__':
             logging.critical("The format string template is not correct. Please provide an appropiate one")
             exit(1)
     if options.resume is not None:
-        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)
         if os.path.exists(os.path.join(exportpath,'closed')):
             logging.error("Cannot resume a session that is complete")
             exit(1)
@@ -505,7 +505,7 @@ if __name__ == '__main__':
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-        exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:
@@ -539,7 +539,7 @@ if __name__ == '__main__':
         guessargs = (extensionstotry,options.zeropadding,options.template,options.defaults)
     if options.save is not None:
         if options.resume is None:
-            exportpath = os.path.join('.sipvicious',__prog__,options.save)
+            exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
             if os.path.exists(exportpath):
                 logging.warn('we found a previous scan with the same name. Please choose a new session name')
                 exit(1)

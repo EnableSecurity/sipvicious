@@ -334,7 +334,7 @@ if __name__ == '__main__':
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
     exportpath = None
     if options.resume is not None:
-        exportpath = os.path.join('.sipvicious',__prog__,options.resume)
+        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)
         if os.path.exists(os.path.join(exportpath,'closed')):
             logging.error("Cannot resume a session that is complete")
             exit(1)
@@ -348,12 +348,12 @@ if __name__ == '__main__':
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
-        exportpath = os.path.join('.sipvicious',__prog__,options.save)
+        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
     scanrandomstore = None 
     if options.input is not None:
-        db = os.path.join('.sipvicious',__prog__,options.input,'resultua')
+        db = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.input,'resultua')
         if dbexists(db):
             scaniter = scanfromdb(db,options.method.split(','))
         else:
@@ -453,7 +453,7 @@ if __name__ == '__main__':
             scaniter = scanlist(iprange,portrange,options.method.split(','))    
     if options.save is not None:
         if options.resume is None:
-            exportpath = os.path.join('.sipvicious',__prog__,options.save)
+            exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
             if os.path.exists(exportpath):
                 logging.warn('we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
