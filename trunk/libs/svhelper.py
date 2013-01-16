@@ -566,7 +566,7 @@ def scanrandom(ipranges,portranges,methods,resume=None,randomstore='.sipvicious_
     mode = 'n'
     if resume:
         mode = 'c'
-    database = anydbm.open(randomstore,mode)
+    database = anydbm.open(os.path.join(os.path.expanduser('~'),randomstore),mode)
     dbsyncs = False
     try:
         database.sync()
@@ -772,7 +772,7 @@ def findsession(chosensessiontype=None):
         listresult = dict()
         for sessiontype in sessiontypes:
             if chosensessiontype in [None,sessiontype]:
-                p = os.path.join('.sipvicious',sessiontype)
+                p = os.path.join(os.path.expanduser('~'),'.sipvicious',sessiontype)
                 if os.path.exists(p):
                     listresult[sessiontype] = os.listdir(p)
         return listresult
@@ -784,7 +784,7 @@ def listsessions(chosensessiontype=None,count=False):
                 print "Type of scan: %s" % k
                 for r in listresult[k]:
                     sessionstatus = 'Incomplete'
-                    sessionpath=os.path.join('.sipvicious',k,r)
+                    sessionpath=os.path.join(os.path.expanduser('~'),'.sipvicious',k,r)
                     dblen = ''
                     if count:
                         if k == 'svmap':
@@ -809,11 +809,11 @@ def deletesessions(chosensession,chosensessiontype):
         sessionpath = list()
         if chosensessiontype is None:
             for sessiontype in sessiontypes:
-                p = os.path.join('.sipvicious',sessiontype,chosensession)
+                p = os.path.join(os.path.expanduser('~'),'.sipvicious',sessiontype,chosensession)
                 if os.path.exists(p):
                         sessionpath.append(p)
         else:
-                p = os.path.join('.sipvicious',chosensessiontype,chosensession)
+                p = os.path.join(os.path.expanduser('~'),'.sipvicious',chosensessiontype,chosensession)
                 if os.path.exists(p):
                     sessionpath.append(p)
         if len(sessionpath) == 0:
@@ -898,7 +898,7 @@ def getsessionpath(session,sessiontype):
     if sessiontype is None:
             log.debug('sessiontype is not specified')
             for sessiontype in sessiontypes:
-                    p = os.path.join('.sipvicious',sessiontype,session)
+                    p = os.path.join(os.path.expanduser('~'),'.sipvicious',sessiontype,session)
                     log.debug('trying %s' % p)
                     if os.path.exists(p):
                             log.debug('%s exists')
@@ -906,7 +906,7 @@ def getsessionpath(session,sessiontype):
                             sessionpath = p
                             break
     else:
-            p = os.path.join('.sipvicious',sessiontype,session)
+            p = os.path.join(os.path.expanduser('~'),'.sipvicious',sessiontype,session)
             if os.path.exists(p):
                     sessionpath = p
     if sessionpath is None:
