@@ -262,7 +262,6 @@ class ASipOfRedWine:
                 if timediff > self.maxlastrecvtime:
                     self.nomore = True
                     self.log.warn('It has been %s seconds since we last received a response - stopping' % timediff)
-                    continue
                 if self.passwordcracked:
                     break
                 if self.nomore is True:
