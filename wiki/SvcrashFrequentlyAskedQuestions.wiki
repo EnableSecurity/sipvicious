@@ -1,6 +1,10 @@
 #summary svcrash FAQ - frequently asked questions
 #labels Featured
 
+=== What does `svcrash.py` do? ===
+
+It sends a SIP message response to `svwar.py` which triggers an unhandled exception. This may allow victims of SIP floods due to attackers using `svwar.py` to mitigate the attack temporarily. The bug in `svwar.py` was also fixed. Additionally, the behavior that allowed it to keep sending messages even when not responses are received was also changed.
+
 === Does SIPVicious have a backdoor? ===
 
 Nope - no backdoors. The code is open source and open to inspection. It did have a bug that causes a crash when handling malformed tags. This is what {{{svcrash.py}}} abuses.
