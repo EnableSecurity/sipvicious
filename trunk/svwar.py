@@ -189,6 +189,8 @@ class TakeASip:
         if self.enableack:        
             # send an ack to any responses which match
             _tmp = parseHeader(buff)
+            if not (_tmp and _tmp.has_key('code')):
+                return
             if 699 > _tmp['code'] >= 200:
                 self.log.debug('will try to send an ACK response')                
                 if not _tmp.has_key('headers'):

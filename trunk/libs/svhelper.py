@@ -118,7 +118,7 @@ def getRange(rangestr):
                 raise ValueError, "the ranges need to be digits"                
                 return
             singleport = int(_tmp3[0])
-            numericrange.append(xrange(singleport,singleport+1))
+            numericrange.append(anotherxrange(singleport,singleport+1))
     return numericrange
 
 
