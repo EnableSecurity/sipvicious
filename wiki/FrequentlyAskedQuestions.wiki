@@ -17,9 +17,32 @@ That might mean two things:
 
 {{{svwar}}} has an option {{{--force}}}. This should be used in lab environment when one is testing a SIP device for behavior quirks. Using this in live environment may create unnecessary network traffic. 
 
+
+=== {{{svwar}}} refuses to scan - Am I doing something wrong? ===
+ 
+This is similar to the previous question. 
+
+Example:
+
+{{{
+./svwar.py target -e 1001-1010
+ERROR:TakeASip:SIP server replied with an authentication request for an unknown extension. Set --force to force a scan.
+WARNING:root:found nothing
+}}} 
+
+A number of PBX systems don't follow the SIP RFC and have implemented protection against enumeration. In Asterisk, you can enable this protection by setting the following in your {{{sip.conf}}}:
+
+{{{
+alwaysauthreject=yes
+}}}
+
+Once that protection is enabled, {{{svwar}}} does not work by default. Note that other enumeration methods may still exist. 
+ 
+
 === Why does {{{svcrack.py}}} send so many REGISTER messages for the same extensions but only few of them actually trying Auth? ===
 
 This is done to generate a new nonce because on some systems, the nonce expires. However not all servers expire the nonce so if you would like to reuse the nonce, {{{svcrack}}} has an option {{{-n}}}. 
+
 
 === What is a stateless scanner? ===
 
