@@ -42,7 +42,7 @@ svcrash
 
 For usage help make use of `-h` or `--help` switch.
 
-Also check out the [wiki](http://code.google.com/p/sipvicious/w/list)
+Also check out the [wiki](https://github.com/sandrogauci/sipvicious/wiki)
 
 And if you're stuck you're welcome to contact the author.
 
