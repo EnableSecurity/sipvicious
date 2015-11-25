@@ -134,7 +134,10 @@ class sniffnsend:
     def checknsend(self,pkt):
         data = str(pkt.getlayer(Raw))
         ipaddr = pkt.getlayer(IP).src
-        port = pkt.getlayer(UDP).sport
+        try:
+            port = pkt.getlayer(UDP).sport
+        except AttributeError:
+            return
         src = ipaddr,port
         if not src in self.mytimer:
             #print "add %s:%s" % src
