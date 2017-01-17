@@ -10,12 +10,12 @@ __GPL__ = """
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
@@ -56,13 +56,13 @@ class TakeASip:
             self.resultauth = dict()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
-        self.bindingip = bindingip        
+        self.bindingip = bindingip
         self.localport = localport
         self.originallocalport = localport
         self.rlist = [self.sock]
         self.wlist = list()
         self.xlist = list()
-        self.challenges = list()        
+        self.challenges = list()
         self.realm = None
         self.dsthost,self.dstport = host,int(port)
         self.domain = self.dsthost
@@ -71,7 +71,7 @@ class TakeASip:
         self.guessmode = guessmode
         self.guessargs = guessargs
         if self.guessmode == 1:
-            self.usernamegen = numericbrute(*self.guessargs)            
+            self.usernamegen = numericbrute(*self.guessargs)
         elif guessmode == 2:
             self.usernamegen = dictionaryattack(self.guessargs)
         self.selecttime = selecttime
@@ -115,18 +115,18 @@ class TakeASip:
     UNAVAILABLE = 'SIP/2.0 480 '
     DECLINED = 'SIP/2.0 603 '
     INEXISTENTTRANSACTION = 'SIP/2.0 481'
-    
+
     # Mapped to ISDN Q.931 codes - 88 (Incompatible destination), 95 (Invalid message), 111 (Protocol error)
     # If we get something like this, then most probably the remote device SIP stack has troubles with
     # understanding / parsing our messages (a.k.a. interopability problems).
     BADREQUEST = 'SIP/2.0 400 '
-    
+
     # Mapped to ISDN Q.931 codes - 34 (No circuit available), 38 (Network out of order), 41 (Temporary failure),
     # 42 (Switching equipment congestion), 47 (Resource unavailable)
     # Should be handled in the very same way as SIP response code 404 - the prefix is not correct and we should
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
-    
+
     def createRequest(self,m,username=None,auth=None,cid=None,cseq=1,fromaddr=None,toaddr=None,contact=None):
         from base64 import b64encode
         from libs.svhelper import makeRequest
@@ -137,10 +137,10 @@ class TakeASip:
         localtag=createTag(username)
         if not contact:
             contact = 'sip:%s@%s' % (username,self.domain)
-        if not fromaddr: 
+        if not fromaddr:
             fromaddr = '"%s"<sip:%s@%s>' % (username,username,self.domain)
-        if not toaddr: 
-            toaddr = '"%s"<sip:%s@%s>' % (username,username,self.domain)        
+        if not toaddr:
+            toaddr = '"%s"<sip:%s@%s>' % (username,username,self.domain)
         request = makeRequest(
                                 m,
                                 fromaddr,
@@ -161,7 +161,7 @@ class TakeASip:
         return request
 
     def getResponse(self):
-        from libs.svhelper import getNonce,getCredentials,getRealm,getCID,getTag        
+        from libs.svhelper import getNonce,getCredentials,getRealm,getCID,getTag
         from base64 import b64decode
         from libs.svhelper import parseHeader
         from libs.svhelper import mysendto
@@ -186,13 +186,13 @@ class TakeASip:
         except (ValueError,IndexError,AttributeError):
             self.log.error("could not get the 1st line")
             return
-        if self.enableack:        
+        if self.enableack:
             # send an ack to any responses which match
             _tmp = parseHeader(buff)
             if not (_tmp and _tmp.has_key('code')):
                 return
             if 699 > _tmp['code'] >= 200:
-                self.log.debug('will try to send an ACK response')                
+                self.log.debug('will try to send an ACK response')
                 if not _tmp.has_key('headers'):
                     self.log.debug('no headers?')
                     return
@@ -216,7 +216,7 @@ class TakeASip:
                     cid = _tmp['headers']['call-id'][0]
                     fromaddr = _tmp['headers']['from'][0]
                     toaddr = _tmp['headers']['to'][0]
-                    ackreq = self.createRequest('ACK',                                       
+                    ackreq = self.createRequest('ACK',
                                            cid=cid,
                                            cseq=cseq.replace(cseqmethod,''),
                                            fromaddr=fromaddr,
@@ -264,7 +264,7 @@ class TakeASip:
             self.log.debug("User '%s' not found" % extension)
         elif buff.startswith(self.INEXISTENTTRANSACTION):
             pass
-        
+
         # Prefix not found, lets go to the next one. Should we add a warning here???
         elif buff.startswith(self.SERVICEUN):
             pass
@@ -291,9 +291,9 @@ class TakeASip:
             self.log.debug("Bad user: %s" % `self.BADUSER`)
             self.nomore = True
 
-        
-    
-    def start(self):        
+
+
+    def start(self):
         import socket, pickle
         from libs.svhelper import mysendto
         if self.bindingip == '':
@@ -325,7 +325,7 @@ class TakeASip:
         except socket.error,err:
             self.log.error("socket error: %s" % err)
             return
-        # first we identify the assumed reply for an unknown extension 
+        # first we identify the assumed reply for an unknown extension
         gotbadresponse=False
         try:
             while 1:
@@ -359,7 +359,7 @@ class TakeASip:
                 self.log.error("No server response - are you sure that this PBX is listening? run svmap against it to find out")
             return
         except (AttributeError,ValueError,IndexError):
-            self.log.error("bad response .. bailing out")            
+            self.log.error("bad response .. bailing out")
             return
         except socket.error,err:
             self.log.error("socket error: %s" % err)
@@ -373,7 +373,7 @@ class TakeASip:
                 while 1:
                     try:
                         self.getResponse()
-                    except socket.timeout:                        
+                    except socket.timeout:
                         return
             r, w, e = select.select(
                 self.rlist,
@@ -393,7 +393,7 @@ class TakeASip:
                     self.nomore = True
                     self.log.warn('It has been %s seconds since we last received a response - stopping' % timediff)
                     continue
-                # no stuff to read .. its our turn to send back something                
+                # no stuff to read .. its our turn to send back something
                 try:
                     self.nextuser = self.usernamegen.next()
                 except StopIteration:
@@ -422,18 +422,18 @@ class TakeASip:
                     self.log.error("socket error: %s" % err)
                     break
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     from datetime import datetime
-    import anydbm    
+    import anydbm
     import os
     from sys import exit
     import logging
     import pickle
     from libs.svhelper import resumeFrom, calcloglevel
     from libs.svhelper import standardoptions, standardscanneroptions
-    from libs.svhelper import getRange 
-    
+    from libs.svhelper import getRange
+
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
     usage += "%prog -e100-999 10.0.0.1\r\n"
@@ -443,11 +443,11 @@ if __name__ == '__main__':
     parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
                   help="specify a dictionary file with possible extension names",
-                  metavar="DICTIONARY")        
+                  metavar="DICTIONARY")
     parser.add_option("-m", "--method", dest="method", type="string",
                   help="specify a request method. The default is REGISTER. Other possible methods are OPTIONS and INVITE",
                   default="REGISTER",
-                  metavar="OPTIONS")        
+                  metavar="OPTIONS")
     parser.add_option("-e", "--extensions", dest="range", default='100-999',
                   help="specify an extension or extension range\r\nexample: -e 100-999,1000-1500,9999",
                   metavar="RANGE")
@@ -471,9 +471,9 @@ if __name__ == '__main__':
                       default=10,
                       help="""Maximum time in seconds to keep sending requests without
                       receiving a response back""")
-    parser.add_option('--domain', dest="domain", 
+    parser.add_option('--domain', dest="domain",
                       help="force a specific domain name for the SIP message, eg. -d example.org")
-    parser.add_option("--debug", dest="printdebug", 
+    parser.add_option("--debug", dest="printdebug",
                   help="Print SIP messages received",
                   default=False, action="store_true"
                   )
@@ -503,7 +503,7 @@ if __name__ == '__main__':
         optionssrc = os.path.join(exportpath,'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
-        options,args = pickle.load(open(optionssrc,'r'))        
+        options,args = pickle.load(open(optionssrc,'r'))
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
@@ -590,7 +590,7 @@ if __name__ == '__main__':
         logging.warn('caught your control^c - quiting')
     except Exception, err:
         import traceback
-        from libs.svhelper import reportBugToAuthor                
+        from libs.svhelper import reportBugToAuthor
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
@@ -607,7 +607,7 @@ if __name__ == '__main__':
                 logging.debug('logged last extension %s' % sipvicious.nextuser)
             elif guessmode == 2:
                 pickle.dump(sipvicious.guessargs.tell(),open(os.path.join(exportpath,'lastextension.pkl'),'w'))
-                logging.debug('logged last position %s' % sipvicious.guessargs.tell())            
+                logging.debug('logged last position %s' % sipvicious.guessargs.tell())
         except IOError:
             logging.warn('could not log the last extension scanned')
     # display results
@@ -631,3 +631,6 @@ if __name__ == '__main__':
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
+
+if __name__ == '__main__':
+    main()

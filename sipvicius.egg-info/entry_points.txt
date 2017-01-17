@@ -1,0 +1,7 @@
+[console_scripts]
+sipvicius_svcrack = sipvicius.svcrack:main
+sipvicius_svcrash = sipvicius.svcrash:main
+sipvicius_svmap = sipvicius.svmap:main
+sipvicius_svreport = sipvicius.svreport:main
+sipvicius_svwar = sipvicius.svwar:main
+

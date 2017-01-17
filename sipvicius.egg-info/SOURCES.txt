@@ -1,0 +1,15 @@
+setup.py
+sipvicius/__init__.py
+sipvicius/svcrack.py
+sipvicius/svcrash.py
+sipvicius/svmap.py
+sipvicius/svreport.py
+sipvicius/svwar.py
+sipvicius.egg-info/PKG-INFO
+sipvicius.egg-info/SOURCES.txt
+sipvicius.egg-info/dependency_links.txt
+sipvicius.egg-info/entry_points.txt
+sipvicius.egg-info/top_level.txt
+sipvicius/libs/__init__.py
+sipvicius/libs/pptable.py
+sipvicius/libs/svhelper.py

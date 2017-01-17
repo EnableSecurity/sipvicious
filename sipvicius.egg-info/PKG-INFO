@@ -1,0 +1,16 @@
+Metadata-Version: 1.0
+Name: sipvicius
+Version: 0.2.8
+Summary: The 5 tools that you should be looking at are:
+    - svmap
+    - svwar
+    - svcrack
+    - svreport
+    - svcrash
+    
+Home-page: https://github.com/sandrogauci/sipvicius/wiki
+Author: Sandro Gauci <sandro@enablesecurity.com>
+Author-email: sandro@enablesecurity.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
