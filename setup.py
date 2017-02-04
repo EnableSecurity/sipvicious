@@ -25,16 +25,11 @@ from setuptools import setup, find_packages
 
 setup(name='sipvicius',
     version=__version__,
-    description='''The 5 tools that you should be looking at are:
-    - svmap
-    - svwar
-    - svcrack
-    - svreport
-    - svcrash
+    description='''SIPVicious suite is a set of tools that can be used to audit SIP based VoIP systems. 
     ''',
     author=__author__,
     author_email='sandro@enablesecurity.com',
-    url='https://github.com/sandrogauci/sipvicius/wiki',
+    url='http://sipvicious.org',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
