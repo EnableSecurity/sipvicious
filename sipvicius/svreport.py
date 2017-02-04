@@ -10,12 +10,12 @@ __GPL__ = """
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
@@ -31,7 +31,7 @@ import os
 import logging
 import socket
 
-if __name__ == "__main__":
+def main():
         commandsusage = """Supported commands:\r\n
                 - list:\tlists all scans\r\n
                 - export:\texports the given scan to a given format\r\n
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 exit(1)
         logging.basicConfig(level=calcloglevel(options))
         sessiontypes = ['svmap','svwar','svcrack']
-        logging.debug('started logging')        
+        logging.debug('started logging')
         if command == 'list':
                 listsessions(options.sessiontype,count=options.count)
         if command == 'delete':
@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 if options.outputfile is None and options.format not in [None,'stdout']:
                         parser.error("Please specify an output file")
                         exit(1)
-                tmp = getsessionpath(options.session,options.sessiontype)                
+                tmp = getsessionpath(options.session,options.sessiontype)
                 if tmp is None:
                         parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
                         exit(1)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
                 if options.resolve and sessiontype == 'svmap':
                         resolve = True
-                        labels.append('Resolved')                                
+                        labels.append('Resolved')
                         resdbloc = os.path.join(sessionpath,'resolved')
                         if not dbexists(resdbloc):
                                 logging.info('Performing DNS reverse lookup')
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                 elif options.format == 'xml':
                         from xml.dom.minidom import Document
                         doc = Document()
-                        node = doc.createElement(sessiontype)                        
+                        node = doc.createElement(sessiontype)
                         o = outputtoxml('%s report' % sessiontype,labels,db,resdb)
                         open(options.outputfile,'w').write(o)
                 elif options.format == 'pdf':
@@ -163,14 +163,14 @@ if __name__ == "__main__":
                 logging.info( "That took %s" % (datetime.now() - start_time))
         elif command == 'stats':
                 from operator import itemgetter
-                import re                
+                import re
                 if options.session is None:
                         parser.error("Please specify a valid session")
                         exit(1)
                 if options.outputfile is None and options.format not in [None,'stdout']:
                         parser.error("Please specify an output file")
                         exit(1)
-                tmp = getsessionpath(options.session,options.sessiontype)                
+                tmp = getsessionpath(options.session,options.sessiontype)
                 if tmp is None:
                         parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
                         exit(1)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
                         if not useragentconames.has_key(useragentconame):
                                 useragentconames[useragentconame] = 0
                         useragentconames[useragentconame] += 1
-                        
+
                 _useragents = sorted(useragents.iteritems(), key=itemgetter(1), reverse=True)
                 suseragents = map(lambda x: '\t- %s (%s)' % (x[0],x[1]), _useragents)
                 _useragentsnames = sorted(useragentconames.iteritems(), key=itemgetter(1), reverse=True)
@@ -202,7 +202,7 @@ if __name__ == "__main__":
                 print "Total number of SIP devices found: %s" % len(db.keys())
                 print "Total number of useragents: %s\r\n" % len(suseragents)
                 print "Total number of useragent names: %s\r\n" % len(suseragentsnames)
-                
+
                 print "Most popular top 30 useragents:\r\n"
                 print '\r\n'.join(suseragents[:30])
                 print '\r\n\r\n'
@@ -212,7 +212,7 @@ if __name__ == "__main__":
                 print "Most popular top 30 useragent names:\r\n"
                 print '\r\n'.join(suseragentsnames[:30])
                 print '\r\n\r\n'
-                print "Most unpopular top 30 useragent names:\r\n\t" 
+                print "Most unpopular top 30 useragent names:\r\n\t"
                 print '\r\n'.join(suseragentsnames[-30:])
                 print "\r\n\r\n"
         elif command == 'search':
@@ -222,7 +222,7 @@ if __name__ == "__main__":
                 if len(args) < 2:
                         parser.error('You need to specify a search string')
                 searchstring = args[1]
-                tmp = getsessionpath(options.session,options.sessiontype)                
+                tmp = getsessionpath(options.session,options.sessiontype)
                 if tmp is None:
                         parser.error('Session could not be found. Make sure it exists by making use of %s list' % __prog__)
                         exit(1)
@@ -242,3 +242,6 @@ if __name__ == "__main__":
                         v = db[k]
                         if searchstring.lower() in v.lower():
                                 print k+'\t'+v
+
+if __name__ == "__main__":
+    main()

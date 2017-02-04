@@ -10,12 +10,12 @@ __GPL__ = """
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
@@ -92,7 +92,7 @@ class DrinkOrSip:
         self.log.debug("External ip: %s:%s" % (self.externalip,localport) )
         self.compact = compact
         self.log.debug("Compact mode: %s" % self.compact)
-        self.fromname = fromname        
+        self.fromname = fromname
         self.fromaddr = fromaddr
         self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
         self.nomoretoscan = False
@@ -105,19 +105,19 @@ class DrinkOrSip:
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         self.sentpackets = 0
-    
+
     def getResponse(self,buff,srcaddr):
         from libs.svhelper import fingerPrintPacket,getTag
         srcip,srcport = srcaddr
         uaname = 'unknown'
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
-            or buff.startswith('REGISTER '): 
+            or buff.startswith('REGISTER '):
             if self.externalip == srcip:
                 self.log.debug("We received our own packet from %s:%s" % srcaddr)
-            else: 
+            else:
                 self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
-                self.log.debug(repr(buff))            
+                self.log.debug(repr(buff))
             return
         self.log.debug("running fingerPrintPacket()")
         res = fingerPrintPacket(buff)
@@ -151,7 +151,7 @@ class DrinkOrSip:
                 dstport = int(originaldst[8:12],16)
             except (ValueError,TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
-                dstip,dstport = 'unknown','unknown'            
+                dstip,dstport = 'unknown','unknown'
             resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname,fpname)
             self.log.info( resultstr )
             self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
@@ -164,7 +164,7 @@ class DrinkOrSip:
         else:
             self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
             self.log.debug('Packet: %s' % `buff`)
-                
+
     def start(self):
         from libs.svhelper import makeRequest, createTag
         from libs.svhelper import mysendto
@@ -177,12 +177,12 @@ class DrinkOrSip:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
                 return
-            try:            
+            try:
                 self.sock.bind((self.bindingip,self.localport))
                 break
             except socket.error:
                 self.log.debug("could not bind to %s" % self.localport)
-                self.localport += 1            
+                self.localport += 1
         if self.originallocalport != self.localport:
             self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
@@ -207,9 +207,9 @@ class DrinkOrSip:
                 self.getResponse(buff,srcaddr)
             else:
                 # no stuff to read .. its our turn to send back something
-                if self.nomoretoscan:                    
+                if self.nomoretoscan:
                     try:
-                        # having the final sip 
+                        # having the final sip
                         self.log.debug("Making sure that no packets get lost")
                         self.log.debug("Come to daddy")
                         while 1:
@@ -230,7 +230,7 @@ class DrinkOrSip:
                 self.nextip = dstip
                 dsthost = (dstip,dstport)
                 branchunique = '%s' % random.getrandbits(32)
-                
+
                 localtag = createTag('%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
                 cseq = 1
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
@@ -260,7 +260,7 @@ class DrinkOrSip:
                     self.log.debug("packet: %s" % `data`)
                     mysendto(self.sock,data,dsthost)
                     self.sentpackets += 1
-                    #self.sock.sendto(data,dsthost)    
+                    #self.sock.sendto(data,dsthost)
                     if self.sessionpath is not None:
                         if self.packetcount.next():
                             try:
@@ -278,7 +278,7 @@ class DrinkOrSip:
                     self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
                     pass
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     from datetime import datetime
     import anydbm
@@ -306,15 +306,15 @@ if __name__ == '__main__':
                   help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
     parser.add_option("-I", "--inputtext", dest="inputtext",
                   help="Scan IPs from a text file - use the same syntax as command line but with new lines instead of commas. Pass the file name as the argument", metavar="scan1")
-    parser.add_option("-m", "--method", dest="method", 
+    parser.add_option("-m", "--method", dest="method",
                   help="Specify the request method - by default this is OPTIONS.",
                   default='OPTIONS'
                   )
-    parser.add_option("-d", "--debug", dest="printdebug", 
+    parser.add_option("-d", "--debug", dest="printdebug",
                   help="Print SIP messages received",
                   default=False, action="store_true"
                   )
-    parser.add_option("--first", dest="first", 
+    parser.add_option("--first", dest="first",
                   help="Only send the first given number of messages (i.e. usually used to scan only X IPs)",
                   type="long",
                   )
@@ -329,7 +329,7 @@ if __name__ == '__main__':
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
-    (options, args) = parser.parse_args()        
+    (options, args) = parser.parse_args()
     from libs.svhelper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
         ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
     exportpath = None
@@ -344,14 +344,14 @@ if __name__ == '__main__':
         optionssrc = os.path.join(exportpath,'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
-        options,args = pickle.load(open(optionssrc,'r'))        
+        options,args = pickle.load(open(optionssrc,'r'))
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
         exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
-    scanrandomstore = None 
+    scanrandomstore = None
     if options.input is not None:
         db = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.input,'resultua')
         if dbexists(db):
@@ -375,7 +375,7 @@ if __name__ == '__main__':
                         [3323199488L,3758096127L]
                         ]
         scanrandomstore = '.sipviciousrandomtmp'
-        resumescan = False 
+        resumescan = False
         if options.save is not None:
             scanrandomstore = os.path.join(exportpath,'random')
             resumescan = True
@@ -412,11 +412,11 @@ if __name__ == '__main__':
                 resumescan = True
             scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:
-            scaniter = scanlist(iprange,portrange,options.method.split(','))            
+            scaniter = scanlist(iprange,portrange,options.method.split(','))
     else:
         if len(args) < 1:
             parser.error('Provide at least one target')
-            exit(1)        
+            exit(1)
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         if options.randomize:
@@ -433,7 +433,7 @@ if __name__ == '__main__':
             if options.resume is not None:
                 lastipsrc = os.path.join(exportpath,'lastip.pkl')
                 try:
-                    f=open(lastipsrc,'r')                    
+                    f=open(lastipsrc,'r')
                     previousip = pickle.load(f)
                     f.close()
                 except IOError:
@@ -450,7 +450,7 @@ if __name__ == '__main__':
             except ValueError,err:
                 logging.error(err)
                 exit(1)
-            scaniter = scanlist(iprange,portrange,options.method.split(','))    
+            scaniter = scanlist(iprange,portrange,options.method.split(','))
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
@@ -486,7 +486,7 @@ if __name__ == '__main__':
                     extension=options.extension,
                     printdebug=options.printdebug,
                     first=options.first,
-                    fromname=options.fromname,                    
+                    fromname=options.fromname,
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )
@@ -499,7 +499,7 @@ if __name__ == '__main__':
         pass
     except Exception, err:
         import traceback
-        from libs.svhelper import reportBugToAuthor 
+        from libs.svhelper import reportBugToAuthor
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
@@ -517,7 +517,7 @@ if __name__ == '__main__':
         except OSError:
             logging.warn('Could not save state to %s' % lastipdst)
     elif options.save is None:
-        if scanrandomstore is not None: 
+        if scanrandomstore is not None:
         #if options.randomize or options.randomscan:
             try:
                     logging.debug('removing %s' % scanrandomstore)
@@ -546,3 +546,6 @@ if __name__ == '__main__':
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
+
+if __name__ == '__main__':
+    main()
