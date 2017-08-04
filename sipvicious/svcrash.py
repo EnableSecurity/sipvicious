@@ -21,21 +21,22 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
+import optparse
+import os.path
+import random
+import re
+import select
+import socket
+import sys
+import time
+import warnings
+
 from libs.svhelper import __author__, __version__
 
 __prog__ = 'svcrash'
-import warnings
 warnings.filterwarnings("ignore")
 
-import socket
-import select
-import random
-import logging
-import sys
-import optparse
-import time
-import re
-import os.path
 scapyversion = 0
 try:
     from scapy.all import *

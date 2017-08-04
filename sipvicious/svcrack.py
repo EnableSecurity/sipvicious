@@ -20,14 +20,16 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from libs.svhelper import __author__, __version__
-__prog__   = 'svcrack'
-import socket
-import select
-import random
-import logging
 import base64
+import logging
+import random
+import select
+import socket
 import time
+
+from libs.svhelper import __author__, __version__
+
+__prog__   = 'svcrack'
 
 class ASipOfRedWine:
     def __init__(self,host='localhost',bindingip='',localport=5060,port=5060,

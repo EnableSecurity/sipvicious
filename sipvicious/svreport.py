@@ -20,16 +20,18 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from libs.svhelper import __author__, __version__
-__prog__   = 'svreport'
-
 import anydbm
-from xml.dom.minidom import Document
+import logging
+import os
+import socket
 from optparse import OptionParser
 from sys import exit
-import os
-import logging
-import socket
+from xml.dom.minidom import Document
+
+from libs.svhelper import __author__, __version__
+
+__prog__   = 'svreport'
+
 
 def main():
         commandsusage = """Supported commands:\r\n

@@ -20,14 +20,16 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
+import random
+import select
+import socket
+import time
+
 from libs.svhelper import __author__, __version__
+
 __prog__ = 'svwar'
 
-import socket
-import select
-import random
-import logging
-import time
 
 
 class TakeASip:
