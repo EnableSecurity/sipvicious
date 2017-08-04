@@ -13,3 +13,5 @@ setuptools.egg-info
 *.swp
 *~
 .hg*
+.vscode/*
+
