@@ -22,15 +22,20 @@ __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
 __version__ = '0.2.8'
 
 
+import base64
+import logging
+import optparse
+import os.path
+import socket
+import struct
 import sys
+
 if sys.hexversion < 0x020400f0:
     sys.stderr.write("Please update to python 2.4 or greater to run Sipvicious\r\n")
     sys.exit(1)
 
 
-import base64,struct,socket,logging
 
-import optparse
 def standardoptions(parser):
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
@@ -539,9 +544,8 @@ def reportBugToAuthor(trace):
     data += '\r\n\r\n'
     data += "Trace:\r\n"
     data += str(trace)
-    data = quote(data)
     try:
-        urlopen('http://geekbazaar.org/bugreport/r2.php',urlencode({'d':data}))
+        urlopen('https://comms.enablesecurity.com/hello.php',urlencode({'message':data}))
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError,err:
         log.error( err )
@@ -912,7 +916,6 @@ def getsessionpath(session,sessiontype):
     if sessionpath is None:
         return
     return sessionpath,sessiontype
-import os.path
 def dbexists(name):
     if os.path.exists(name):
         return True
@@ -1064,4 +1067,3 @@ if __name__ == '__main__':
         a = ip4range(seq)
         for x in iter(a):
             print x
-
