@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 #
-#       sipvicius/setup.py
+#       sipvicious/setup.py
 #       Copyright 2010 - 2017 Sapian SAS <sebastian.rojo@sapian.com.co>,
 #       Copyright 2010 - 2017 Sapian SAS <arpagon <arpagon@gmail.com.co>
 #
@@ -20,10 +20,10 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 
-from sipvicius.libs.svhelper import __author__, __version__
+from sipvicious.libs.svhelper import __author__, __version__
 from setuptools import setup, find_packages
 
-setup(name='sipvicius',
+setup(name='sipvicious',
     version=__version__,
     description='''SIPVicious suite is a set of tools that can be used to audit SIP based VoIP systems. 
     ''',
@@ -33,11 +33,11 @@ setup(name='sipvicius',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'sipvicius_svmap = sipvicius.svmap:main',
-            'sipvicius_svwar = sipvicius.svwar:main',
-            'sipvicius_svcrack = sipvicius.svcrack:main',
-            'sipvicius_svreport = sipvicius.svreport:main',
-            'sipvicius_svcrash = sipvicius.svcrash:main',
+            'sipvicious_svmap = sipvicious.svmap:main',
+            'sipvicious_svwar = sipvicious.svwar:main',
+            'sipvicious_svcrack = sipvicious.svcrack:main',
+            'sipvicious_svreport = sipvicious.svreport:main',
+            'sipvicious_svcrash = sipvicious.svcrash:main',
             ]
     },
 )

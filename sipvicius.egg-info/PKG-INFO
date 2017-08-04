@@ -1,10 +1,11 @@
 Metadata-Version: 1.0
-Name: SIPVicious
+Name: sipvicious
 Version: 0.2.8
 Summary: SIPVicious suite is a set of tools that can be used to audit SIP based VoIP systems. 
+    
 Home-page: http://sipvicious.org
-Author: Sandro Gauci
-Author-email: "Sandro Gauci" <sandro@enablesecurity.com>
+Author: Sandro Gauci <sandro@enablesecurity.com>
+Author-email: sandro@enablesecurity.com
 License: UNKNOWN
 Description: UNKNOWN
 Platform: UNKNOWN
