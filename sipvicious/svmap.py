@@ -20,26 +20,33 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from libs.svhelper import __author__, __version__
-__prog__ = "svmap"
-
-import socket
-import select
-
+import anydbm
+import logging
+import os
+import pickle
 import random
-from struct import pack,unpack
+import select
+import socket
+from datetime import datetime
+from optparse import OptionParser
+from struct import pack, unpack
+from sys import exit
 
+from libs.pptable import indent, wrap_onspace
+from libs.svhelper import (__author__, __version__, calcloglevel, createTag,
+                           dbexists, fingerPrintPacket, getRange, getranges,
+                           getTag, getTargetFromSRV, ip4range, makeRequest,
+                           mysendto, packetcounter, reportBugToAuthor,
+                           resumeFromIP, scanfromdb, scanfromfile, scanlist,
+                           scanrandom, standardoptions, standardscanneroptions)
+
+__prog__ = "svmap"
 
 class DrinkOrSip:
     def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060,
                  printdebug=False,first=None,fpworks=False):
-        import logging,anydbm
-        import os.path
-        from libs.svhelper import packetcounter
-        #from svfphelper import sipfingerprint
-        #self.sipfingerprint = sipfingerprint
         self.log = logging.getLogger('DrinkOrSip')
         self.bindingip = bindingip
         self.sessionpath = sessionpath
@@ -106,8 +113,7 @@ class DrinkOrSip:
             self.packetcount = packetcounter(50)
         self.sentpackets = 0
 
-    def getResponse(self,buff,srcaddr):
-        from libs.svhelper import fingerPrintPacket,getTag
+    def getResponse(self,buff,srcaddr):        
         srcip,srcport = srcaddr
         uaname = 'unknown'
         if buff.startswith('OPTIONS ') \
@@ -127,12 +133,6 @@ class DrinkOrSip:
             else:
                 uaname = 'unknown'
                 self.log.debug(`buff`)
-            #if self.fpworks:
-            #    try:
-            #        fp = self.sipfingerprint(buff)
-            #    except:
-            #        self.log.error("fingerprinting gave errors - will be disabled")
-            #        self.fpworks = False
             if not self.fpworks:
                 fp = None
             if fp is None:
@@ -166,9 +166,6 @@ class DrinkOrSip:
             self.log.debug('Packet: %s' % `buff`)
 
     def start(self):
-        from libs.svhelper import makeRequest, createTag
-        from libs.svhelper import mysendto
-        import socket
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
         # to port 5060
@@ -279,14 +276,6 @@ class DrinkOrSip:
                     pass
 
 def main():
-    from optparse import OptionParser
-    from datetime import datetime
-    import anydbm
-    import os
-    from libs.svhelper import standardoptions, standardscanneroptions, calcloglevel
-    from sys import exit
-    import logging
-    import pickle
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
     usage += 'Scans for SIP devices on a given network\r\n\r\n'
     usage += "examples:\r\n\r\n"
@@ -329,9 +318,8 @@ def main():
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
+    parser.add_option('--crashandburn', dest="crashandburn", action="store_true", default=False)
     (options, args) = parser.parse_args()
-    from libs.svhelper import getRange, scanfromfile, scanlist, scanrandom, getranges,\
-        ip4range, resumeFromIP, scanfromdb, dbexists, getTargetFromSRV
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)
@@ -491,6 +479,8 @@ def main():
     start_time = datetime.now()
     logging.info( "start your engines" )
     try:
+        if options.crashandburn:
+            raise ValueError
         sipvicious.start()
         if exportpath is not None:
             open(os.path.join(exportpath,'closed'),'w').close()
@@ -498,8 +488,7 @@ def main():
         logging.warn( 'caught your control^c - quiting' )
         pass
     except Exception, err:
-        import traceback
-        from libs.svhelper import reportBugToAuthor
+        import traceback        
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
@@ -531,7 +520,6 @@ def main():
         if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from libs.pptable import indent,wrap_onspace
                 width = 60
                 labels = ('SIP Device','User Agent','Fingerprint')
                 rows = list()
