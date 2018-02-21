@@ -212,7 +212,7 @@ def getAlgorithm(pkt):
     _tmp = re.findall(nonceRE, pkt)
     if _tmp is not None:
         if len(_tmp) > 0:
-            return(_tmp[0].upper())
+            return(_tmp[0].lower())
     return None
 
 
@@ -455,22 +455,24 @@ def challengeResponse(auth, method, uri):
     opaque = auth["opaque"]
     algorithm = auth["algorithm"]
     cnonce = ""
-    nonceCount = "%08d" % auth["noncecount"]
-    qop = auth["qop"].split(',')[0]
+    qop = None  
+    if auth["qop"] != None:
+        qop = auth["qop"].split(',')[0]
     result = 'Digest username="%s",realm="%s",nonce="%s",uri="%s"' % (
         username, realm, nonce, uri)
-    if algorithm == "MD5-sess" or qop == "auth":
+    if algorithm == "md5-sess" or qop == "auth":
         cnonce = uuid.uuid4().get_hex()
+        nonceCount = "%08d" % auth["noncecount"]
         result += ',cnonce="%s",nc=%s' % (cnonce, nonceCount)
-    if algorithm is None or algorithm == "MD5":
+    if algorithm is None or algorithm == "md5":
         ha1 = md5('%s:%s:%s' % (username, realm, passwd)).hexdigest()
         result += ',algorithm=MD5'
-    elif auth["algorithm"] == "MD5-sess":
+    elif auth["algorithm"] == "md5-sess":
         ha1 = md5(md5('%s:%s:%s' % (username, realm, passwd)
                       ).hexdigest() + ":" + nonce + ":" + cnonce).hexdigest()
         result += ',algorithm=MD5-sess'
     else:
-        print(auth["algorithm"])
+        print("Unknown algorithm: %s" % auth["algorithm"])
     if qop is None or qop == "auth":
         ha2 = md5('%s:%s' % (method, uri)).hexdigest()
         result += ',qop=auth'

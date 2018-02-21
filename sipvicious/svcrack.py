@@ -301,7 +301,7 @@ class ASipOfRedWine:
                         self.auth['password'] = self.passwdgen.next()
                         self.previouspassword = self.auth['password']
                         self.log.debug('trying %s' % self.auth['password'])
-                        if self.auth['algorithm'] == "MD5-sess" or self.auth['qop'] == "auth":
+                        if self.auth['algorithm'] == "md5-sess" or self.auth['qop'] == "auth":
                             self.auth["noncecount"] = self.noncecount
                             self.noncecount += 1
 
