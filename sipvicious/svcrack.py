@@ -94,6 +94,7 @@ class ASipOfRedWine:
             self.extension = username
         self.bindingip = bindingip
         self.localport = localport
+        self.noncecount = 1
         self.originallocalport = localport
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
@@ -153,7 +154,7 @@ class ASipOfRedWine:
         return register
 
     def getResponse(self):
-        from libs.svhelper import getNonce,getCredentials,getRealm,getCID
+        from libs.svhelper import getNonce,getCredentials,getRealm,getCID,getAuthHeader,getQop,getAlgorithm,getOpaque
         # we got stuff to read off the socket
         buff,srcaddr = self.sock.recvfrom(8192)
         if buff.startswith(self.PROXYAUTHREQ):
@@ -161,7 +162,11 @@ class ASipOfRedWine:
         elif buff.startswith(self.AUTHREQ):
             self.dstisproxy = False
         if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.AUTHREQ):
-            nonce = getNonce(buff)
+            authheader = getAuthHeader(buff)
+            nonce = getNonce(authheader)
+            opaque = getOpaque(authheader)
+            algorithm = getAlgorithm(authheader)      
+            qop = getQop(authheader)
             cid  = getCID(buff)
             if self.realm is None:
                 self.realm = getRealm(buff)
@@ -172,7 +177,7 @@ class ASipOfRedWine:
                     else:
                         self.staticnonce = nonce
                         self.staticcid = cid
-                self.challenges.append([nonce,cid])
+                self.challenges.append([nonce,cid,qop,algorithm,opaque])
         elif buff.startswith(self.OKEY):
             self.passwordcracked = True
             _tmp = getCredentials(buff)
@@ -275,19 +280,25 @@ class ASipOfRedWine:
                 # no stuff to read .. its our turn to send back something
                 if len(self.challenges) > 0:
                     # we have challenges to take care of
-                    self.auth = dict()
+                    self.auth = dict()                    
                     self.auth['username'] = self.username
                     self.auth['realm'] = self.realm
                     if self.reusenonce:
                         self.auth['nonce'] = self.staticnonce
                         cid = self.staticcid
                     else:
-                        self.auth['nonce'],cid = self.challenges.pop()
+                        self.auth['nonce'],cid,self.auth['qop'],self.auth['algorithm'],self.auth['opaque'] = self.challenges.pop()
                     self.auth['proxy'] = self.dstisproxy
                     try:
                         self.auth['password'] = self.passwdgen.next()
                         self.previouspassword = self.auth['password']
-                        self.log.debug('trying %s' % self.auth['password'])
+                        self.log.debug('trying %s' % self.auth['password'])                        
+                        if self.auth['algorithm'] == "MD5-sess" or self.auth['qop'] == "auth":
+                            self.auth["noncecount"] = self.noncecount
+                            self.noncecount += 1
+                            
+
+                        
                     except StopIteration:
                         self.log.info("no more passwords")
                         self.nomore = True

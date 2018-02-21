@@ -194,6 +194,36 @@ def getNonce(pkt):
             return(_tmp[0])
     return None
 
+
+def getOpaque(pkt):
+    import re
+    nonceRE='opaque="(.+?)"'
+    _tmp = re.findall(nonceRE,pkt)
+    if _tmp is not None:
+        if len(_tmp) > 0:
+            return(_tmp[0])
+    return None
+
+def getAlgorithm(pkt):
+    import re
+    nonceRE='algorithm=(.+?)[,\r]'    
+    _tmp = re.findall(nonceRE,pkt)
+    if _tmp is not None:
+        if len(_tmp) > 0:
+            return(_tmp[0].upper())
+    return None
+
+
+def getQop(pkt):
+    import re
+    nonceRE='qop="(.+?)"'
+    _tmp = re.findall(nonceRE,pkt)
+    if _tmp is not None:
+        if len(_tmp) > 0:
+            return(_tmp[0])
+    return None
+
+
 def getRealm(pkt):
     import re
     nonceRE='realm="(.+?)"'
@@ -206,7 +236,7 @@ def getRealm(pkt):
 def getCID(pkt):
     import re
     cidRE='Call-ID: ([:a-zA-Z0-9]+)'
-    _tmp = re.findall(cidRE,pkt)
+    _tmp = re.findall(cidRE,pkt,re.I)
     if _tmp is not None:
         if len(_tmp) > 0:
             return(_tmp[0])
@@ -394,17 +424,48 @@ def getToTag(buff):
             return _tmp2
     return
 
-def challengeResponse(username,realm,passwd,method,uri,nonce):
+def challengeResponse(auth,method,uri):
     hashlibsupported=True
     try:
         from hashlib import md5
     except ImportError:
         import md5 as md5sum
         md5 = md5sum.new
-    a1 = md5('%s:%s:%s' % (username,realm,passwd)).hexdigest()
-    a2 = md5('%s:%s' % (method,uri)).hexdigest()
-    res = md5('%s:%s:%s' % (a1,nonce,a2)).hexdigest()
-    return res
+    import uuid    
+    username = auth["username"]
+    realm = auth["realm"]
+    passwd = auth["password"]
+    nonce = auth["nonce"]
+    opaque = auth["opaque"]
+    algorithm = auth["algorithm"]
+    cnonce = ""
+    nonceCount = "%08d" % auth["noncecount"]
+    qop = auth["qop"].split(',')[0]
+    result = 'Digest username="%s",realm="%s",nonce="%s",uri="%s"' % (username,realm,nonce,uri)
+    if algorithm == "MD5-sess" or qop == "auth":
+        cnonce = uuid.uuid4().get_hex()
+        result += ',cnonce="%s",nc=%s' % (cnonce,nonceCount)
+    if algorithm is None or algorithm == "MD5":
+        ha1 = md5('%s:%s:%s' % (username,realm,passwd)).hexdigest()
+        result += ',algorithm=MD5'
+    elif auth["algorithm"] == "MD5-sess":
+        ha1 = md5(md5('%s:%s:%s' % (username,realm,passwd)).hexdigest() + ":" + nonce + ":" + cnonce).hexdigest()
+        result += ',algorithm=MD5-sess'
+    else:
+        print(auth["algorithm"])
+    if qop is None or qop == "auth":
+        ha2 = md5('%s:%s' % (method,uri)).hexdigest()
+        result += ',qop=auth'
+    if qop == "auth-int":
+        print "auth-int is not supported"
+    if qop == "auth":        
+        res = md5(ha1 + ":" + nonce + ":" + nonceCount + ":" + cnonce + ":" + qop + ":" + ha2).hexdigest()
+    else:
+        res = md5('%s:%s:%s' % (ha1,nonce,ha2)).hexdigest()
+    result += ',response="%s"' % res
+    if opaque is not None and opaque != "":
+        result += ',opaque="%s"' % opaque
+    return result
 
 def makeRedirect(previousHeaders,rediraddr):
     response = 'SIP/2.0 301 Moved Permanently\r\n'
@@ -483,21 +544,11 @@ def makeRequest(
     if contenttype is not None:
         headers['Content-Type'] = contenttype
     if auth is not None:
-        response = challengeResponse(auth['username'],auth['realm'],auth['password'],method,uri,auth['nonce'])        
+        response = challengeResponse(auth,method,uri)
         if auth['proxy']:
-            finalheaders['Proxy-Authorization'] = \
-                'Digest username="%s",realm="%s",nonce="%s",uri="%s",response="%s",algorithm=MD5' % (auth['username'],
-                                                                                                        auth['realm'],
-                                                                                                        auth['nonce'],
-                                                                                                        uri,
-                                                                                                        response)
+            finalheaders['Proxy-Authorization'] = response
         else:
-            finalheaders['Authorization'] = \
-                'Digest username="%s",realm="%s",nonce="%s",uri="%s",response="%s",algorithm=MD5' % (auth['username'],
-                                                                                                        auth['realm'],
-                                                                                                        auth['nonce'],
-                                                                                                        uri,
-                                                                                                        response)
+            finalheaders['Authorization'] = response
             
     r = '%s %s SIP/2.0\r\n' % (method,uri)
     for h in superheaders.iteritems():
@@ -1058,6 +1109,14 @@ def getTargetFromSRV(domainnames,methods):
 
 
 
+def getAuthHeader(pkt):
+    import re
+    nonceRE='\r\n(www-authenticate|proxy-authenticate): (.+?)\r\n'
+    _tmp = re.findall(nonceRE,pkt,re.I)
+    if _tmp is not None:
+        if len(_tmp) > 0:
+            return(_tmp[0][1])
+    return None
 
 
 if __name__ == '__main__':
@@ -1067,3 +1126,6 @@ if __name__ == '__main__':
         a = ip4range(seq)
         for x in iter(a):
             print x
+
+
+
