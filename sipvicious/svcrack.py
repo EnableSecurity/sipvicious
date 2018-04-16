@@ -393,7 +393,7 @@ def main():
     parser.add_option('--domain', dest="domain",
                       help="force a specific domain name for the SIP message, eg. -d example.org")
     parser.add_option('--requesturi', dest="requesturi",
-                        help="force the first line URI to a specific value; e.g. sip:999@example.org)
+                        help="force the first line URI to a specific value; e.g. sip:999@example.org")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
