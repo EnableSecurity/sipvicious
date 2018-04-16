@@ -512,7 +512,7 @@ def makeRequest(
     method, fromaddr, toaddr, dsthost, port, callid, srchost='',
     branchunique=None, cseq=1, auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
     localport=5060, extension=None, contenttype=None, body='',
-        useragent='friendly-scanner'):
+        useragent='friendly-scanner', requesturi=None):
     """makeRequest builds up a SIP request
     method - OPTIONS / INVITE etc
     toaddr = to address
@@ -574,6 +574,8 @@ def makeRequest(
             finalheaders['Authorization'] = response
 
     r = '%s %s SIP/2.0\r\n' % (method, uri)
+    if requesturi is not None:
+        r = '%s %s SIP/2.0\r\n' % (method, requesturi)
     for h in superheaders.iteritems():
         r += '%s: %s\r\n' % h
     for h in headers.iteritems():
