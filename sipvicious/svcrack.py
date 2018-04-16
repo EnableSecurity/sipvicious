@@ -38,11 +38,14 @@ class ASipOfRedWine:
                  externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
-                 maxlastrecvtime=10, domain=None, requesturi=None):
+                 maxlastrecvtime=10, domain=None, requesturi=None, ipv6=False):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        family = socket.AF_INET
+        if ipv6:
+            family = socket.AF_INET6
+        self.sock = socket.socket(family, socket.SOCK_DGRAM)
         self.sock.settimeout(10)
         self.sessionpath = sessionpath
         self.maxlastrecvtime = maxlastrecvtime
@@ -393,7 +396,8 @@ def main():
     parser.add_option('--domain', dest="domain",
                       help="force a specific domain name for the SIP message, eg. -d example.org")
     parser.add_option('--requesturi', dest="requesturi",
-                        help="force the first line URI to a specific value; e.g. sip:999@example.org)
+                        help="force the first line URI to a specific value; e.g. sip:999@example.org")
+    parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -509,6 +513,7 @@ def main():
         localport=options.localport,
         domain=options.domain,
         requesturi=options.requesturi,
+        ipv6=options.ipv6,
     )
 
     start_time = datetime.now()
