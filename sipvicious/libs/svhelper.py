@@ -1185,6 +1185,14 @@ def getAuthHeader(pkt):
     return None
 
 
+
+def check_ipv6(n):
+    try:
+        socket.inet_pton(socket.AF_INET6, n)
+        return True
+    except socket.error:
+        return False
+
 if __name__ == '__main__':
     print getranges('1.1.1.1/24')
     seq = getranges('google.com/24')

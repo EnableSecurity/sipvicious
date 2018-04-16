@@ -37,6 +37,7 @@ class TakeASip:
                  method='REGISTER', guessmode=1, guessargs=None, selecttime=0.005,
                  sessionpath=None, compact=False, socktimeout=3, initialcheck=True,
                  enableack=False, maxlastrecvtime=15, domain=None, printdebug=False,
+                 ipv6=False,
                  ):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
@@ -57,10 +58,14 @@ class TakeASip:
                 pass
         else:
             self.resultauth = dict()
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        family = socket.AF_INET
+        if ipv6:
+            family = socket.AF_INET6
+        self.sock = socket.socket(family, socket.SOCK_DGRAM)
         self.sock.settimeout(socktimeout)
         self.bindingip = bindingip
         self.localport = localport
+        self.ipv6 = ipv6
         self.originallocalport = localport
         self.rlist = [self.sock]
         self.wlist = list()
@@ -138,21 +143,25 @@ class TakeASip:
         from base64 import b64encode
         from libs.svhelper import makeRequest
         from libs.svhelper import createTag
+        from libs.svhelper import check_ipv6
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         localtag = createTag(username)
+        domain = self.domain
+        if self.ipv6 and check_ipv6(domain):
+            domain = '[' + self.domain + ']'
         if not contact:
-            contact = 'sip:%s@%s' % (username, self.domain)
+            contact = 'sip:%s@%s' % (username, domain)
         if not fromaddr:
-            fromaddr = '"%s"<sip:%s@%s>' % (username, username, self.domain)
+            fromaddr = '"%s"<sip:%s@%s>' % (username, username, domain)
         if not toaddr:
-            toaddr = '"%s"<sip:%s@%s>' % (username, username, self.domain)
+            toaddr = '"%s"<sip:%s@%s>' % (username, username, domain)
         request = makeRequest(
             m,
             fromaddr,
             toaddr,
-            self.domain,
+            domain,
             self.dstport,
             cid,
             self.externalip,
@@ -506,7 +515,7 @@ def main():
                       help="Print SIP messages received",
                       default=False, action="store_true"
                       )
-
+    parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -615,6 +624,7 @@ def main():
         localport=options.localport,
         domain=options.domain,
         printdebug=options.printdebug,
+        ipv6=options.ipv6,
     )
     start_time = datetime.now()
     #logging.info("scan started at %s" % str(start_time))

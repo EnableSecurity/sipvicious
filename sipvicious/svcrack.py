@@ -45,6 +45,7 @@ class ASipOfRedWine:
         family = socket.AF_INET
         if ipv6:
             family = socket.AF_INET6
+        self.ipv6 = ipv6
         self.sock = socket.socket(family, socket.SOCK_DGRAM)
         self.sock.settimeout(10)
         self.sessionpath = sessionpath
@@ -80,7 +81,6 @@ class ASipOfRedWine:
             self.passwdgen = numericbrute(*crackargs)
         elif crackmode == 2:
             self.passwdgen = dictionaryattack(crackargs)
-
         self.username = username
         self.realm = realm
         self.selecttime = selecttime
@@ -101,7 +101,7 @@ class ASipOfRedWine:
         self.localport = localport
         self.requesturi = requesturi
         self.noncecount = 1
-        self.originallocalport = localport
+        self.originallocalport = localport        
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         if externalip is None:
@@ -132,23 +132,29 @@ class ASipOfRedWine:
     def Register(self, extension, remotehost, auth=None, cid=None):
         from libs.svhelper import makeRequest
         from libs.svhelper import createTag
+        from libs.svhelper import check_ipv6
         m = 'REGISTER'
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
         localtag = str(random.getrandbits(32))
+        if self.ipv6 and check_ipv6(remotehost):
+            remotehost = '['+remotehost+']'
         contact = 'sip:%s@%s' % (extension, remotehost)
         if auth is not None:
             cseq = 2
             localtag = createTag('%s:%s' % (
                 self.auth['username'], self.auth['password']))
+        domain = self.domain
+        if self.ipv6 and check_ipv6(domain):
+            domain = '[' + self.domain + ']'
         register = makeRequest(
             m,
-            '"%s" <sip:%s@%s>' % (extension, extension, self.domain),
+            '"%s" <sip:%s@%s>' % (extension, extension, domain),
             '"%s" <sip:%s@%s>' % (
-                extension, extension, self.domain),
-            self.domain,
+                extension, extension, domain),
+            domain,
             self.dstport,
             callid=cid,
             srchost=self.externalip,
@@ -158,7 +164,7 @@ class ASipOfRedWine:
             localtag=localtag,
             compact=self.compact,
             localport=self.localport,
-            requesturi=self.requesturi
+            requesturi=self.requesturi,
         )
         return register
 
