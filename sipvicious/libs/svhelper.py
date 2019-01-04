@@ -791,8 +791,7 @@ def getmaskranges(ipstring):
 
     naddr = dottedQuadToNum(addr)
     masklen = int(mask)
-    if not 0 <= masklen <= 32:
-        raise ValueError
+    assert(0 <= masklen <= 32), "invalid IP mask"
     naddr1 = naddr & (((1 << masklen) - 1) << (32 - masklen))
     naddr2 = naddr1 + (1 << (32 - masklen)) - 1
     return (naddr1, naddr2)

@@ -38,7 +38,7 @@ class ASipOfRedWine:
                  externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
-                 maxlastrecvtime=10, domain=None, requesturi=None, ipv6=False):
+                 maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER'):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
@@ -52,6 +52,7 @@ class ASipOfRedWine:
         self.maxlastrecvtime = maxlastrecvtime
         self.lastrecvtime = time.time()
         self.dbsyncs = False
+        self.method = method
         if self.sessionpath is not None:
             self.resultpasswd = anydbm.open(
                 os.path.join(self.sessionpath, 'resultpasswd'), 'c'
@@ -133,7 +134,8 @@ class ASipOfRedWine:
         from libs.svhelper import makeRequest
         from libs.svhelper import createTag
         from libs.svhelper import check_ipv6
-        m = 'REGISTER'
+
+        m = self.method
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
@@ -167,6 +169,8 @@ class ASipOfRedWine:
             requesturi=self.requesturi,
         )
         return register
+    
+
 
     def getResponse(self):
         from libs.svhelper import getNonce, getCredentials, getRealm, getCID, getAuthHeader, getQop, getAlgorithm, getOpaque
@@ -353,7 +357,6 @@ def main():
     from optparse import OptionParser
     from datetime import datetime
     from libs.svhelper import getRange, resumeFrom, calcloglevel
-    import anydbm
     import os
     from sys import exit
     import logging
@@ -404,6 +407,7 @@ def main():
     parser.add_option('--requesturi', dest="requesturi",
                         help="force the first line URI to a specific value; e.g. sip:999@example.org")
     parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
+    parser.add_option('-m','--method', dest='method', default='REGISTER')
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -520,6 +524,7 @@ def main():
         domain=options.domain,
         requesturi=options.requesturi,
         ipv6=options.ipv6,
+        method=options.method,
     )
 
     start_time = datetime.now()
