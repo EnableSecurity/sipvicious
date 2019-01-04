@@ -229,7 +229,6 @@ class DrinkOrSip:
                 branchunique = '%s' % random.getrandbits(32)
 
                 localtag = createTag('%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
-                cseq = 1
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
                 toaddr = fromaddr
                 callid = '%s' % random.getrandbits(80)

@@ -22,11 +22,12 @@ __GPL__ = """
 
 import base64
 import logging
+import anydbm
 import random
 import select
 import socket
 import time
-
+import os
 from libs.svhelper import __author__, __version__
 
 __prog__ = 'svcrack'
@@ -38,7 +39,7 @@ class ASipOfRedWine:
                  externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
-                 maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER'):
+                 maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER', ipv6=False):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
@@ -337,12 +338,12 @@ class ASipOfRedWine:
                             try:
                                 if self.crackmode == 1:
                                     pickle.dump(self.previouspassword, open(
-                                        os.path.join(exportpath, 'lastpasswd.pkl'), 'w'))
+                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'w'))
                                     self.log.debug(
                                         'logged last extension %s' % self.previouspassword)
                                 elif self.crackmode == 2:
                                     pickle.dump(self.crackargs.tell(), open(
-                                        os.path.join(exportpath, 'lastpasswd.pkl'), 'w'))
+                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'w'))
                                     self.log.debug(
                                         'logged last position %s' % self.crackargs.tell())
                             except IOError:

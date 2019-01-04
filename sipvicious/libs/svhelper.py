@@ -116,14 +116,12 @@ def getRange(rangestr):
         if len(_tmp3) > 1:
             if not (_tmp3[0].isdigit() or _tmp3[1].isdigit()):
                 raise ValueError, "the ranges need to be digits"
-                return
             startport, endport = map(int, [_tmp3[0], _tmp3[1]])
             endport += 1
             numericrange.append(xrange(startport, endport))
         else:
             if not _tmp3[0].isdigit():
                 raise ValueError, "the ranges need to be digits"
-                return
             singleport = int(_tmp3[0])
             numericrange.append(anotherxrange(singleport, singleport + 1))
     return numericrange
@@ -403,7 +401,7 @@ def getCredentials(buff):
 def getTag(buff):
     import re
     from binascii import a2b_hex
-    tagRE = '(From|f): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'
+    tagRE = r'(From|f): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'
     _tmp = re.findall(tagRE, buff)
     if _tmp is not None:
         if len(_tmp) > 0:
@@ -431,7 +429,7 @@ def createTag(data):
 
 def getToTag(buff):
     import re
-    tagRE = '(To|t): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'
+    tagRE = r'(To|t): .*?\;\s*tag=([=+/\.:a-zA-Z0-9_]+)'
     _tmp = re.findall(tagRE, buff)
     if _tmp is not None:
         if len(_tmp) > 0:
@@ -726,17 +724,17 @@ def getranges(ipstring):
     import re
     log = logging.getLogger('getranges')
     if re.match(
-        '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',
+        r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',
         ipstring
     ):
         naddr1, naddr2 = map(dottedQuadToNum, ipstring.split('-'))
     elif re.match(
-        '^(\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)$',
+        r'^(\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)\.(\*|\d{1,3}(-\d{1,3})*)$',
         ipstring
     ):
         naddr1, naddr2 = map(dottedQuadToNum, getranges2(ipstring))
     elif re.match(
-        '^.*?\/\d{,2}$',
+        r'^.*?\/\d{,2}$',
         ipstring
     ):
         r = getmaskranges(ipstring)
@@ -781,7 +779,7 @@ def getmaskranges(ipstring):
     import re
     log = logging.getLogger('getmaskranges')
     addr, mask = ipstring.rsplit('/', 1)
-    if not re.match('^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', addr):
+    if not re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', addr):
         from socket import gethostbyname
         try:
             log.debug('Could not resolve %s' % addr)
@@ -926,7 +924,6 @@ def deletesessions(chosensession, chosensessiontype):
 
 
 def createReverseLookup(src, dst):
-    import anydbm
     import logging
     log = logging.getLogger('createReverseLookup')
     #srcdb = anydbm.open(src,'r')
