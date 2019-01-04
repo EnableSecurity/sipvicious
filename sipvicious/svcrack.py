@@ -38,7 +38,7 @@ class ASipOfRedWine:
                  externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
-                 maxlastrecvtime=10, domain=None, requesturi=None):
+                 maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER'):
         from libs.svhelper import dictionaryattack, numericbrute, packetcounter
         import logging
         self.log = logging.getLogger('ASipOfRedWine')
@@ -48,6 +48,7 @@ class ASipOfRedWine:
         self.maxlastrecvtime = maxlastrecvtime
         self.lastrecvtime = time.time()
         self.dbsyncs = False
+        self.method = method
         if self.sessionpath is not None:
             self.resultpasswd = anydbm.open(
                 os.path.join(self.sessionpath, 'resultpasswd'), 'c'
@@ -129,7 +130,7 @@ class ASipOfRedWine:
     def Register(self, extension, remotehost, auth=None, cid=None):
         from libs.svhelper import makeRequest
         from libs.svhelper import createTag
-        m = 'REGISTER'
+        m = self.method
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
@@ -158,6 +159,8 @@ class ASipOfRedWine:
             requesturi=self.requesturi
         )
         return register
+    
+
 
     def getResponse(self):
         from libs.svhelper import getNonce, getCredentials, getRealm, getCID, getAuthHeader, getQop, getAlgorithm, getOpaque
@@ -394,6 +397,7 @@ def main():
                       help="force a specific domain name for the SIP message, eg. -d example.org")
     parser.add_option('--requesturi', dest="requesturi",
                         help="force the first line URI to a specific value; e.g. sip:999@example.org")
+    parser.add_option('-m','--method', dest='method', default='REGISTER')
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -509,6 +513,7 @@ def main():
         localport=options.localport,
         domain=options.domain,
         requesturi=options.requesturi,
+        method=options.method,
     )
 
     start_time = datetime.now()
