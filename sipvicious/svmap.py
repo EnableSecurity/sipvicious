@@ -481,7 +481,11 @@ def main():
     try:
         if options.crashandburn:
             raise ValueError
-        sipvicious.start()
+        try:
+            sipvicious.start()
+        except AssertionError, err:
+            logging.critical(err)
+            exit(1)
         if exportpath is not None:
             open(os.path.join(exportpath,'closed'),'w').close()
     except KeyboardInterrupt:
