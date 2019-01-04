@@ -25,6 +25,7 @@ import random
 import select
 import socket
 import time
+import anydbm
 
 from libs.svhelper import __author__, __version__
 
@@ -462,7 +463,6 @@ class TakeASip:
 def main():
     from optparse import OptionParser
     from datetime import datetime
-    import anydbm
     import os
     from sys import exit
     import logging
