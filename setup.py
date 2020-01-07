@@ -29,7 +29,7 @@ setup(name='sipvicious',
     ''',
     author=__author__,
     author_email='sandro@enablesecurity.com',
-    url='http://sipvicious.org',
+    url='https://sipvicious.org',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
