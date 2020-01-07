@@ -786,10 +786,10 @@ def getmaskranges(ipstring):
             addr = gethostbyname(addr)
         except socket.error:
             return
-
+    assert(mask.isdigit()), "invalid IP mask (1)"
     naddr = dottedQuadToNum(addr)
     masklen = int(mask)
-    assert(0 <= masklen <= 32), "invalid IP mask"
+    assert(0 <= masklen <= 32), "invalid IP mask (2)"
     naddr1 = naddr & (((1 << masklen) - 1) << (32 - masklen))
     naddr2 = naddr1 + (1 << (32 - masklen)) - 1
     return (naddr1, naddr2)
