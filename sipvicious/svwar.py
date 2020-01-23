@@ -4,7 +4,7 @@
 __GPL__ = """
 
    Sipvicious extension line scanner scans SIP PaBXs for valid extension lines
-   Copyright (C) 2012 Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2008-2020 Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,32 +23,42 @@ __GPL__ = """
 import logging
 import random
 import select
+import pickle
 import socket
 import time
-import anydbm
-
-from libs.svhelper import __author__, __version__
+import dbm
+import os
+import re
+import traceback
+from sys import exit
+from optparse import OptionParser
+from datetime import datetime
+from socket import error as socketerror
+from base64 import b64decode, b64encode
+from libs.pptable import indent, wrap_onspace
+from libs.svhelper import (
+    __version__, numericbrute, dictionaryattack, mysendto,
+    createTag, check_ipv6, makeRequest, getTag, parseHeader, 
+    getRealm, standardoptions, standardscanneroptions, calcloglevel,
+    resumeFrom, getRange, reportBugToAuthor, packetcounter
+)
 
 __prog__ = 'svwar'
 
-
 class TakeASip:
 
-    def __init__(self, host='localhost', bindingip='', externalip=None, localport=5060, port=5060,
+    def __init__(self, host='localhost', bindingip='', externalip=None, localport=5060,
                  method='REGISTER', guessmode=1, guessargs=None, selecttime=0.005,
                  sessionpath=None, compact=False, socktimeout=3, initialcheck=True,
                  enableack=False, maxlastrecvtime=15, domain=None, printdebug=False,
-                 ipv6=False,
-                 ):
-        from libs.svhelper import dictionaryattack, numericbrute, packetcounter
-        import logging
+                 ipv6=False, port=5060):
         self.log = logging.getLogger('TakeASip')
         self.maxlastrecvtime = maxlastrecvtime
         self.sessionpath = sessionpath
         self.dbsyncs = False
         self.enableack = enableack
         if self.sessionpath is not None:
-            self.resultauth = anydbm.open(os.path.join(
+            self.resultauth = dbm.open(os.path.join(
                 self.sessionpath, 'resultauth'), 'c')
             try:
                 self.resultauth.sync()
@@ -140,11 +150,8 @@ class TakeASip:
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
 
-    def createRequest(self, m, username=None, auth=None, cid=None, cseq=1, fromaddr=None, toaddr=None, contact=None):
-        from base64 import b64encode
-        from libs.svhelper import makeRequest
-        from libs.svhelper import createTag
-        from libs.svhelper import check_ipv6
+    def createRequest(self, m, username=None, auth=None, cid=None, 
+                        cseq=1, fromaddr=None, toaddr=None, contact=None):
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
@@ -178,17 +185,11 @@ class TakeASip:
         return request
 
     def getResponse(self):
-        from libs.svhelper import getNonce, getCredentials, getRealm, getCID, getTag
-        from base64 import b64decode
-        from libs.svhelper import parseHeader
-        from libs.svhelper import mysendto
-        import re
         # we got stuff to read off the socket
-        from socket import error as socketerror
         buff, srcaddr = self.sock.recvfrom(8192)
         if self.printdebug:
-            print srcaddr
-            print buff
+            print(srcaddr)
+            print(buff)
 
         try:
             extension = getTag(buff)
@@ -206,20 +207,20 @@ class TakeASip:
         if self.enableack:
             # send an ack to any responses which match
             _tmp = parseHeader(buff)
-            if not (_tmp and _tmp.has_key('code')):
+            if not (_tmp and 'code' in _tmp):
                 return
             if 699 > _tmp['code'] >= 200:
                 self.log.debug('will try to send an ACK response')
-                if not _tmp.has_key('headers'):
+                if 'headers' not in _tmp:
                     self.log.debug('no headers?')
                     return
-                if not _tmp['headers'].has_key('from'):
+                if 'from' not in _tmp['headers']:
                     self.log.debug('no from?')
                     return
-                if not _tmp['headers'].has_key('cseq'):
+                if 'cseq' not in _tmp['headers']:
                     self.log.debug('no cseq')
                     return
-                if not _tmp['headers'].has_key('call-id'):
+                if 'call-id' not in _tmp['headers']:
                     self.log.debug('no caller id')
                     return
                 try:
@@ -313,15 +314,12 @@ class TakeASip:
             return
         else:
             self.log.warn("We got an unknown response")
-            self.log.error("Response: %s" % `buff`)
-            self.log.debug("1st line: %s" % `firstline`)
-            self.log.debug("Bad user: %s" % `self.BADUSER`)
+            self.log.error("Response: %s" % buff.__repr__())
+            self.log.debug("1st line: %s" % firstline.__repr__())
+            self.log.debug("Bad user: %s" % self.BADUSER.__repr__())
             self.nomore = True
 
     def start(self):
-        import socket
-        import pickle
-        from libs.svhelper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -350,7 +348,7 @@ class TakeASip:
         try:
             mysendto(self.sock, data, (self.dsthost, self.dstport))
             # self.sock.sendto(data,(self.dsthost,self.dstport))
-        except socket.error, err:
+        except socket.error as err:
             self.log.error("socket error: %s" % err)
             return
         # first we identify the assumed reply for an unknown extension
@@ -360,9 +358,9 @@ class TakeASip:
                 try:
                     buff, srcaddr = self.sock.recvfrom(8192)
                     if self.printdebug:
-                        print srcaddr
-                        print buff
-                except socket.error, err:
+                        print(srcaddr)
+                        print(buff)
+                except socket.error as err:
                     self.log.error("socket error: %s" % err)
                     return
                 if buff.startswith(self.TRYING) \
@@ -383,7 +381,7 @@ class TakeASip:
                     break
         except socket.timeout:
             if gotbadresponse:
-                self.log.error("The response we got was not good: %s" % `buff`)
+                self.log.error("The response we got was not good: %s" % buff.__repr__())
             else:
                 self.log.error(
                     "No server response - are you sure that this PBX is listening? run svmap against it to find out")
@@ -391,7 +389,7 @@ class TakeASip:
         except (AttributeError, ValueError, IndexError):
             self.log.error("bad response .. bailing out")
             return
-        except socket.error, err:
+        except socket.error as err:
             self.log.error("socket error: %s" % err)
             return
         if self.BADUSER.startswith(self.AUTHREQ):
@@ -406,7 +404,7 @@ class TakeASip:
                         self.getResponse()
                     except socket.timeout:
                         return
-            r, w, e = select.select(
+            r, _, _ = select.select(
                 self.rlist,
                 self.wlist,
                 self.xlist,
@@ -427,7 +425,7 @@ class TakeASip:
                     continue
                 # no stuff to read .. its our turn to send back something
                 try:
-                    self.nextuser = self.usernamegen.next()
+                    self.nextuser = next(self.usernamegen)
                 except StopIteration:
                     self.nomore = True
                     continue
@@ -440,7 +438,7 @@ class TakeASip:
                     mysendto(self.sock, data, (self.dsthost, self.dstport))
                     # self.sock.sendto(data,(self.dsthost,self.dstport))
                     if self.sessionpath is not None:
-                        if self.packetcount.next():
+                        if next(self.packetcount):
                             try:
                                 if self.guessmode == 1:
                                     pickle.dump(self.nextuser, open(os.path.join(
@@ -455,22 +453,12 @@ class TakeASip:
                             except IOError:
                                 self.log.warn(
                                     'could not log the last extension scanned')
-                except socket.error, err:
+                except socket.error as err:
                     self.log.error("socket error: %s" % err)
                     break
 
 
 def main():
-    from optparse import OptionParser
-    from datetime import datetime
-    import os
-    from sys import exit
-    import logging
-    import pickle
-    from libs.svhelper import resumeFrom, calcloglevel
-    from libs.svhelper import standardoptions, standardscanneroptions
-    from libs.svhelper import getRange
-
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
     usage += "%prog -e100-999 10.0.0.1\r\n"
@@ -517,6 +505,7 @@ def main():
                       )
     parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
     (options, args) = parser.parse_args()
+    global exportpath
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
@@ -573,7 +562,7 @@ def main():
             try:
                 previousextension = pickle.load(open(lastextensionsrc, 'r'))
             except IOError:
-                logging.critical('Could not read from %s' % lastipsrc)
+                logging.critical('Could not read from %s' % lastextensionsrc)
                 exit(1)
             logging.debug('Previous range: %s' % options.range)
             options.range = resumeFrom(previousextension, options.range)
@@ -592,7 +581,7 @@ def main():
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
             try:
-                os.makedirs(exportpath, mode=0700)
+                os.makedirs(exportpath, mode=0o700)
             except OSError:
                 logging.critical(
                     'could not create the export location %s' % exportpath)
@@ -635,12 +624,10 @@ def main():
             open(os.path.join(exportpath, 'closed'), 'w').close()
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')
-    except Exception, err:
-        import traceback
-        from libs.svhelper import reportBugToAuthor
+    except Exception as err:
         if options.reportBack:
             logging.critical(
-                "Got unhandled exception : sending report to author")
+                "Got unhandled exception : %s\nSending report to author" % err.__str__())
             reportBugToAuthor(traceback.format_exc())
         else:
             logging.critical(
@@ -668,14 +655,13 @@ def main():
         if lenres > 0:
             logging.info("we have %s extensions" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from libs.pptable import indent, wrap_onspace
                 width = 60
                 labels = ('Extension', 'Authentication')
                 rows = list()
                 for k in sipvicious.resultauth.keys():
                     rows.append((k, sipvicious.resultauth[k]))
-                print indent([labels] + rows, hasHeader=True,
-                             prefix='| ', postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width))
+                print(indent([labels] + rows, hasHeader=True,
+                             prefix='| ', postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width)))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:

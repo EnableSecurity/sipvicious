@@ -4,7 +4,7 @@
 __GPL__ = """
 
    SIPvicious SIP scanner searches for SIP devices on a given network
-   Copyright (C) 2012  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2008-2020  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,25 +20,26 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import anydbm
+import dbm
 import logging
 import os
 import pickle
 import random
 import select
 import socket
+import traceback
 from datetime import datetime
 from optparse import OptionParser
 from struct import pack, unpack
 from sys import exit
 
 from libs.pptable import indent, wrap_onspace
-from libs.svhelper import (__author__, __version__, calcloglevel, createTag,
-                           dbexists, fingerPrintPacket, getRange, getranges,
-                           getTag, getTargetFromSRV, ip4range, makeRequest,
-                           mysendto, packetcounter, reportBugToAuthor,
-                           resumeFromIP, scanfromdb, scanfromfile, scanlist,
-                           scanrandom, standardoptions, standardscanneroptions)
+from libs.svhelper import (
+    __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
+    getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist,
+    mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, 
+    scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
+)
 
 __prog__ = "svmap"
 
@@ -52,9 +53,9 @@ class DrinkOrSip:
         self.sessionpath = sessionpath
         self.dbsyncs = False
         if self.sessionpath is not  None:
-            self.resultip = anydbm.open(os.path.join(self.sessionpath,'resultip'),'c')
-            self.resultua = anydbm.open(os.path.join(self.sessionpath,'resultua'),'c')
-            self.resultfp = anydbm.open(os.path.join(self.sessionpath,'resultfp'),'c')
+            self.resultip = dbm.open(os.path.join(self.sessionpath,'resultip'),'c')
+            self.resultua = dbm.open(os.path.join(self.sessionpath,'resultua'),'c')
+            self.resultfp = dbm.open(os.path.join(self.sessionpath,'resultfp'),'c')
             try:
                 self.resultip.sync()
                 self.dbsyncs = True
@@ -123,16 +124,16 @@ class DrinkOrSip:
                 self.log.debug("We received our own packet from %s:%s" % srcaddr)
             else:
                 self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
-                self.log.debug(repr(buff))
+                self.log.debug(buff.__repr__())
             return
         self.log.debug("running fingerPrintPacket()")
         res = fingerPrintPacket(buff)
         if res is not None:
-            if res.has_key('name'):
+            if 'name' in res:
                 uaname = res['name'][0]
             else:
                 uaname = 'unknown'
-                self.log.debug(`buff`)
+                self.log.debug(buff.__repr__())
             if not self.fpworks:
                 fp = None
             if fp is None:
@@ -163,7 +164,7 @@ class DrinkOrSip:
                     self.resultfp.sync()
         else:
             self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
-            self.log.debug('Packet: %s' % `buff`)
+            self.log.debug('Packet: %s' % buff.__repr__())
 
     def start(self):
         # bind to 5060 - the reason is to maximize compatability with
@@ -184,7 +185,7 @@ class DrinkOrSip:
             self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
         while 1:
-            r, w, e = select.select(
+            r, _, _ = select.select(
                 self.rlist,
                 self.wlist,
                 self.xlist,
@@ -195,10 +196,10 @@ class DrinkOrSip:
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
                     self.log.debug('got data from %s:%s' % srcaddr)
-                    self.log.debug('data: %s' % `buff`)
+                    self.log.debug('data: %s' % buff.__repr__())
                     if self.printdebug:
-                        print srcaddr
-                        print buff
+                        print(srcaddr)
+                        print(buff)
                 except socket.error:
                     continue
                 self.getResponse(buff,srcaddr)
@@ -212,13 +213,13 @@ class DrinkOrSip:
                         while 1:
                             buff,srcaddr = self.sock.recvfrom(8192)
                             if self.printdebug:
-                                print srcaddr
-                                print buff
+                                print(srcaddr)
+                                print(buff)
                             self.getResponse(buff,srcaddr)
                     except socket.error:
                         break
                 try:
-                    nextscan = self.scaniter.next()
+                    nextscan = next(self.scaniter)
                 except StopIteration:
                     self.log.debug('no more hosts to scan')
                     self.nomoretoscan = True
@@ -253,12 +254,12 @@ class DrinkOrSip:
                                 )
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
-                    self.log.debug("packet: %s" % `data`)
+                    self.log.debug("packet: %s" % data.__repr__())
                     mysendto(self.sock,data,dsthost)
                     self.sentpackets += 1
                     #self.sock.sendto(data,dsthost)
                     if self.sessionpath is not None:
-                        if self.packetcount.next():
+                        if next(self.packetcount):
                             try:
                                 f=open(os.path.join(self.sessionpath,'lastip.pkl'),'w')
                                 pickle.dump(self.nextip,f)
@@ -270,7 +271,7 @@ class DrinkOrSip:
                         if self.sentpackets >= self.first:
                             self.log.info('Reached the limit to scan the first %s packets' % self.first)
                             self.nomoretoscan = True
-                except socket.error,err:
+                except socket.error as err:
                     self.log.error( "socket error while sending to %s:%s -> %s" % (dsthost[0],dsthost[1],err))
                     pass
 
@@ -353,13 +354,13 @@ def main():
         internetranges =[[16777216,167772159],
                         [184549376,234881023],
                         [251658240,2130706431],
-                        [2147549184L,2851995647L],
-                        [2852061184L,2886729727L],
-                        [2886795264L,3221159935L],
-                        [3221226240L,3227017983L],
-                        [3227018240L,3232235519L],
-                        [3232301056L,3323068415L],
-                        [3323199488L,3758096127L]
+                        [2147549184,2851995647],
+                        [2852061184,2886729727],
+                        [2886795264,3221159935],
+                        [3221226240,3227017983],
+                        [3227018240,3232235519],
+                        [3232301056,3323068415],
+                        [3323199488,3758096127]
                         ]
         scanrandomstore = '.sipviciousrandomtmp'
         resumescan = False
@@ -382,12 +383,12 @@ def main():
         except IOError:
             logging.critical('Could not open %s' % options.inputtext)
             exit(1)
-        args = map(lambda x: x.strip(), args)
-        args = filter(lambda x: len(x) > 0, args)
+        args = list(map(lambda x: x.strip(), args))
+        args = [x for x in args if len(x) > 0]
         logging.debug('ip addresses %s' % args)
         try:
             iprange = ip4range(*args)
-        except ValueError,err:
+        except ValueError as err:
             logging.error(err)
             exit(1)
         portrange = getRange(options.port)
@@ -397,7 +398,8 @@ def main():
             if options.save is not None:
                 scanrandomstore = os.path.join(exportpath,'random')
                 resumescan = True
-            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+            scaniter = scanrandom(list(map(getranges,args)),portrange,
+                options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         else:
             scaniter = scanlist(iprange,portrange,options.method.split(','))
     else:
@@ -412,7 +414,8 @@ def main():
             if options.save is not None:
                 scanrandomstore = os.path.join(exportpath,'random')
                 resumescan = True
-            scaniter = scanrandom(map(getranges,args),portrange,options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+            scaniter = scanrandom(list(map(getranges,args)),portrange,
+                options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
         elif options.srvscan:
             logging.debug("making use of SRV records")
             scaniter = getTargetFromSRV(args,options.method.split(','))
@@ -434,7 +437,7 @@ def main():
             # normal consecutive scan
             try:
                 iprange = ip4range(*args)
-            except ValueError,err:
+            except ValueError as err:
                 logging.error(err)
                 exit(1)
             scaniter = scanlist(iprange,portrange,options.method.split(','))
@@ -446,7 +449,7 @@ def main():
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
             try:
-                os.makedirs(exportpath,mode=0700)
+                os.makedirs(exportpath,mode=0o700)
             except OSError:
                 logging.critical('could not create the export location %s' % exportpath)
                 exit(1)
@@ -482,7 +485,7 @@ def main():
             raise ValueError
         try:
             sipvicious.start()
-        except AssertionError, err:
+        except AssertionError as err:
             logging.critical(err)
             exit(1)
         if exportpath is not None:
@@ -490,8 +493,7 @@ def main():
     except KeyboardInterrupt:
         logging.warn( 'caught your control^c - quiting' )
         pass
-    except Exception, err:
-        import traceback        
+    except Exception as err:
         if options.reportBack:
             logging.critical( "Got unhandled exception : sending report to author" )
             reportBugToAuthor(traceback.format_exc())
@@ -528,8 +530,8 @@ def main():
                 rows = list()
                 for k in sipvicious.resultua.keys():
                     rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))
-                print indent([labels]+rows,hasHeader=True,
-                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width))
+                print(indent([labels]+rows,hasHeader=True,
+                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width)))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:

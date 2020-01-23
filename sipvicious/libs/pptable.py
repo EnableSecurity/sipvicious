@@ -1,8 +1,10 @@
 ## license is PSF [http://opensource.org/licenses/Python-2.0]
 ## picked from http://code.activestate.com/recipes/267662-table-indentation/
 
-
-import cStringIO,operator
+import re
+import math
+import io,operator
+from functools import reduce
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
            separateRows=False, prefix='', postfix='', wrapfunc=lambda x:x):
@@ -27,22 +29,21 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
     # columns of physical rows
-    columns = map(None,*reduce(operator.add,logicalRows))
+    columns = list(map(None,*reduce(operator.add,logicalRows)))
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(str(item)) for item in column]) for column in columns]
     rowSeparator = headerChar * (len(prefix) + len(postfix) + sum(maxWidths) + \
                                  len(delim)*(len(maxWidths)-1))
     # select the appropriate justify method
     justify = {'center':str.center, 'right':str.rjust, 'left':str.ljust}[justify.lower()]
-    output=cStringIO.StringIO()
-    if separateRows: print >> output, rowSeparator
+    output=io.StringIO()
+    if separateRows: print(rowSeparator, file=output)
     for physicalRows in logicalRows:
         for row in physicalRows:
-            print >> output, \
-                prefix \
+            print(prefix \
                 + delim.join([justify(str(item),width) for (item,width) in zip(row,maxWidths)]) \
-                + postfix
-        if separateRows or hasHeader: print >> output, rowSeparator; hasHeader=False
+                + postfix, file=output)
+        if separateRows or hasHeader: print(rowSeparator, file=output); hasHeader=False
     return output.getvalue()
 
 # written by Mike Brown
@@ -62,19 +63,17 @@ def wrap_onspace(text, width):
                   text.split(' ')
                  )
 
-import re
 def wrap_onspace_strict(text, width):
     """Similar to wrap_onspace, but enforces the width constraint:
        words longer than width are split."""
     wordRegex = re.compile(r'\S{'+str(width)+r',}')
     return wrap_onspace(wordRegex.sub(lambda m: wrap_always(m.group(),width),text),width)
 
-import math
 def wrap_always(text, width):
     """A simple word-wrap function that wraps text on exactly width characters.
        It doesn't split the text in words."""
     return '\n'.join([ text[width*i:width*(i+1)] \
-                       for i in xrange(int(math.ceil(1.*len(text)/width))) ])
+                       for i in range(int(math.ceil(1.*len(text)/width))) ])
     
 if __name__ == '__main__':
     labels = ('First Name', 'Last Name', 'Age', 'Position')
@@ -84,12 +83,12 @@ if __name__ == '__main__':
        Aristidis,Papageorgopoulos,28,Senior Reseacher'''
     rows = [row.strip().split(',')  for row in data.splitlines()]
 
-    print 'Without wrapping function\n'
-    print indent([labels]+rows, hasHeader=True)
+    print('Without wrapping function\n')
+    print(indent([labels]+rows, hasHeader=True))
     # test indent with different wrapping functions
     width = 10
     for wrapper in (wrap_always,wrap_onspace,wrap_onspace_strict):
-        print 'Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__,width)
-        print indent([labels]+rows, hasHeader=True, separateRows=True,
+        print('Wrapping function: %s(x,width=%d)\n' % (wrapper.__name__,width))
+        print(indent([labels]+rows, hasHeader=True, separateRows=True,
                      prefix='| ', postfix=' |',
-                     wrapfunc=lambda x: wrapper(x,width))
+                     wrapfunc=lambda x: wrapper(x,width)))
