@@ -408,7 +408,7 @@ def getTag(buff):
                 return
             if _tmp2.find(b'\x01') > 0:
                 try:
-                    c, _ = _tmp2.split('\x01')
+                    c, _ = _tmp2.split(b'\x01')
                 except ValueError:
                     c = 'svcrash detected'
             else:
@@ -539,7 +539,7 @@ def makeRequest(
         headers['From'] = fromaddr
         headers['User-Agent'] = useragent
         if localtag is not None:
-            headers['From'] += ';tag=%s' % localtag
+            headers['From'] += ';tag=%s' % localtag.decode('utf-8')
         headers['Call-ID'] = callid
         # if contact is not None:
         headers['Contact'] = contact

@@ -145,7 +145,7 @@ class ASipOfRedWine:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag = str(random.getrandbits(32))
+        localtag = str(random.getrandbits(32)).encode()
         if self.ipv6 and check_ipv6(remotehost):
             remotehost = '['+remotehost+']'
         contact = 'sip:%s@%s' % (extension, remotehost)

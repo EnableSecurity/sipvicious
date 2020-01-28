@@ -193,7 +193,7 @@ class TakeASip:
         buff = buff.decode('utf-8')
 
         try:
-            extension = getTag(buff)
+            extension = getTag(buff).decode('utf-8')
         except TypeError:
             self.log.error('could not decode to tag')
             extension = None
