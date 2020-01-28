@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 #   Helper.py keeps the rest of the tools clean - part of SIPVicious tools
 #   Copyright (C) 2007-2020  Sandro Gauci <sandro@enablesecurity.com>

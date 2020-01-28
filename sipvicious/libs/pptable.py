@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 ## license is PSF [http://opensource.org/licenses/Python-2.0]
 ## picked from http://code.activestate.com/recipes/267662-table-indentation/
 
