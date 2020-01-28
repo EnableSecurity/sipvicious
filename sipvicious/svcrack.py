@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SIPvicious password cracker - svcrack
 
 __GPL__ = """
@@ -29,10 +29,12 @@ import socket
 import time
 import os
 import pickle
+import traceback
 from sys import exit
 from datetime import datetime
 from optparse import OptionParser
-from libs.svhelper import ( __version__, mysendto,
+from .libs.pptable import indent, wrap_onspace
+from .libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
     createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
@@ -177,6 +179,7 @@ class ASipOfRedWine:
     def getResponse(self):
         # we got stuff to read off the socket
         buff, _ = self.sock.recvfrom(8192)
+        buff = buff.decode('utf-8')
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
@@ -524,8 +527,6 @@ def main():
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')
     except Exception as err:
-        import traceback
-        from libs.svhelper import reportBugToAuthor
         if options.reportBack:
             logging.critical(
                 "Got unhandled exception : %s\nsending report to author" % err.__str__())
@@ -557,7 +558,6 @@ def main():
         if lenres > 0:
             logging.info("we have %s cracked users" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from libs.pptable import indent, wrap_onspace
                 width = 60
                 labels = ('Extension', 'Password')
                 rows = list()

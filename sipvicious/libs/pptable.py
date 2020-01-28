@@ -1,9 +1,8 @@
 ## license is PSF [http://opensource.org/licenses/Python-2.0]
 ## picked from http://code.activestate.com/recipes/267662-table-indentation/
 
-import re
-import math
-import io,operator
+import re, math
+import io, operator
 from functools import reduce
 
 def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
@@ -25,11 +24,11 @@ def indent(rows, hasHeader=False, headerChar='-', delim=' | ', justify='left',
     # closure for breaking logical rows to physical, using wrapfunc
     def rowWrapper(row):
         newRows = [wrapfunc(item).split('\n') for item in row]
-        return [[substr or '' for substr in item] for item in map(None,*newRows)]
+        return [[substr or '' for substr in item] for item in list([*newRows])]
     # break each logical row into one or more physical ones
     logicalRows = [rowWrapper(row) for row in rows]
     # columns of physical rows
-    columns = list(map(None,*reduce(operator.add,logicalRows)))
+    columns = list([*reduce(operator.add,logicalRows)])
     # get the maximum of each column by the string length of its items
     maxWidths = [max([len(str(item)) for item in column]) for column in columns]
     rowSeparator = headerChar * (len(prefix) + len(postfix) + sum(maxWidths) + \

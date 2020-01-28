@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # svwar.py - SIPvicious extension line scanner
 
 __GPL__ = """
@@ -35,8 +35,8 @@ from optparse import OptionParser
 from datetime import datetime
 from socket import error as socketerror
 from base64 import b64decode, b64encode
-from libs.pptable import indent, wrap_onspace
-from libs.svhelper import (
+from .libs.pptable import indent, wrap_onspace
+from .libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
     createTag, check_ipv6, makeRequest, getTag, parseHeader, 
     getRealm, standardoptions, standardscanneroptions, calcloglevel,
@@ -190,6 +190,7 @@ class TakeASip:
         if self.printdebug:
             print(srcaddr)
             print(buff)
+        buff = buff.decode('utf-8')
 
         try:
             extension = getTag(buff)
@@ -363,6 +364,7 @@ class TakeASip:
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
                     return
+                buff = buff.decode('utf-8')
                 if buff.startswith(self.TRYING) \
                         or buff.startswith(self.RINGING) \
                         or buff.startswith(self.UNAVAILABLE):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # svmap.py - SIPvicious SIP scanner
 
 __GPL__ = """
@@ -33,8 +33,8 @@ from optparse import OptionParser
 from struct import pack, unpack
 from sys import exit
 
-from libs.pptable import indent, wrap_onspace
-from libs.svhelper import (
+from .libs.pptable import indent, wrap_onspace
+from .libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist,
     mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, 
@@ -117,6 +117,7 @@ class DrinkOrSip:
     def getResponse(self,buff,srcaddr):        
         srcip,srcport = srcaddr
         uaname = 'unknown'
+        buff = buff.decode('utf-8')
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '):

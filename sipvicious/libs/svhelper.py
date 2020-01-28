@@ -40,7 +40,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 from urllib.parse import urlencode
 from binascii import b2a_hex, a2b_hex
-from libs.pptable import indent, wrap_onspace
+from .pptable import indent, wrap_onspace
 
 if sys.hexversion < 0x020400f0:
     sys.stderr.write(
@@ -391,7 +391,7 @@ def getCredentials(buff):
     data = getTag(buff)
     if data is None:
         return
-    userpass = data.split(':')
+    userpass = data.split(b':')
     if len(userpass) > 0:
         return(userpass)
 
@@ -403,10 +403,10 @@ def getTag(buff):
         if len(_tmp) > 0:
             _tmp2 = _tmp[0][1]
             try:
-                _tmp2 = a2b_hex(_tmp2)
+                _tmp2 = a2b_hex(_tmp2.strip())
             except TypeError:
                 return
-            if _tmp2.find('\x01') > 0:
+            if _tmp2.find(b'\x01') > 0:
                 try:
                     c, _ = _tmp2.split('\x01')
                 except ValueError:

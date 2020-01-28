@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # svcrash.py - SIPvicious crash breaks svwar and svcrack
 
 __GPL__ = """
@@ -33,7 +33,7 @@ import socket
 import warnings
 from scapy.layers.inet import IP, UDP
 from scapy.all import send, Raw, sniff
-from libs.svhelper import __author__, __version__
+from .libs.svhelper import __author__, __version__
 
 scapyversion = 0
 warnings.filterwarnings("ignore")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SIPVicious report engine
 __GPL__ = """
 
@@ -30,9 +30,8 @@ from optparse import OptionParser
 from sys import exit
 from datetime import datetime
 from operator import itemgetter
-from libs.svhelper import __version__
-from libs.svhelper import (
-    calcloglevel, listsessions, deletesessions, getsessionpath,
+from .libs.svhelper import (
+    __version__, calcloglevel, listsessions, deletesessions, getsessionpath,
     dbexists, createReverseLookup, getasciitable, outputtoxml, outputtopdf
 )
 
