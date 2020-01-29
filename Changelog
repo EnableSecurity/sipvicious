@@ -1,3 +1,15 @@
+v0.3.0 (20200129)
+
+* Port to Python 3! thanks to 0xInfection
+
+* IPv6 support for svwar and svcrack
+
+* svcrack now takes the --method option too
+
+* qop and md5-sess auth support added
+
+* lots of bug fixes
+
 v0.2.8 (20121210)
 * Feature: INVITE sends a BYE and supports ACK
 
