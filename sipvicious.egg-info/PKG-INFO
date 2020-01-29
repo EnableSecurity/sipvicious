@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: sipvicious
-Version: 0.2.8
+Version: 0.3.0
 Summary: SIPVicious suite is a set of tools that can be used to audit SIP based VoIP systems.
 Home-page: https://sipvicious.org
 Author: Sandro Gauci <sandro@enablesecurity.com>
 Author-email: sandro@enablesecurity.com
 License: GPL
-Download-URL: https://github.com/EnableSecurity/sipvicious/archive/v0.2.8.zip
+Download-URL: https://github.com/EnableSecurity/sipvicious/archive/v0.3.0.zip
 Project-URL: Bug Tracker, https://github.com/EnableSecurity/sipvicious/issues
 Project-URL: Source Code, https://github.com/EnableSecurity/sipvicious/tree/master
 Description: # Welcome to SIPVicious security tools
@@ -72,7 +72,6 @@ Classifier: Topic :: System :: Networking
 Classifier: Topic :: Communications :: Telephony
 Classifier: Topic :: Communications :: Internet Phone
 Classifier: License :: OSI Approved :: GNU General Public License (GPL)
-Classifier: Programming Language :: Python :: 2
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
 Description-Content-Type: text/markdown
