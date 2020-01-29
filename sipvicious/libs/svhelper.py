@@ -42,9 +42,9 @@ from urllib.parse import urlencode
 from binascii import b2a_hex, a2b_hex
 from .pptable import to_string
 
-if sys.hexversion < 0x020400f0:
+if sys.hexversion < 0x03050000:
     sys.stderr.write(
-        "Please update to python 2.4 or greater to run Sipvicious\r\n")
+        "Please update to python 3.5 or greater to run Sipvicious\r\n")
     sys.exit(1)
 
 
@@ -604,8 +604,8 @@ def reportBugToAuthor(trace):
         log.warn('Thanks for the bug report! I\'ll be working on it soon')
     except URLError as err:
         log.error(err)
-    log.warn('Make sure you are running the latest version of SIPVicious (svn version) \
-                 by running "svn update" in the current directory')
+    log.warn('Make sure you are running the latest version of SIPVicious \
+                 by running "git pull" in the current directory')
 
 
 def scanlist(iprange, portranges, methods):
