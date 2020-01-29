@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SIPvicious password cracker - svcrack
 
 __GPL__ = """
 
    SIPvicious password cracker is an online password guessing tool for SIP devices
-   Copyright (C) 2012  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2008-2020  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,16 +22,26 @@ __GPL__ = """
 
 import base64
 import logging
-import anydbm
+import dbm
 import random
 import select
 import socket
 import time
 import os
-from libs.svhelper import __author__, __version__
+import pickle
+import traceback
+from sys import exit
+from datetime import datetime
+from optparse import OptionParser
+from .libs.pptable import to_string
+from .libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
+    numericbrute, dictionaryattack, packetcounter, check_ipv6,
+    createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
+    getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
+    standardscanneroptions, standardoptions, calcloglevel, resumeFrom
+)
 
 __prog__ = 'svcrack'
-
 
 class ASipOfRedWine:
 
@@ -40,8 +50,6 @@ class ASipOfRedWine:
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
                  maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER', ipv6=False):
-        from libs.svhelper import dictionaryattack, numericbrute, packetcounter
-        import logging
         self.log = logging.getLogger('ASipOfRedWine')
         family = socket.AF_INET
         if ipv6:
@@ -55,7 +63,7 @@ class ASipOfRedWine:
         self.dbsyncs = False
         self.method = method
         if self.sessionpath is not None:
-            self.resultpasswd = anydbm.open(
+            self.resultpasswd = dbm.open(
                 os.path.join(self.sessionpath, 'resultpasswd'), 'c'
             )
             try:
@@ -132,16 +140,13 @@ class ASipOfRedWine:
     TRYING = 'SIP/2.0 100 '
 
     def Register(self, extension, remotehost, auth=None, cid=None):
-        from libs.svhelper import makeRequest
-        from libs.svhelper import createTag
-        from libs.svhelper import check_ipv6
-
         m = self.method
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag = str(random.getrandbits(32))
+        # Embedding value so as to not run into errors
+        localtag = '3206210844'.encode()
         if self.ipv6 and check_ipv6(remotehost):
             remotehost = '['+remotehost+']'
         contact = 'sip:%s@%s' % (extension, remotehost)
@@ -170,13 +175,12 @@ class ASipOfRedWine:
             requesturi=self.requesturi,
         )
         return register
-    
 
 
     def getResponse(self):
-        from libs.svhelper import getNonce, getCredentials, getRealm, getCID, getAuthHeader, getQop, getAlgorithm, getOpaque
         # we got stuff to read off the socket
-        buff, srcaddr = self.sock.recvfrom(8192)
+        buff, _ = self.sock.recvfrom(8192)
+        buff = buff.decode('utf-8')
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
@@ -221,14 +225,10 @@ class ASipOfRedWine:
             pass
         else:
             self.log.error("We got an unknown response")
-            self.log.debug(`buff`)
+            self.log.debug(buff.__repr__())
             self.nomore = True
 
     def start(self):
-        # from libs.svhelper import ,getCredentials,getRealm,getCID
-        import socket
-        import pickle
-        from libs.svhelper import mysendto
         if self.bindingip == '':
             bindingip = 'any'
         else:
@@ -254,7 +254,7 @@ class ASipOfRedWine:
         data = self.Register(self.extension, self.domain)
         try:
             mysendto(self.sock, data, (self.dsthost, self.dstport))
-        except socket.error, err:
+        except socket.error as err:
             self.log.error("socket error: %s" % err)
             return
         try:
@@ -263,13 +263,13 @@ class ASipOfRedWine:
         except socket.timeout:
             self.log.error("no server response")
             return
-        except socket.error, err:
+        except socket.error as err:
             self.log.error("socket error:%s" % err)
             return
         if self.noauth is True:
             return
         while 1:
-            r, w, e = select.select(
+            r, _, _ = select.select(
                 self.rlist,
                 self.wlist,
                 self.xlist,
@@ -282,7 +282,7 @@ class ASipOfRedWine:
                 try:
                     self.getResponse()
                     self.lastrecvtime = time.time()
-                except socket.error, err:
+                except socket.error as err:
                     self.log.warn("socket error: %s" % err)
             else:
                 # check if its been a while since we had a response to prevent
@@ -314,7 +314,7 @@ class ASipOfRedWine:
                             'algorithm'], self.auth['opaque'] = self.challenges.pop()
                     self.auth['proxy'] = self.dstisproxy
                     try:
-                        self.auth['password'] = self.passwdgen.next()
+                        self.auth['password'] = next(self.passwdgen)
                         self.previouspassword = self.auth['password']
                         self.log.debug('trying %s' % self.auth['password'])
                         if self.auth['algorithm'] == "md5-sess" or self.auth['qop'] == "auth":
@@ -334,7 +334,7 @@ class ASipOfRedWine:
                     mysendto(self.sock, data, (self.dsthost, self.dstport))
                     # self.sock.sendto(data,(self.dsthost,self.dstport))
                     if self.sessionpath is not None:
-                        if self.packetcount.next():
+                        if next(self.packetcount):
                             try:
                                 if self.crackmode == 1:
                                     pickle.dump(self.previouspassword, open(
@@ -349,21 +349,12 @@ class ASipOfRedWine:
                             except IOError:
                                 self.log.warn(
                                     'could not log the last extension scanned')
-                except socket.error, err:
+                except socket.error as err:
                     self.log.error("socket error: %s" % err)
                     break
 
 
 def main():
-    from optparse import OptionParser
-    from datetime import datetime
-    from libs.svhelper import getRange, resumeFrom, calcloglevel
-    import os
-    from sys import exit
-    import logging
-    import pickle
-    from libs.svhelper import standardoptions, standardscanneroptions
-
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
     usage += "%prog -u100 -d dictionary.txt 10.0.0.1\r\n"
@@ -495,7 +486,7 @@ def main():
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
             try:
-                os.makedirs(exportpath, mode=0700)
+                os.makedirs(exportpath, mode=0o700)
             except OSError:
                 logging.critical(
                     'could not create the export location %s' % exportpath)
@@ -536,12 +527,10 @@ def main():
             open(os.path.join(exportpath, 'closed'), 'w').close()
     except KeyboardInterrupt:
         logging.warn('caught your control^c - quiting')
-    except Exception, err:
-        import traceback
-        from libs.svhelper import reportBugToAuthor
+    except Exception as err:
         if options.reportBack:
             logging.critical(
-                "Got unhandled exception : sending report to author")
+                "Got unhandled exception : %s\nsending report to author" % err.__str__())
             reportBugToAuthor(traceback.format_exc())
         else:
             logging.critical(
@@ -570,14 +559,11 @@ def main():
         if lenres > 0:
             logging.info("we have %s cracked users" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                from libs.pptable import indent, wrap_onspace
-                width = 60
                 labels = ('Extension', 'Password')
                 rows = list()
                 for k in sipvicious.resultpasswd.keys():
                     rows.append((k, sipvicious.resultpasswd[k]))
-                print indent([labels] + rows, hasHeader=True,
-                             prefix='| ', postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width))
+                print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:

@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # SIPVicious report engine
 __GPL__ = """
 
    SIPVicious report engine manages sessions from previous scans with SIPVicious
    tools and allows you to export these scans.
-   Copyright (C) 2007  Sandro Gauci <sandrogauc@gmail.com>
+   Copyright (C) 2008-2020  Sandro Gauci <sandrogauc@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,15 +20,21 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import anydbm
+import re
+import dbm
+import csv
 import logging
 import os
 import socket
 from optparse import OptionParser
 from sys import exit
-from xml.dom.minidom import Document
+from datetime import datetime
+from operator import itemgetter
+from .libs.svhelper import (
+    __version__, calcloglevel, listsessions, deletesessions, getsessionpath,
+    dbexists, createReverseLookup, getasciitable, outputtoxml, outputtopdf
+)
 
-from libs.svhelper import __author__, __version__
 
 __prog__ = 'svreport'
 
@@ -71,14 +77,15 @@ def main():
         parser.error("Please specify a command.\r\n")
         exit(1)
     command = args[0]
-    from libs.svhelper import listsessions, deletesessions, createReverseLookup, dbexists
-    from libs.svhelper import getsessionpath, getasciitable, outputtoxml, outputtopdf, calcloglevel
     validcommands = ['list', 'export', 'delete', 'stats', 'search']
     if command not in validcommands:
         parser.error('%s is not a supported command' % command)
         exit(1)
     logging.basicConfig(level=calcloglevel(options))
     sessiontypes = ['svmap', 'svwar', 'svcrack']
+    if options.sessiontype not in sessiontypes:
+        parser.error("Invalid session type. Please specify a valid session type.")
+        exit(1)
     logging.debug('started logging')
     if command == 'list':
         listsessions(options.sessiontype, count=options.count)
@@ -92,7 +99,6 @@ def main():
                 'Session could not be found. Make sure it exists by making use of %s.py list' % __prog__)
             exit(1)
     elif command == 'export':
-        from datetime import datetime
         start_time = datetime.now()
         if options.session is None:
             parser.error("Please specify a valid session")
@@ -120,7 +126,7 @@ def main():
         if not dbexists(dbloc):
             logging.error('The database could not be found: %s' % dbloc)
             exit(1)
-        db = anydbm.open(dbloc, 'r')
+        db = dbm.open(dbloc, 'r')
 
         if options.resolve and sessiontype == 'svmap':
             resolve = True
@@ -128,11 +134,11 @@ def main():
             resdbloc = os.path.join(sessionpath, 'resolved')
             if not dbexists(resdbloc):
                 logging.info('Performing DNS reverse lookup')
-                resdb = anydbm.open(resdbloc, 'c')
+                resdb = dbm.open(resdbloc, 'c')
                 createReverseLookup(db, resdb)
             else:
                 logging.info('Not Performing DNS lookup')
-                resdb = anydbm.open(resdbloc, 'r')
+                resdb = dbm.open(resdbloc, 'r')
 
         if options.outputfile is not None:
             if options.outputfile.find('.') < 0:
@@ -143,33 +149,27 @@ def main():
         if options.format in [None, 'stdout', 'txt']:
             o = getasciitable(labels, db, resdb)
             if options.outputfile is None:
-                print o
+                print(o)
             else:
                 open(options.outputfile, 'w').write(o)
         elif options.format == 'xml':
-            from xml.dom.minidom import Document
-            doc = Document()
-            node = doc.createElement(sessiontype)
             o = outputtoxml('%s report' % sessiontype, labels, db, resdb)
             open(options.outputfile, 'w').write(o)
         elif options.format == 'pdf':
             outputtopdf(options.outputfile, '%s report' %
                         sessiontype, labels, db, resdb)
         elif options.format == 'csv':
-            import csv
             writer = csv.writer(open(options.outputfile, "w"))
             for k in db.keys():
                 row = [k, db[k]]
                 if resdb is not None:
-                    if resdb.has_key(k):
+                    if k in resdb:
                         row.append(resdb[k])
                     else:
                         row.append('N/A')
                 writer.writerow(row)
         logging.info("That took %s" % (datetime.now() - start_time))
     elif command == 'stats':
-        from operator import itemgetter
-        import re
         if options.session is None:
             parser.error("Please specify a valid session")
             exit(1)
@@ -189,42 +189,37 @@ def main():
         if not dbexists(dbloc):
             logging.error('The database could not be found: %s' % dbloc)
             exit(1)
-        db = anydbm.open(dbloc, 'r')
+        db = dbm.open(dbloc, 'r')
         useragents = dict()
         useragentconames = dict()
         for k in db.keys():
             v = db[k]
-            if not useragents.has_key(v):
+            if v not in useragents:
                 useragents[v] = 0
             useragents[v] += 1
             useragentconame = re.split('[ /]', v)[0]
-            if not useragentconames.has_key(useragentconame):
+            if useragentconame not in useragentconames:
                 useragentconames[useragentconame] = 0
             useragentconames[useragentconame] += 1
 
-        _useragents = sorted(useragents.iteritems(),
+        _useragents = sorted(iter(useragents.items()),
                              key=itemgetter(1), reverse=True)
-        suseragents = map(lambda x: '\t- %s (%s)' % (x[0], x[1]), _useragents)
+        suseragents = list(map(lambda x: '\t- %s (%s)' % (x[0], x[1]), _useragents))
         _useragentsnames = sorted(
-            useragentconames.iteritems(), key=itemgetter(1), reverse=True)
-        suseragentsnames = map(lambda x: '\t- %s (%s)' %
-                               (x[0], x[1]), _useragentsnames)
-        print "Total number of SIP devices found: %s" % len(db.keys())
-        print "Total number of useragents: %s\r\n" % len(suseragents)
-        print "Total number of useragent names: %s\r\n" % len(suseragentsnames)
-
-        print "Most popular top 30 useragents:\r\n"
-        print '\r\n'.join(suseragents[:30])
-        print '\r\n\r\n'
-        print "Most unpopular top 30 useragents:\r\n\t"
-        print '\r\n'.join(suseragents[-30:])
-        print "\r\n\r\n"
-        print "Most popular top 30 useragent names:\r\n"
-        print '\r\n'.join(suseragentsnames[:30])
-        print '\r\n\r\n'
-        print "Most unpopular top 30 useragent names:\r\n\t"
-        print '\r\n'.join(suseragentsnames[-30:])
-        print "\r\n\r\n"
+            iter(useragentconames.items()), key=itemgetter(1), reverse=True)
+        suseragentsnames = list(map(lambda x: '\t- %s (%s)' %
+                               (x[0], x[1]), _useragentsnames))
+        print("Total number of SIP devices found: %s" % len(list(db.keys())))
+        print("Total number of useragents: %s\r\n" % len(suseragents))
+        print("Total number of useragent names: %s\r\n" % len(suseragentsnames))
+        print("Most popular top 30 useragents:\r\n")
+        print('\r\n'.join(suseragents[:30]), '\r\n\r\n')
+        print("Most unpopular top 30 useragents:\r\n\t")
+        print('\r\n'.join(suseragents[-30:]), "\r\n\r\n")
+        print("Most popular top 30 useragent names:\r\n")
+        print('\r\n'.join(suseragentsnames[:30]), '\r\n\r\n')
+        print("Most unpopular top 30 useragent names:\r\n\t")
+        print('\r\n'.join(suseragentsnames[-30:]), '\r\n\r\n')
     elif command == 'search':
         if options.session is None:
             parser.error("Please specify a valid session")
@@ -245,14 +240,14 @@ def main():
         if not dbexists(dbloc):
             logging.error('The database could not be found: %s' % dbloc)
             exit(1)
-        db = anydbm.open(dbloc, 'r')
+        db = dbm.open(dbloc, 'r')
         useragents = dict()
         useragentconames = dict()
         labels = ['Host', 'User Agent']
         for k in db.keys():
             v = db[k]
             if searchstring.lower() in v.lower():
-                print k + '\t' + v
+                print(k + '\t' + v)
 
 if __name__ == "__main__":
     main()

