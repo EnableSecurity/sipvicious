@@ -62,7 +62,6 @@ setup(name='sipvicious',
         'Topic :: Communications :: Telephony',
         'Topic :: Communications :: Internet Phone',
         'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent'
     ],
