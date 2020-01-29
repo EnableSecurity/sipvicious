@@ -212,19 +212,14 @@ def main():
         print("Total number of SIP devices found: %s" % len(list(db.keys())))
         print("Total number of useragents: %s\r\n" % len(suseragents))
         print("Total number of useragent names: %s\r\n" % len(suseragentsnames))
-
         print("Most popular top 30 useragents:\r\n")
-        print('\r\n'.join(suseragents[:30]))
-        print('\r\n\r\n')
+        print('\r\n'.join(suseragents[:30]), '\r\n\r\n')
         print("Most unpopular top 30 useragents:\r\n\t")
-        print('\r\n'.join(suseragents[-30:]))
-        print("\r\n\r\n")
+        print('\r\n'.join(suseragents[-30:]), "\r\n\r\n")
         print("Most popular top 30 useragent names:\r\n")
-        print('\r\n'.join(suseragentsnames[:30]))
-        print('\r\n\r\n')
+        print('\r\n'.join(suseragentsnames[:30]), '\r\n\r\n')
         print("Most unpopular top 30 useragent names:\r\n\t")
-        print('\r\n'.join(suseragentsnames[-30:]))
-        print("\r\n\r\n")
+        print('\r\n'.join(suseragentsnames[-30:]), '\r\n\r\n')
     elif command == 'search':
         if options.session is None:
             parser.error("Please specify a valid session")

@@ -35,7 +35,7 @@ from optparse import OptionParser
 from datetime import datetime
 from socket import error as socketerror
 from base64 import b64decode, b64encode
-from .libs.pptable import indent, wrap_onspace
+from .libs.pptable import to_string
 from .libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
     createTag, check_ipv6, makeRequest, getTag, parseHeader, 
@@ -191,10 +191,9 @@ class TakeASip:
             print(srcaddr)
             print(buff)
         buff = buff.decode('utf-8')
-
         try:
             extension = getTag(buff).decode('utf-8')
-        except TypeError:
+        except (TypeError, AttributeError):
             self.log.error('could not decode to tag')
             extension = None
         if extension is None:
@@ -657,13 +656,11 @@ def main():
         if lenres > 0:
             logging.info("we have %s extensions" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                width = 60
                 labels = ('Extension', 'Authentication')
                 rows = list()
                 for k in sipvicious.resultauth.keys():
                     rows.append((k, sipvicious.resultauth[k]))
-                print(indent([labels] + rows, hasHeader=True,
-                             prefix='| ', postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width)))
+                print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:

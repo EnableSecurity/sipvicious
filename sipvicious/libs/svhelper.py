@@ -40,7 +40,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 from urllib.parse import urlencode
 from binascii import b2a_hex, a2b_hex
-from .pptable import indent, wrap_onspace
+from .pptable import to_string
 
 if sys.hexversion < 0x020400f0:
     sys.stderr.write(
@@ -497,11 +497,9 @@ def makeRedirect(previousHeaders, rediraddr):
     return(r)
 
 
-def makeRequest(
-    method, fromaddr, toaddr, dsthost, port, callid, srchost='',
-    branchunique=None, cseq=1, auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
-    localport=5060, extension=None, contenttype=None, body='',
-        useragent='friendly-scanner', requesturi=None):
+def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', branchunique=None, cseq=1,
+    auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
+    localport=5060, extension=None, contenttype=None, body='', useragent='ahm', requesturi=None):
     """makeRequest builds up a SIP request
     method - OPTIONS / INVITE etc
     toaddr = to address
@@ -527,7 +525,7 @@ def makeRequest(
         headers['t'] = toaddr
         headers['f'] = fromaddr
         if localtag is not None:
-            headers['f'] += ';tag=%s' % localtag
+            headers['f'] += ';tag=%s' % localtag.decode('utf-8')
         headers['i'] = callid
         # if contact is not None:
         headers['m'] = contact
@@ -927,8 +925,7 @@ def getasciitable(labels, db, resdb=None, width=60):
             else:
                 cols.append('[not available]')
         rows.append(cols)
-    o = indent([labels] + rows, hasHeader=True,
-               prefix='| ', postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width))
+    o = to_string(rows, header=labels)
     return o
 
 
