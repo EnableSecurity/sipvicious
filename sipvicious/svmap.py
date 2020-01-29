@@ -33,7 +33,7 @@ from optparse import OptionParser
 from struct import pack, unpack
 from sys import exit
 
-from .libs.pptable import indent, wrap_onspace
+from .libs.pptable import to_string
 from .libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist,
@@ -531,8 +531,7 @@ def main():
                 rows = list()
                 for k in sipvicious.resultua.keys():
                     rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))
-                print(indent([labels]+rows,hasHeader=True,
-                    prefix='| ', postfix=' |',wrapfunc=lambda x: wrap_onspace(x,width)))
+                print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:

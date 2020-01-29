@@ -33,7 +33,7 @@ import traceback
 from sys import exit
 from datetime import datetime
 from optparse import OptionParser
-from .libs.pptable import indent, wrap_onspace
+from .libs.pptable import to_string
 from .libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
     createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
@@ -145,7 +145,8 @@ class ASipOfRedWine:
             cid = '%s' % str(random.getrandbits(32))
         branchunique = '%s' % random.getrandbits(32)
         cseq = 1
-        localtag = str(random.getrandbits(32)).encode()
+        # Embedding value so as to not run into errors
+        localtag = '3206210844'.encode()
         if self.ipv6 and check_ipv6(remotehost):
             remotehost = '['+remotehost+']'
         contact = 'sip:%s@%s' % (extension, remotehost)
@@ -558,13 +559,11 @@ def main():
         if lenres > 0:
             logging.info("we have %s cracked users" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                width = 60
                 labels = ('Extension', 'Password')
                 rows = list()
                 for k in sipvicious.resultpasswd.keys():
                     rows.append((k, sipvicious.resultpasswd[k]))
-                print(indent([labels] + rows, hasHeader=True, prefix='| ',
-                        postfix=' |', wrapfunc=lambda x: wrap_onspace(x, width)))
+                print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")
         else:
