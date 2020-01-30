@@ -454,24 +454,24 @@ def challengeResponse(auth, method, uri):
         nonceCount = "%08d" % auth["noncecount"]
         result += ',cnonce="%s",nc=%s' % (cnonce, nonceCount)
     if algorithm is None or algorithm == "md5":
-        ha1 = md5('%s:%s:%s' % (username, realm, passwd)).hexdigest()
+        ha1 = md5(('%s:%s:%s' % (username, realm, passwd)).encode('utf-8')).hexdigest()
         result += ',algorithm=MD5'
     elif auth["algorithm"] == "md5-sess":
-        ha1 = md5(md5('%s:%s:%s' % (username, realm, passwd)
-                      ).hexdigest() + ":" + nonce + ":" + cnonce).hexdigest()
+        ha1 = md5((md5(('%s:%s:%s' % (username, realm, passwd)).encode('utf-8')
+                      ).hexdigest() + ":" + nonce + ":" + cnonce).encode('utf-8')).hexdigest()
         result += ',algorithm=MD5-sess'
     else:
         print("Unknown algorithm: %s" % auth["algorithm"])
     if qop is None or qop == "auth":
-        ha2 = md5('%s:%s' % (method, uri)).hexdigest()
+        ha2 = md5(('%s:%s' % (method, uri)).encode('utf-8')).hexdigest()
         result += ',qop=auth'
     if qop == "auth-int":
         print("auth-int is not supported")
     if qop == "auth":
-        res = md5(ha1 + ":" + nonce + ":" + nonceCount + ":" +
-                  cnonce + ":" + qop + ":" + ha2).hexdigest()
+        res = md5((ha1 + ":" + nonce + ":" + nonceCount + ":" +
+                  cnonce + ":" + qop + ":" + ha2).encode('utf-8')).hexdigest()
     else:
-        res = md5('%s:%s:%s' % (ha1, nonce, ha2)).hexdigest()
+        res = md5(('%s:%s:%s' % (ha1, nonce, ha2)).encode('utf-8')).hexdigest()
     result += ',response="%s"' % res
     if opaque is not None and opaque != "":
         result += ',opaque="%s"' % opaque
