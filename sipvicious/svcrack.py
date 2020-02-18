@@ -64,8 +64,7 @@ class ASipOfRedWine:
         self.method = method
         if self.sessionpath is not None:
             self.resultpasswd = dbm.open(
-                os.path.join(self.sessionpath, 'resultpasswd'), 'c'
-            )
+                os.path.join(self.sessionpath, 'resultpasswd'), 'c')
             try:
                 self.resultpasswd.sync()
                 self.dbsyncs = True
@@ -208,7 +207,7 @@ class ASipOfRedWine:
             if (_tmp is not None) and (len(_tmp) == 2):
                 crackeduser, crackedpasswd = _tmp
                 self.log.info("The password for %s is %s" %
-                              (crackeduser, crackedpasswd))
+                              (crackeduser.decode(), crackedpasswd.decode()))
                 self.resultpasswd[crackeduser] = crackedpasswd
                 if self.sessionpath is not None and self.dbsyncs:
                     self.resultpasswd.sync()
@@ -338,12 +337,12 @@ class ASipOfRedWine:
                             try:
                                 if self.crackmode == 1:
                                     pickle.dump(self.previouspassword, open(
-                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'w'))
+                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'wb+'))
                                     self.log.debug(
                                         'logged last extension %s' % self.previouspassword)
                                 elif self.crackmode == 2:
                                     pickle.dump(self.crackargs.tell(), open(
-                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'w'))
+                                        os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'wb+'))
                                     self.log.debug(
                                         'logged last position %s' % self.crackargs.tell())
                             except IOError:
@@ -417,7 +416,7 @@ def main():
         optionssrc = os.path.join(exportpath, 'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
-        options, args = pickle.load(open(optionssrc, 'r'))
+        options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
@@ -435,7 +434,7 @@ def main():
         optionssrc = os.path.join(exportpath, 'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
-        options, args = pickle.load(open(optionssrc, 'r'))
+        options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
@@ -457,7 +456,7 @@ def main():
             logging.error("could not open %s" % options.dictionary)
         if options.resume is not None:
             lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
-            previousposition = pickle.load(open(lastpasswdsrc, 'r'))
+            previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
             dictionary.seek(previousposition)
         crackargs = dictionary
     else:
@@ -465,7 +464,7 @@ def main():
         if options.resume is not None:
             lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
             try:
-                previouspasswd = pickle.load(open(lastpasswdsrc, 'r'))
+                previouspasswd = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
             except IOError:
                 logging.critical('Could not read from %s' % lastpasswdsrc)
                 exit(1)
@@ -493,7 +492,7 @@ def main():
                 exit(1)
             optionsdst = os.path.join(exportpath, 'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
-            pickle.dump([options, args], open(optionsdst, 'w'))
+            pickle.dump([options, args], open(optionsdst, 'wb+'))
     if options.autogetip:
         tmpsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tmpsocket.connect(("msn.com", 80))
@@ -543,12 +542,12 @@ def main():
         try:
             if crackmode == 1:
                 pickle.dump(sipvicious.previouspassword, open(
-                    os.path.join(exportpath, 'lastpasswd.pkl'), 'w'))
+                    os.path.join(exportpath, 'lastpasswd.pkl'), 'wb+'))
                 logging.debug('logged last password %s' %
                               sipvicious.previouspassword)
             elif crackmode == 2:
                 pickle.dump(sipvicious.crackargs.tell(), open(
-                    os.path.join(exportpath, 'lastpasswd.pkl'), 'w'))
+                    os.path.join(exportpath, 'lastpasswd.pkl'), 'wb+'))
                 logging.debug('logged last position %s' %
                               sipvicious.crackargs.tell())
         except IOError:
@@ -561,8 +560,12 @@ def main():
             if (lenres < 400 and options.save is not None) or options.save is None:
                 labels = ('Extension', 'Password')
                 rows = list()
-                for k in sipvicious.resultpasswd.keys():
-                    rows.append((k, sipvicious.resultpasswd[k]))
+                try:
+                    for k in sipvicious.resultpasswd.keys():
+                        rows.append((k.decode(), sipvicious.resultpasswd[k].decode()))
+                except AttributeError:
+                    for k in sipvicious.resultpasswd.keys():
+                        rows.append((k, sipvicious.resultpasswd[k]))
                 print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")

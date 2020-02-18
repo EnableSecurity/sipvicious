@@ -262,7 +262,7 @@ class DrinkOrSip:
                     if self.sessionpath is not None:
                         if next(self.packetcount):
                             try:
-                                f=open(os.path.join(self.sessionpath,'lastip.pkl'),'w')
+                                f=open(os.path.join(self.sessionpath,'lastip.pkl'),'wb+')
                                 pickle.dump(self.nextip,f)
                                 f.close()
                                 self.log.debug('logged last ip %s' % self.nextip)
@@ -333,7 +333,7 @@ def main():
         optionssrc = os.path.join(exportpath,'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
-        options,args = pickle.load(open(optionssrc,'r'))
+        options,args = pickle.load(open(optionssrc,'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
     elif options.save is not None:
@@ -424,8 +424,8 @@ def main():
             if options.resume is not None:
                 lastipsrc = os.path.join(exportpath,'lastip.pkl')
                 try:
-                    f=open(lastipsrc,'r')
-                    previousip = pickle.load(f)
+                    f=open(lastipsrc,'rb')
+                    previousip = pickle.load(f, encoding='bytes')
                     f.close()
                 except IOError:
                     logging.critical('Could not read from %s' % lastipsrc)
@@ -456,7 +456,7 @@ def main():
                 exit(1)
             optionsdst = os.path.join(exportpath,'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
-            pickle.dump([options,args],open(optionsdst,'w'))
+            pickle.dump([options,args],open(optionsdst,'wb+'))
     try:
         options.extension
     except AttributeError:
@@ -506,7 +506,7 @@ def main():
         lastipdst = os.path.join(exportpath,'lastip.pkl')
         logging.debug('saving state to %s' % lastipdst)
         try:
-            f = open(lastipdst,'w')
+            f = open(lastipdst,'wb+')
             pickle.dump(sipvicious.nextip,f)
             f.close()
         except OSError:
@@ -529,8 +529,12 @@ def main():
                 width = 60
                 labels = ('SIP Device','User Agent','Fingerprint')
                 rows = list()
-                for k in sipvicious.resultua.keys():
-                    rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))
+                try:
+                    for k in sipvicious.resultua.keys():
+                        rows.append((k.decode(),sipvicious.resultua[k].decode(),sipvicious.resultfp[k].decode()))
+                except AttributeError:
+                    for k in sipvicious.resultua.keys():
+                        rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))  
                 print(to_string(rows, header=labels))
             else:
                 logging.warn("too many to print - use svreport for this")
