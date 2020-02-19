@@ -900,7 +900,7 @@ def createReverseLookup(src, dst):
     if len(srcdb) > 100:
         log.warn("Performing dns lookup on %s hosts. To disable reverse ip resolution make use of the -n option" % len(srcdb))
     for k in srcdb.keys():
-        tmp = k.split(':', 1)
+        tmp = k.decode('utf-8').split(':', 1)
         if len(tmp) == 2:
             ajpi, port = tmp
             try:

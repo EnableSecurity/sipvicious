@@ -193,7 +193,7 @@ def main():
         useragents = dict()
         useragentconames = dict()
         for k in db.keys():
-            v = db[k]
+            v = db[k].decode('utf-8')
             if v not in useragents:
                 useragents[v] = 0
             useragents[v] += 1
