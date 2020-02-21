@@ -499,7 +499,7 @@ def makeRedirect(previousHeaders, rediraddr):
 
 def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', branchunique=None, cseq=1,
     auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
-    localport=5060, extension=None, contenttype=None, body='', useragent='friendly-scanner', requesturi=None):
+    localport=5060, extension=None, contenttype=None, body='', useragent='ahm', requesturi=None):
     """makeRequest builds up a SIP request
     method - OPTIONS / INVITE etc
     toaddr = to address
@@ -900,11 +900,11 @@ def createReverseLookup(src, dst):
     if len(srcdb) > 100:
         log.warn("Performing dns lookup on %s hosts. To disable reverse ip resolution make use of the -n option" % len(srcdb))
     for k in srcdb.keys():
-        tmp = k.decode('utf-8').split(':', 1)
+        tmp = k.split(b':', 1)
         if len(tmp) == 2:
             ajpi, port = tmp
             try:
-                tmpk = ':'.join([socket.gethostbyaddr(ajpi)[0], port])
+                tmpk = ':'.join([socket.gethostbyaddr(ajpi.decode())[0], port.decode()])
                 logging.debug('Resolved %s to %s' % (k, tmpk))
                 dstdb[k] = tmpk
             except socket.error:
@@ -918,10 +918,10 @@ def createReverseLookup(src, dst):
 def getasciitable(labels, db, resdb=None, width=60):
     rows = list()
     for k in db.keys():
-        cols = [k, db[k]]
+        cols = [k.decode(), db[k].decode()]
         if resdb is not None:
             if k in resdb:
-                cols.append(resdb[k])
+                cols.append(resdb[k].decode())
             else:
                 cols.append('[not available]')
         rows.append(cols)
