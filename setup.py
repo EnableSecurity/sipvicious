@@ -21,9 +21,19 @@
 #       MA 02110-1301, USA.
 
 import io
+import sys
+
+if sys.version_info[0] < 3:
+    raise Exception("Must be using Python 3")
+
+
 from os import path
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
+
 from sipvicious.libs.svhelper import __author__, __version__
+
+
 this_directory = path.abspath(path.dirname(__file__))
 with io.open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     desc = f.read()
