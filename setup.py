@@ -36,7 +36,7 @@ setup(name='sipvicious',
     author=__author__,
     author_email='sandro@enablesecurity.com',
     license='GPL',
-    url='https://sipvicious.org',
+    url='https://github.com/EnableSecurity/sipvicious',
     project_urls={
         "Bug Tracker": "https://github.com/EnableSecurity/sipvicious/issues",
         "Source Code": "https://github.com/EnableSecurity/sipvicious/tree/master",
