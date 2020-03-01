@@ -587,9 +587,6 @@ def reportBugToAuthor(trace):
     data += '\r\n'
     data += "python version: \r\n"
     data += "%s\r\n" % sys.version
-    # data += """2.5 (r25:51918, Sep 19 2006, 08:49:13)
-    #data += "[GCC ]"
-    #data += "A"*900
     data += "osname: %s" % os.name
     data += '\r\n'
     if os.name == 'posix':
@@ -600,8 +597,8 @@ def reportBugToAuthor(trace):
     data += str(trace)
     try:
         urlopen('https://comms.enablesecurity.com/hello.php',
-                urlencode({'message': data}))
-        log.warn('Thanks for the bug report! I\'ll be working on it soon')
+                urlencode({'message': data}).encode('utf-8'))
+        log.warn('Thanks for the bug report! We will be working on it soon')
     except URLError as err:
         log.error(err)
     log.warn('Make sure you are running the latest version of SIPVicious \
