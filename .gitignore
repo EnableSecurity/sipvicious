@@ -14,4 +14,4 @@ setuptools.egg-info
 *~
 .hg*
 .vscode/*
-
+sipvicious.egg-info

@@ -1,7 +1,0 @@
-[console_scripts]
-sipvicious_svcrack = sipvicious.svcrack:main
-sipvicious_svcrash = sipvicious.svcrash:main
-sipvicious_svmap = sipvicious.svmap:main
-sipvicious_svreport = sipvicious.svreport:main
-sipvicious_svwar = sipvicious.svwar:main
-
