@@ -112,6 +112,8 @@ def _hjoin_multiline(join_char, strings):
 def to_string(
     data, header=None, alignment="l", padding=(0, 1), style=style
 ):
+    if len(data) == 0:
+        return "no results"
     try:
         depth = len(data.shape)
     except AttributeError:
