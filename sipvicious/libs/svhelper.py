@@ -40,6 +40,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 from urllib.parse import urlencode
 from binascii import b2a_hex, a2b_hex
+from binascii import Error as b2aerr
 from .pptable import to_string
 
 if sys.hexversion < 0x03050000:
@@ -404,7 +405,7 @@ def getTag(buff):
             _tmp2 = _tmp[0][1]
             try:
                 _tmp2 = a2b_hex(_tmp2.strip())
-            except TypeError:
+            except (TypeError, b2aerr):
                 return
             if _tmp2.find(b'\x01') > 0:
                 try:
