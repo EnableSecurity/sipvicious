@@ -8,7 +8,7 @@ The 5 tools that you should be looking at are:
 - svreport
 - svcrash
 
-![logo](http://1.bp.blogspot.com/-zIJlVWzVCu4/V0Rxz6pbjYI/AAAAAAAABEc/hFEJ6o8yCrcizEo7hvFG6kldNtrKJxMPgCK4B/s1600/sipvicious-web.png)
+![SIPVicious mascot](https://blog.sipvicious.com/images/sipvicious.png)
 
 ## The tools
 
