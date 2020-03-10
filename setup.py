@@ -75,5 +75,6 @@ setup(name='sipvicious',
         'Programming Language :: Python :: 3',
         'Operating System :: OS Independent'
     ],
-    keywords='telephony sip audit scanner voip'
+    keywords='telephony sip audit scanner voip',
+    python_requires='>=3.6',
 )
