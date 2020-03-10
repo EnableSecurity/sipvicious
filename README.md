@@ -44,7 +44,7 @@ svcrash
 
 For usage help make use of `-h` or `--help` switch.
 
-Also check out the [wiki](https://github.com/sandrogauci/sipvicious/wiki)
+Also check out the [wiki](https://github.com/enablesecurity/sipvicious/wiki)
 
 And if you're stuck you're welcome to contact the author.
 
