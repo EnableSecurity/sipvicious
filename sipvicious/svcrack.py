@@ -186,6 +186,9 @@ class ASipOfRedWine:
             self.dstisproxy = False
         if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.AUTHREQ):
             authheader = getAuthHeader(buff)
+            if authheader is None:
+                self.log.critical("no authentication header found in response, cannot proceed")
+                exit(1)
             nonce = getNonce(authheader)
             opaque = getOpaque(authheader)
             algorithm = getAlgorithm(authheader)
