@@ -19,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 import re
@@ -43,9 +43,9 @@ from binascii import b2a_hex, a2b_hex
 from binascii import Error as b2aerr
 from .pptable import to_string
 
-if sys.hexversion < 0x03050000:
+if sys.hexversion < 0x03060000:
     sys.stderr.write(
-        "Please update to python 3.5 or greater to run Sipvicious\r\n")
+        "Please update to python 3.6 or greater to run SIPVicious\r\n")
     sys.exit(1)
 
 
