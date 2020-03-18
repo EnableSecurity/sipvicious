@@ -179,7 +179,7 @@ class ASipOfRedWine:
     def getResponse(self):
         # we got stuff to read off the socket
         buff, _ = self.sock.recvfrom(8192)
-        buff = buff.decode('utf-8')
+        buff = buff.decode('utf-8', 'ignore')
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):

@@ -363,7 +363,7 @@ class TakeASip:
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
                     return
-                buff = buff.decode('utf-8')
+                buff = buff.decode('utf-8', 'ignore')
                 if buff.startswith(self.TRYING) \
                         or buff.startswith(self.RINGING) \
                         or buff.startswith(self.UNAVAILABLE):

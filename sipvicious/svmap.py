@@ -114,10 +114,10 @@ class DrinkOrSip:
             self.packetcount = packetcounter(50)
         self.sentpackets = 0
 
-    def getResponse(self,buff,srcaddr):        
+    def getResponse(self,buff,srcaddr):
         srcip,srcport = srcaddr
         uaname = 'unknown'
-        buff = buff.decode('utf-8')
+        buff = buff.decode('utf-8', 'ignore')
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '):
