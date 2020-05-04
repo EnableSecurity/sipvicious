@@ -37,18 +37,22 @@ from .libs.pptable import to_string
 from .libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist,
-    mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, 
+    mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
     scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
 )
 
 __prog__ = "svmap"
 
 class DrinkOrSip:
-    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='0.0.0.0',
+    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='',
                  fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
                  sessionpath=None,socktimeout=3,externalip=None,localport=5060,
-                 printdebug=False,first=None,fpworks=False):
+                 printdebug=False,first=None,fpworks=False,ipv6=False):
         self.log = logging.getLogger('DrinkOrSip')
+        family = socket.AF_INET
+        if ipv6:
+            family = socket.AF_INET6
+        self.ipv6 = ipv6
         self.bindingip = bindingip
         self.sessionpath = sessionpath
         self.dbsyncs = False
@@ -68,7 +72,7 @@ class DrinkOrSip:
             self.resultua = dict()
             self.resultfp = dict()
         # we do UDP
-        self.sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        self.sock = socket.socket(family, socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
         # up some final packets
         self.sock.settimeout(socktimeout)
@@ -160,9 +164,9 @@ class DrinkOrSip:
             self.resultua['%s:%s' % (srcip,srcport)] = uaname
             self.resultfp['%s:%s' % (srcip,srcport)] = fpname
             if self.sessionpath is not None and self.dbsyncs:
-                    self.resultip.sync()
-                    self.resultua.sync()
-                    self.resultfp.sync()
+                self.resultip.sync()
+                self.resultua.sync()
+                self.resultfp.sync()
         else:
             self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
             self.log.debug('Packet: %s' % buff.__repr__())
@@ -171,7 +175,11 @@ class DrinkOrSip:
         # bind to 5060 - the reason is to maximize compatability with
         # devices that disregard the source port and send replies back
         # to port 5060
-        self.log.debug("binding to %s:%s" % (self.bindingip,self.localport))
+        if self.bindingip == '':
+            bindingip = 'any'
+        else:
+            bindingip = self.bindingip
+        self.log.debug("binding to %s:%s" % (bindingip, self.localport))
         while 1:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
@@ -228,9 +236,15 @@ class DrinkOrSip:
                 dstip,dstport,method = nextscan
                 self.nextip = dstip
                 dsthost = (dstip,dstport)
+                domain = dsthost[0]
                 branchunique = '%s' % random.getrandbits(32)
-
-                localtag = createTag('%s%s' % (''.join(map(lambda x: '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
+                if self.ipv6 and check_ipv6(dsthost[0]):
+                    domain = '[' + dsthost[0] + ']'
+                    localtag = createTag('%s%s' % (''.join(map(lambda x: 
+                        '%s' % x, dsthost[0].split(':'))), '%04x' % dsthost[1]))
+                else:
+                    localtag = createTag('%s%s' % (''.join(map(lambda x: 
+                        '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
                 fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
                 toaddr = fromaddr
                 callid = '%s' % random.getrandbits(80)
@@ -241,7 +255,7 @@ class DrinkOrSip:
                                 method,
                                 fromaddr,
                                 toaddr,
-                                dsthost[0],
+                                domain,
                                 dsthost[1],
                                 callid,
                                 self.externalip,
@@ -319,6 +333,7 @@ def main():
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
+    parser.add_option('-6', '--ipv6', dest="ipv6", action='store_true', help="scan an IPv6 address")
     parser.add_option('--crashandburn', dest="crashandburn", action="store_true", default=False)
     (options, args) = parser.parse_args()
     exportpath = None
@@ -478,6 +493,7 @@ def main():
                     printdebug=options.printdebug,
                     first=options.first,
                     fromname=options.fromname,
+                    ipv6=options.ipv6,
                     )
     start_time = datetime.now()
     logging.info( "start your engines" )
