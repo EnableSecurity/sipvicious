@@ -36,7 +36,7 @@ from sys import exit
 from .libs.pptable import to_string
 from .libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
-    getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist,
+    getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
     mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
     scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
 )
@@ -310,25 +310,18 @@ def main():
                   help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
     parser.add_option("-I", "--inputtext", dest="inputtext",
                   help="Scan IPs from a text file - use the same syntax as command line but with new lines instead of commas. Pass the file name as the argument", metavar="scan1")
-    parser.add_option("-m", "--method", dest="method",
-                  help="Specify the request method - by default this is OPTIONS.",
-                  default='OPTIONS'
-                  )
+    parser.add_option("-m", "--method", dest="method",  help="Specify the request method - by default this is OPTIONS.",
+                  default='OPTIONS')
     parser.add_option("-d", "--debug", dest="printdebug",
-                  help="Print SIP messages received",
-                  default=False, action="store_true"
-                  )
+                  help="Print SIP messages received", default=False, action="store_true")
     parser.add_option("--first", dest="first",
                   help="Only send the first given number of messages (i.e. usually used to scan only X IPs)",
-                  type="long",
-                  )
+                  type="long")
     parser.add_option("-e", "--extension", dest="extension", default='100',
                   help="Specify an extension - by default this is not set")
-    parser.add_option("--randomize", dest="randomize", action="store_true",
-                      default=False,
+    parser.add_option("--randomize", dest="randomize", action="store_true", default=False,
                   help="Randomize scanning instead of scanning consecutive ip addresses")
-    parser.add_option("--srv", dest="srvscan", action="store_true",
-                      default=False,
+    parser.add_option("--srv", dest="srvscan", action="store_true", default=False,
                   help="Scan the SRV records for SIP on the destination domain name." \
                        "The targets have to be domain names - example.org domain1.com")
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
@@ -449,14 +442,16 @@ def main():
                 args = resumeFromIP(previousip,args)
                 logging.debug('New args: %s' % args)
                 logging.info('Resuming from %s' % previousip)
-
-            # normal consecutive scan
-            try:
-                iprange = ip4range(*args)
-            except ValueError as err:
-                logging.error(err)
-                exit(1)
-            scaniter = scanlist(iprange,portrange,options.method.split(','))
+            if options.ipv6:
+                scaniter = scanlist(ip6range(*args), portrange, options.method.split(','))
+            else:
+                # normal consecutive scan
+                try:
+                    iprange = ip4range(*args)
+                except ValueError as err:
+                    logging.error(err)
+                    exit(1)
+                scaniter = scanlist(iprange,portrange,options.method.split(','))
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)

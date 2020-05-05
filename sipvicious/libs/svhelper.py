@@ -39,9 +39,9 @@ from random import getrandbits
 from urllib.request import urlopen
 from urllib.error import URLError
 from urllib.parse import urlencode
-from binascii import b2a_hex, a2b_hex
 from binascii import Error as b2aerr
 from .pptable import to_string
+from binascii import b2a_hex, a2b_hex, hexlify
 
 if sys.hexversion < 0x03060000:
     sys.stderr.write(
@@ -60,7 +60,7 @@ def standardoptions(parser):
                       help="Source port for our packets", metavar="PORT")
     parser.add_option("-x", "--externalip", dest="externalip",
                       help="IP Address to use as the external ip. Specify this if you have multiple interfaces or if you are behind NAT", metavar="IP")
-    parser.add_option("-b", "--bindingip", dest="bindingip", default='0.0.0.0',
+    parser.add_option("-b", "--bindingip", dest="bindingip", default='',
                       help="By default we bind to all interfaces. This option overrides that and binds to the specified ip address")
     parser.add_option("-t", "--timeout", dest="selecttime", type="float", default=0.005,
                       help="This option allows you to trottle the speed at which packets are sent. Change this if you're losing packets. For example try 0.5.",
@@ -686,6 +686,11 @@ def numToDottedQuad(n):
     return socket.inet_ntoa(struct.pack('!L', n))
 
 
+def colonHexToNum(ip):
+    "convert ipv6 address to long integer"
+    return int(hexlify(socket.inet_pton(socket.AF_INET6, ip)), 16)
+
+
 def ip4range(*args):
     for arg in args:
         r = getranges(arg)
@@ -696,6 +701,11 @@ def ip4range(*args):
         while curip <= endip:
             yield(numToDottedQuad(curip))
             curip += 1
+
+
+def ip6range(*args):
+    for arg in args:
+        yield(arg)
 
 
 def getranges(ipstring):
@@ -723,8 +733,12 @@ def getranges(ipstring):
         try:
             naddr1 = dottedQuadToNum(socket.gethostbyname(ipstring))
             naddr2 = naddr1
-        except socket.error:
-            log.info('Could not resolve %s' % ipstring)
+        except socket.gaierror:
+            # trying ipv6 
+            naddr1 = colonHexToNum(socket.getaddrinfo(ipstring, None, socket.AF_INET6))
+            naddr2 = naddr1
+        except Exception as err:
+            log.info('Could not resolve %s: %s' % (ipstring, err.__str__))
             return
     return((naddr1, naddr2))
 
