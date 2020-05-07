@@ -500,7 +500,7 @@ def makeRedirect(previousHeaders, rediraddr):
 
 def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', branchunique=None, cseq=1,
     auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
-    localport=5060, extension=None, contenttype=None, body='', useragent='friendly-scanner', requesturi=None):
+    localport=5060, extension=None, contenttype=None, body='', useragent='ahm', requesturi=None):
     """makeRequest builds up a SIP request
     method - OPTIONS / INVITE etc
     toaddr = to address

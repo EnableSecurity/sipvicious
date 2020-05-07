@@ -119,16 +119,16 @@ class DrinkOrSip:
         self.sentpackets = 0
 
     def getResponse(self,buff,srcaddr):
-        srcip,srcport = srcaddr
+        srcip, srcport, *_ = srcaddr
         uaname = 'unknown'
         buff = buff.decode('utf-8', 'ignore')
         if buff.startswith('OPTIONS ') \
             or buff.startswith('INVITE ') \
             or buff.startswith('REGISTER '):
             if self.externalip == srcip:
-                self.log.debug("We received our own packet from %s:%s" % srcaddr)
+                self.log.debug("We received our own packet from %s:%s" % (str(srcip), srcport))
             else:
-                self.log.info("Looks like we received a SIP request from %s:%s"% srcaddr)
+                self.log.info("Looks like we received a SIP request from %s:%s"% (str(srcip), srcport))
                 self.log.debug(buff.__repr__())
             return
         self.log.debug("running fingerPrintPacket()")
@@ -204,7 +204,8 @@ class DrinkOrSip:
                 # we got stuff to read off the socket
                 try:
                     buff,srcaddr = self.sock.recvfrom(8192)
-                    self.log.debug('got data from %s:%s' % srcaddr)
+                    host, port, *_ = srcaddr
+                    self.log.debug('got data from %s:%s' % (str(host), str(port)))
                     self.log.debug('data: %s' % buff.__repr__())
                     if self.printdebug:
                         print(srcaddr)
@@ -245,7 +246,10 @@ class DrinkOrSip:
                 else:
                     localtag = createTag('%s%s' % (''.join(map(lambda x: 
                         '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
-                fromaddr = '"%s"<%s>' % (self.fromname,self.fromaddr)
+                if self.ipv6:
+                    fromaddr = '"%s"<sip:100@%s>' % (self.fromname, domain)
+                else:
+                    fromaddr = '"%s"<%s>' % (self.fromname, self.fromaddr)
                 toaddr = fromaddr
                 callid = '%s' % random.getrandbits(80)
                 contact = None
