@@ -733,12 +733,8 @@ def getranges(ipstring):
         try:
             naddr1 = dottedQuadToNum(socket.gethostbyname(ipstring))
             naddr2 = naddr1
-        except socket.gaierror:
-            # trying ipv6 
-            naddr1 = colonHexToNum(socket.getaddrinfo(ipstring, None, socket.AF_INET6))
-            naddr2 = naddr1
-        except Exception as err:
-            log.info('Could not resolve %s: %s' % (ipstring, err.__str__))
+        except socket.error:
+            log.error('Could not resolve %s' % ipstring)
             return
     return((naddr1, naddr2))
 
