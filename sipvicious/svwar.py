@@ -547,7 +547,7 @@ def main():
     if options.dictionary is not None:
         guessmode = 2
         try:
-            dictionary = open(options.dictionary, 'r')
+            dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
         except IOError:
             logging.error("could not open %s" % options.dictionary)
             exit(1)
