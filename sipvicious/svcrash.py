@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # svcrash.py - SIPvicious crash breaks svwar and svcrack
 
 __GPL__ = """

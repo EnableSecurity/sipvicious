@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # SIPVicious report engine
 __GPL__ = """
 

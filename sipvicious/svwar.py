@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # svwar.py - SIPvicious extension line scanner
 
 __GPL__ = """
