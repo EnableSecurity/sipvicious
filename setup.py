@@ -35,8 +35,8 @@ from sipvicious.libs.svhelper import __author__, __version__
 
 
 this_directory = path.abspath(path.dirname(__file__))
-with io.open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
-    desc = f.read()
+with io.open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_file:
+    desc = readme_file.read()
 
 setup(name='sipvicious',
     version=__version__,
@@ -51,8 +51,16 @@ setup(name='sipvicious',
         "Bug Tracker": "https://github.com/EnableSecurity/sipvicious/issues",
         "Source Code": "https://github.com/EnableSecurity/sipvicious/tree/master",
     },
-    download_url='https://github.com/EnableSecurity/sipvicious/archive/v%s.zip' % __version__,
+    download_url=f'https://github.com/EnableSecurity/sipvicious/archive/v{__version__}.zip',
     packages=find_packages(),
+    data_files = [("man/man1", [
+        "man1/svcrack.1",
+        "man1/svcrash.1",
+        "man1/svmap.1",
+        "man1/svreport.1",
+        "man1/svwar.1",
+        ])
+    ],
     entry_points={
         'console_scripts': [
             'sipvicious_svmap = sipvicious.svmap:main',
