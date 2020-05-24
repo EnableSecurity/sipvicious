@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # SIPvicious password cracker - svcrack
 
 __GPL__ = """
