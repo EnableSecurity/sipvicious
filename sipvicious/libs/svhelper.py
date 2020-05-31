@@ -704,7 +704,6 @@ def ip4range(*args):
 
 
 def ip6range(*args):
-    log = logging.getLogger('ip6range')
     for arg in args:
         if check_ipv6(arg):
             yield(arg)
