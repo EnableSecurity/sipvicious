@@ -705,7 +705,8 @@ def ip4range(*args):
 
 def ip6range(*args):
     for arg in args:
-        yield(arg)
+        if check_ipv6(arg):
+            yield(arg)
 
 
 def getranges(ipstring):
@@ -1151,6 +1152,10 @@ def getAuthHeader(pkt):
 
 
 def check_ipv6(n):
+    log = logging.getLogger('check_ipv6')
+    if '/' in n:
+        log.error('CIDR notation not supported for IPv6 addresses.')
+        return False
     try:
         socket.inet_pton(socket.AF_INET6, n)
         return True
