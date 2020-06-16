@@ -330,7 +330,6 @@ def main():
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
     parser.add_option('-6', '--ipv6', dest="ipv6", action='store_true', help="scan an IPv6 address")
-    parser.add_option('--crashandburn', dest="crashandburn", action="store_true", default=False)
     (options, args) = parser.parse_args()
     exportpath = None
     if options.resume is not None:
@@ -496,8 +495,6 @@ def main():
     start_time = datetime.now()
     logging.info( "start your engines" )
     try:
-        if options.crashandburn:
-            raise ValueError
         try:
             sipvicious.start()
         except AssertionError as err:
