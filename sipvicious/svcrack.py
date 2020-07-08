@@ -387,20 +387,18 @@ def main():
                       help="""A format string which allows us to specify a template for the extensions
                       example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
                       """)
-    parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
-                      default=10,
-                      help="""Maximum time in seconds to keep sending requests without
-                      receiving a response back""")
+    parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int", default=10,
+                      help="Maximum time in seconds to keep sending requests without receiving a response back")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
                       default=False, help="""Scan for default / typical passwords such as
                       1000,2000,3000 ... 1100, etc. This option is off by default.
                       Use --enabledefaults to enable this functionality""")
     parser.add_option('--domain', dest="domain",
-                      help="force a specific domain name for the SIP message, eg. -d example.org")
+                      help="force a specific domain name for the SIP message, eg. example.org")
     parser.add_option('--requesturi', dest="requesturi",
                         help="force the first line URI to a specific value; e.g. sip:999@example.org")
-    parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
-    parser.add_option('-m','--method', dest='method', default='REGISTER')
+    parser.add_option('-6', dest="ipv6", action="store_true", help="Scan an IPv6 address")
+    parser.add_option('-m','--method', dest='method', default='REGISTER', help="Specify a SIP method to use")
     (options, args) = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
