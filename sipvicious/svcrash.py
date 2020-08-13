@@ -23,6 +23,7 @@ __GPL__ = """
 import re
 import sys
 import time
+import scapy
 import logging
 import optparse
 import os.path
