@@ -304,6 +304,8 @@ def main():
     usage += "%prog --resume session1 -v\r\n\r\n"
     usage += "%prog -p5060-5062 10.0.0.3-20 -m INVITE\r\n\r\n"
     parser = OptionParser(usage, version="%prog v"+str(__version__)+__GPL__)
+    parser.add_option("-p", "--port", dest="port", default="5060",
+                      help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
