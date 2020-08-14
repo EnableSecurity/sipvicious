@@ -631,6 +631,8 @@ def scanrandom(ipranges, portranges, methods, resume=None, randomstore='.sipvici
         pass
     ipsleft = 0
     for iprange in ipranges:
+        if iprange is None:
+            continue
         startip, endip = iprange
         ipsleft += endip - startip + 1
         hit = 0
@@ -795,6 +797,8 @@ def resumeFromIP(ip, args):
     rargs = list()
     nip = dottedQuadToNum(ip)
     for arg in args:
+        if arg is None:
+            continue
         startip, endip = getranges(arg)
         if not foundit:
             if startip <= nip and endip >= nip:
