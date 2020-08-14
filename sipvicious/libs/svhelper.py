@@ -54,8 +54,6 @@ def standardoptions(parser):
                       help="Increase verbosity")
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
                       default=False, help="Quiet mode")
-    parser.add_option("-p", "--port", dest="port", default="5060",
-                      help="Destination port or port ranges of the SIP device - eg -p5060,5061,8000-8100", metavar="PORT")
     parser.add_option("-P", "--localport", dest="localport", default=5060, type="int",
                       help="Source port for our packets", metavar="PORT")
     parser.add_option("-x", "--externalip", dest="externalip",

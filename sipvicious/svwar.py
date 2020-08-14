@@ -82,7 +82,12 @@ class TakeASip:
         self.xlist = list()
         self.challenges = list()
         self.realm = None
-        self.dsthost, self.dstport = host, int(port)
+        try:
+            if int(port) > 1 and int(port) <= 65535:
+                self.dsthost, self.dstport = host, int(port)
+        except (ValueError, TypeError):
+            self.log.error('port should strictly be an integer between 1 and 65535')
+            exit(1)
         self.domain = self.dsthost
         if domain:
             self.domain = domain
@@ -465,6 +470,8 @@ def main():
     usage += "%prog -d dictionary.txt 10.0.0.2\r\n"
     parser = OptionParser(usage, version="%prog v" +
                           str(__version__) + __GPL__)
+    parser.add_option("-p", "--port", dest="port", default="5060",
+                      help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
