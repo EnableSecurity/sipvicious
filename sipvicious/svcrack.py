@@ -32,8 +32,8 @@ import traceback
 from sys import exit
 from datetime import datetime
 from optparse import OptionParser
-from .libs.pptable import to_string
-from .libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
+from libs.pptable import to_string
+from libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
     createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,

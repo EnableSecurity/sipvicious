@@ -34,8 +34,8 @@ from optparse import OptionParser
 from datetime import datetime
 from socket import error as socketerror
 from base64 import b64decode, b64encode
-from .libs.pptable import to_string
-from .libs.svhelper import (
+from libs.pptable import to_string
+from libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
     createTag, check_ipv6, makeRequest, getTag, parseHeader, 
     getRealm, standardoptions, standardscanneroptions, calcloglevel,
