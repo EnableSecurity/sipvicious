@@ -223,7 +223,7 @@ class ASipOfRedWine:
                 self.noauth = True
                 self.resultpasswd[self.username] = '[no password]'
         elif buff.startswith(self.NOTFOUND):
-            self.log.warn("User not found")
+            self.log.warning("User not found")
             self.noauth = True
         elif buff.startswith(self.INVALIDPASS):
             pass
@@ -251,7 +251,7 @@ class ASipOfRedWine:
                 self.log.debug("could not bind to %s" % self.localport)
                 self.localport += 1
         if self.originallocalport != self.localport:
-            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" %
+            self.log.warning("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" %
                           (self.bindingip, self.originallocalport, self.localport))
             self.log.info(
                 "Make use of the -P option to specify a port to bind to yourself")
@@ -289,14 +289,14 @@ class ASipOfRedWine:
                     self.getResponse()
                     self.lastrecvtime = time.time()
                 except socket.error as err:
-                    self.log.warn("socket error: %s" % err)
+                    self.log.warning("socket error: %s" % err)
             else:
                 # check if its been a while since we had a response to prevent
                 # flooding - otherwise stop
                 timediff = time.time() - self.lastrecvtime
                 if timediff > self.maxlastrecvtime:
                     self.nomore = True
-                    self.log.warn(
+                    self.log.warning(
                         'It has been %s seconds since we last received a response - stopping' % timediff)
                 if self.passwordcracked:
                     break
@@ -353,7 +353,7 @@ class ASipOfRedWine:
                                     self.log.debug(
                                         'logged last position %s' % self.crackargs.tell())
                             except IOError:
-                                self.log.warn(
+                                self.log.warning(
                                     'could not log the last extension scanned')
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
@@ -487,7 +487,7 @@ def main():
             exportpath = os.path.join(os.path.expanduser(
                 '~'), '.sipvicious', __prog__, options.save)
             if os.path.exists(exportpath):
-                logging.warn(
+                logging.warning(
                     'we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
@@ -532,7 +532,7 @@ def main():
         if exportpath is not None:
             open(os.path.join(exportpath, 'closed'), 'w').close()
     except KeyboardInterrupt:
-        logging.warn('caught your control^c - quiting')
+        logging.warning('caught your control^c - quiting')
     except Exception as err:
         if options.reportBack:
             logging.critical(
@@ -558,7 +558,7 @@ def main():
                 logging.debug('logged last position %s' %
                               sipvicious.crackargs.tell())
         except IOError:
-            logging.warn('could not log the last tried password')
+            logging.warning('could not log the last tried password')
     # display results
     if not options.quiet:
         lenres = len(sipvicious.resultpasswd)
@@ -575,9 +575,9 @@ def main():
                         rows.append((k, sipvicious.resultpasswd[k]))
                 print(to_string(rows, header=labels))
             else:
-                logging.warn("too many to print - use svreport for this")
+                logging.warning("too many to print - use svreport for this")
         else:
-            logging.warn("found nothing")
+            logging.warning("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)

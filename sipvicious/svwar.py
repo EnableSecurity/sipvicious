@@ -103,7 +103,7 @@ class TakeASip:
         self.BADUSER = None
         self.method = method.upper()
         if self.method == 'INVITE':
-            self.log.warn(
+            self.log.warning(
                 'using an INVITE scan on an endpoint (i.e. SIP phone) may cause it to ring and wake up people in the middle of the night')
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
@@ -231,7 +231,7 @@ class TakeASip:
                     # _tmp['headers']['from'][0].split('"')[1]
                     username = getTag(buff)
                 except IndexError:
-                    self.log.warn('could not parse the from address %s' % _tmp[
+                    self.log.warning('could not parse the from address %s' % _tmp[
                                   'headers']['from'])
                     username = 'XXX'
                 cseq = _tmp['headers']['cseq'][0]
@@ -284,7 +284,7 @@ class TakeASip:
                 if self.sessionpath is not None and self.dbsyncs:
                     self.resultauth.sync()
             else:
-                self.log.warn(
+                self.log.warning(
                     "extension '%s' probably exists but the response is unexpected" % extension)
                 self.log.debug("response: %s" % firstline)
                 self.resultauth[extension] = 'weird'
@@ -308,7 +308,7 @@ class TakeASip:
         elif buff.startswith(self.DECLINED):
             pass
         elif buff.startswith(self.NOTALLOWED):
-            self.log.warn("method not allowed")
+            self.log.warning("method not allowed")
             self.nomore = True
             return
         elif buff.startswith(self.BADREQUEST):
@@ -317,7 +317,7 @@ class TakeASip:
             self.nomore = True
             return
         else:
-            self.log.warn("We got an unknown response")
+            self.log.warning("We got an unknown response")
             self.log.error("Response: %s" % buff.__repr__())
             self.log.debug("1st line: %s" % firstline.__repr__())
             self.log.debug("Bad user: %s" % self.BADUSER.__repr__())
@@ -340,7 +340,7 @@ class TakeASip:
                 self.log.debug("could not bind to %s" % self.localport)
                 self.localport += 1
         if self.originallocalport != self.localport:
-            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" %
+            self.log.warning("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" %
                           (self.bindingip, self.originallocalport, self.localport))
             self.log.info(
                 "Make use of the -P option to specify a port to bind to yourself")
@@ -398,7 +398,7 @@ class TakeASip:
             self.log.error("socket error: %s" % err)
             return
         if self.BADUSER.startswith(self.AUTHREQ):
-            self.log.warn(
+            self.log.warning(
                 "Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
         # let the fun commence
         self.log.info('Ok SIP device found')
@@ -425,7 +425,7 @@ class TakeASip:
                 timediff = time.time() - self.lastrecvtime
                 if timediff > self.maxlastrecvtime:
                     self.nomore = True
-                    self.log.warn(
+                    self.log.warning(
                         'It has been %s seconds since we last received a response - stopping' % timediff)
                     continue
                 # no stuff to read .. its our turn to send back something
@@ -456,7 +456,7 @@ class TakeASip:
                                     self.log.debug(
                                         'logged last position %s' % self.guessargs.tell())
                             except IOError:
-                                self.log.warn(
+                                self.log.warning(
                                     'could not log the last extension scanned')
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
@@ -583,7 +583,7 @@ def main():
             exportpath = os.path.join(os.path.expanduser(
                 '~'), '.sipvicious', __prog__, options.save)
             if os.path.exists(exportpath):
-                logging.warn(
+                logging.warning(
                     'we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
@@ -630,7 +630,7 @@ def main():
         if exportpath is not None:
             open(os.path.join(exportpath, 'closed'), 'w').close()
     except KeyboardInterrupt:
-        logging.warn('caught your control^c - quiting')
+        logging.warning('caught your control^c - quiting')
     except Exception as err:
         if options.reportBack:
             logging.critical(
@@ -655,7 +655,7 @@ def main():
                 logging.debug('logged last position %s' %
                               sipvicious.guessargs.tell())
         except IOError:
-            logging.warn('could not log the last extension scanned')
+            logging.warning('could not log the last extension scanned')
     # display results
     if not options.quiet:
         lenres = len(sipvicious.resultauth)
@@ -672,9 +672,9 @@ def main():
                         rows.append((k, sipvicious.resultauth[k]))                    
                 print(to_string(rows, header=labels))
             else:
-                logging.warn("too many to print - use svreport for this")
+                logging.warning("too many to print - use svreport for this")
         else:
-            logging.warn("found nothing")
+            logging.warning("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
