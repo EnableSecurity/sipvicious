@@ -42,11 +42,17 @@ The SIPVicious OSS toolset consists of the following tools:
 	responds to svwar and svcrack SIP messages with a message that
 	causes old versions to crash. 
 
-For usage help make use of `-h` or `--help` switch.
+For usage help make use of `-h` or `--help` switch. Full usage help can be found on our [Wiki](https://github.com/EnableSecurity/sipvicious/wiki).
+
+A getting started post can be found on the Communication Breakdown blog: [Attacking a real VoIP System with SIPVicious OSS](https://www.rtcsec.com/2020/06/02-attacking-voip-system-with-sipvicious/).
 
 ## Installation
 
 Please refer to the [installation documentation](https://github.com/EnableSecurity/sipvicious/wiki/Basics#installation).
+
+## A note to vendors and service providers
+
+If you are looking for a professional grade toolset to test your RTC systems, please consider [SIPVicious PRO](https://www.sipvicious.pro) which is available as a closed beta version.
 
 ## Further information
 
