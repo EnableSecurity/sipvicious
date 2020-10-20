@@ -58,7 +58,6 @@ class DrinkOrSip:
         if self.sessionpath is not  None:
             self.resultip = dbm.open(os.path.join(self.sessionpath,'resultip'),'c')
             self.resultua = dbm.open(os.path.join(self.sessionpath,'resultua'),'c')
-            self.resultfp = dbm.open(os.path.join(self.sessionpath,'resultfp'),'c')
             try:
                 self.resultip.sync()
                 self.dbsyncs = True
@@ -69,7 +68,6 @@ class DrinkOrSip:
         else:
             self.resultip = dict()
             self.resultua = dict()
-            self.resultfp = dict()
         # we do UDP
         self.sock = socket.socket(family, socket.SOCK_DGRAM)
         # socket timeout - this is particularly useful when quitting .. to eat
@@ -157,15 +155,13 @@ class DrinkOrSip:
             except (ValueError,TypeError,socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
                 dstip,dstport = 'unknown','unknown'
-            resultstr = '%s:%s\t->\t%s:%s\t->\t%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname,fpname)
+            resultstr = '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname)
             self.log.info( resultstr )
             self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
             self.resultua['%s:%s' % (srcip,srcport)] = uaname
-            self.resultfp['%s:%s' % (srcip,srcport)] = fpname
             if self.sessionpath is not None and self.dbsyncs:
                 self.resultip.sync()
                 self.resultua.sync()
-                self.resultfp.sync()
         else:
             self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
             self.log.debug('Packet: %s' % buff.__repr__())
@@ -540,14 +536,14 @@ def main():
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
                 width = 60
-                labels = ('SIP Device','User Agent','Fingerprint')
+                labels = ('SIP Device','User Agent')
                 rows = list()
                 try:
                     for k in sipvicious.resultua.keys():
-                        rows.append((k.decode(),sipvicious.resultua[k].decode(),sipvicious.resultfp[k].decode()))
+                        rows.append((k.decode(),sipvicious.resultua[k].decode()))
                 except AttributeError:
                     for k in sipvicious.resultua.keys():
-                        rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))  
+                        rows.append((k,sipvicious.resultua[k]))  
                 print(to_string(rows, header=labels))
             else:
                 logging.warning("too many to print - use svreport for this")
