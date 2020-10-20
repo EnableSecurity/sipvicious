@@ -29,7 +29,7 @@ from optparse import OptionParser
 from sys import exit
 from datetime import datetime
 from operator import itemgetter
-from .libs.svhelper import (
+from sipvicious.libs.svhelper import (
     __version__, calcloglevel, listsessions, deletesessions, getsessionpath,
     dbexists, createReverseLookup, getasciitable, outputtoxml, outputtopdf
 )

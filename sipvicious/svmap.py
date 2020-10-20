@@ -32,8 +32,8 @@ from optparse import OptionParser
 from struct import pack, unpack
 from sys import exit
 
-from .libs.pptable import to_string
-from .libs.svhelper import (
+from sipvicious.libs.pptable import to_string
+from sipvicious.libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
     mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
@@ -190,7 +190,7 @@ class DrinkOrSip:
                 self.log.debug("could not bind to %s" % self.localport)
                 self.localport += 1
         if self.originallocalport != self.localport:
-            self.log.warn("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
+            self.log.warning("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
         while 1:
             r, _, _ = select.select(
@@ -284,7 +284,7 @@ class DrinkOrSip:
                                 f.close()
                                 self.log.debug('logged last ip %s' % self.nextip)
                             except IOError:
-                                self.log.warn('could not log the last ip scanned')
+                                self.log.warning('could not log the last ip scanned')
                     if self.first is not None:
                         if self.sentpackets >= self.first:
                             self.log.info('Reached the limit to scan the first %s packets' % self.first)
@@ -460,7 +460,7 @@ def main():
         if options.resume is None:
             exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
             if os.path.exists(exportpath):
-                logging.warn('we found a previous scan with the same name. Please choose a new session name')
+                logging.warning('we found a previous scan with the same name. Please choose a new session name')
                 exit(1)
             logging.debug('creating an export location %s' % exportpath)
             try:
@@ -505,7 +505,7 @@ def main():
         if exportpath is not None:
             open(os.path.join(exportpath,'closed'),'w').close()
     except KeyboardInterrupt:
-        logging.warn( 'caught your control^c - quiting' )
+        logging.warning( 'caught your control^c - quiting' )
         pass
     except Exception as err:
         if options.reportBack:
@@ -523,7 +523,7 @@ def main():
             pickle.dump(sipvicious.nextip,f)
             f.close()
         except OSError:
-            logging.warn('Could not save state to %s' % lastipdst)
+            logging.warning('Could not save state to %s' % lastipdst)
     elif options.save is None:
         if scanrandomstore is not None:
         #if options.randomize or options.randomscan:
@@ -531,7 +531,7 @@ def main():
                     logging.debug('removing %s' % scanrandomstore)
                     os.unlink(scanrandomstore)
             except OSError:
-                    logging.warn('could not remove %s' % scanrandomstore)
+                    logging.warning('could not remove %s' % scanrandomstore)
                     pass
     # display results
     if not options.quiet:
@@ -550,9 +550,9 @@ def main():
                         rows.append((k,sipvicious.resultua[k],sipvicious.resultfp[k]))  
                 print(to_string(rows, header=labels))
             else:
-                logging.warn("too many to print - use svreport for this")
+                logging.warning("too many to print - use svreport for this")
         else:
-            logging.warn("found nothing")
+            logging.warning("found nothing")
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" %  total_time)
