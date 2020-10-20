@@ -37,7 +37,7 @@ try:
     scapyversion = scapy.__version__
 except ImportError:
     scapyversion = 0
-from libs.svhelper import __author__, __version__
+from sipvicious.libs.svhelper import __author__, __version__
 warnings.filterwarnings("ignore")
 
 __prog__ = 'svcrash'

@@ -32,8 +32,8 @@ from optparse import OptionParser
 from struct import pack, unpack
 from sys import exit
 
-from libs.pptable import to_string
-from libs.svhelper import (
+from sipvicious.libs.pptable import to_string
+from sipvicious.libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
     mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
