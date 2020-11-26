@@ -1,16 +1,17 @@
 # Welcome to SIPVicious OSS security tools
 
-The SIPVicious OSS toolset consists of the following tools:
+![SIPVicious mascot](https://repository-images.githubusercontent.com/32133566/55b41300-12d9-11eb-89d8-58f60930e3fa)
 
+SIPVicious OSS is a set of security tools that can be used to audit SIP based VoIP systems. 
+
+## The tools
+
+The SIPVicious OSS toolset consists of the following tools:
 - svmap
 - svwar
 - svcrack
 - svreport
 - svcrash
-
-![SIPVicious mascot](https://blog.sipvicious.com/images/sipvicious.png)
-
-## The tools
 
 ### svmap
 
