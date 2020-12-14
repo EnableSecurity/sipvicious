@@ -524,7 +524,7 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
         headers['t'] = toaddr
         headers['f'] = fromaddr
         if localtag is not None:
-            headers['f'] += ';tag=%s' % localtag.decode('utf-8')
+            headers['f'] += ';tag=%s' % localtag.decode('utf-8', 'ignore')
         headers['i'] = callid
         # if contact is not None:
         headers['m'] = contact
@@ -536,7 +536,7 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
         headers['From'] = fromaddr
         headers['User-Agent'] = useragent
         if localtag is not None:
-            headers['From'] += ';tag=%s' % localtag.decode('utf-8')
+            headers['From'] += ';tag=%s' % localtag.decode('utf-8', 'ignore')
         headers['Call-ID'] = callid
         # if contact is not None:
         headers['Contact'] = contact
