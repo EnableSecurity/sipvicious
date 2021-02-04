@@ -190,24 +190,22 @@ class ASipOfRedWine:
             self.dstisproxy = False
         if buff.startswith(self.PROXYAUTHREQ) or buff.startswith(self.AUTHREQ):
             authheader = getAuthHeader(buff)
-            if authheader is None:
-                self.log.critical("no authentication header found in response, cannot proceed")
-                exit(1)
-            nonce = getNonce(authheader)
-            opaque = getOpaque(authheader)
-            algorithm = getAlgorithm(authheader)
-            qop = getQop(authheader)
-            cid = getCID(buff)
-            if self.realm is None:
-                self.realm = getRealm(buff)
-            if None not in (nonce, self.realm):
-                if self.reusenonce:
-                    if len(self.challenges) > 0:
-                        return
-                    else:
-                        self.staticnonce = nonce
-                        self.staticcid = cid
-                self.challenges.append([nonce, cid, qop, algorithm, opaque])
+            if authheader is not None:
+                nonce = getNonce(authheader)
+                opaque = getOpaque(authheader)
+                algorithm = getAlgorithm(authheader)
+                qop = getQop(authheader)
+                cid = getCID(buff)
+                if self.realm is None:
+                    self.realm = getRealm(buff)
+                if None not in (nonce, self.realm):
+                    if self.reusenonce:
+                        if len(self.challenges) > 0:
+                            return
+                        else:
+                            self.staticnonce = nonce
+                            self.staticcid = cid
+                    self.challenges.append([nonce, cid, qop, algorithm, opaque])
         elif buff.startswith(self.OKEY):
             self.passwordcracked = True
             _tmp = getCredentials(buff)
