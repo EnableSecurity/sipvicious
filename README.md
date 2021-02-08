@@ -2,11 +2,24 @@
 
 ![SIPVicious mascot](https://repository-images.githubusercontent.com/32133566/55b41300-12d9-11eb-89d8-58f60930e3fa)
 
-SIPVicious OSS is a set of security tools that can be used to audit SIP based VoIP systems. 
+SIPVicious OSS is a set of security tools that can be used to audit SIP based VoIP systems. Specifically, it allows you to find SIP servers, enumerate SIP extensions and finally, crack their password.
+
+To get started read the following:
+
+- [Getting started on the Wiki](https://github.com/enablesecurity/sipvicious/wiki/Getting-Started)
+- Communication Breakdown blog: [Attacking a real VoIP System with SIPVicious OSS](https://www.rtcsec.com/2020/06/02-attacking-voip-system-with-sipvicious/).
+
+For usage help make use of `-h` or `--help` switch.
+
+## A note to vendors and service providers
+
+If you are looking for a professional grade toolset to test your RTC systems, please consider [SIPVicious PRO](https://www.sipvicious.pro).
+
 
 ## The tools
 
 The SIPVicious OSS toolset consists of the following tools:
+
 - svmap
 - svwar
 - svcrack
@@ -53,20 +66,10 @@ The SIPVicious OSS toolset consists of the following tools:
 
 	Usage: <https://github.com/EnableSecurity/sipvicious/wiki/SVCrash-FAQ>
 
-For usage help make use of `-h` or `--help` switch. 
-
-For getting started:
-
-- [Getting started on the Wiki](https://github.com/enablesecurity/sipvicious/wiki/Getting-Started)
-- Communication Breakdown blog: [Attacking a real VoIP System with SIPVicious OSS](https://www.rtcsec.com/2020/06/02-attacking-voip-system-with-sipvicious/).
 
 ## Installation
 
 Please refer to the [installation documentation](https://github.com/EnableSecurity/sipvicious/wiki/Basics#installation).
-
-## A note to vendors and service providers
-
-If you are looking for a professional grade toolset to test your RTC systems, please consider [SIPVicious PRO](https://www.sipvicious.pro) which is available as a closed beta version.
 
 ## Further information
 
