@@ -25,7 +25,6 @@ __version__ = '0.3.1'
 import re
 import sys
 import uuid
-import base64
 import os
 import dbm
 import socket
@@ -33,8 +32,6 @@ import random
 import struct
 import shutil
 import logging
-import optparse
-from urllib.parse import quote
 from random import getrandbits
 from urllib.request import urlopen
 from urllib.error import URLError
@@ -182,6 +179,7 @@ def dictionaryattack(dictionaryfile):
         if len(r) == 0:
             break
         yield(r.strip())
+    dictionaryfile.flush()
     dictionaryfile.close()
 
 
@@ -443,7 +441,7 @@ def challengeResponse(auth, method, uri):
     opaque = auth["opaque"]
     algorithm = auth["algorithm"]
     cnonce = ""
-    qop = None  
+    qop = None
     if auth["qop"] != None:
         qop = auth["qop"].split(',')[0]
     result = 'Digest username="%s",realm="%s",nonce="%s",uri="%s"' % (

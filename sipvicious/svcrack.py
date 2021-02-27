@@ -19,12 +19,12 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import base64
 import logging
 import dbm
 import random
 import select
 import socket
+import sys
 import time
 import os
 import pickle
@@ -35,7 +35,7 @@ from optparse import OptionParser
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
-    createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
+    createTag, makeRequest, getAuthHeader, getNonce, getOpaque,
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
     standardscanneroptions, standardoptions, calcloglevel, resumeFrom
 )
@@ -44,8 +44,7 @@ __prog__ = 'svcrack'
 
 class ASipOfRedWine:
 
-    def __init__(self, host='localhost', bindingip='', localport=5060, port=5060,
-                 externalip=None,
+    def __init__(self, host='localhost', bindingip='', localport=5060, port=5060, externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
                  maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER', ipv6=False):
@@ -114,7 +113,7 @@ class ASipOfRedWine:
         self.localport = localport
         self.requesturi = requesturi
         self.noncecount = 1
-        self.originallocalport = localport        
+        self.originallocalport = localport
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         if externalip is None:
@@ -455,14 +454,17 @@ def main():
 
     if options.dictionary is not None:
         crackmode = 2
-        try:
-            dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
-        except IOError:
-            logging.error("could not open %s" % options.dictionary)
-        if options.resume is not None:
-            lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
-            previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
-            dictionary.seek(previousposition)
+        if options.dictionary == "-":
+            dictionary = sys.stdin
+        else:
+            try:
+                dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
+            except IOError:
+                logging.error("could not open %s" % options.dictionary)
+            if options.resume is not None:
+                lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
+                previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
+                dictionary.seek(previousposition)
         crackargs = dictionary
     else:
         crackmode = 1

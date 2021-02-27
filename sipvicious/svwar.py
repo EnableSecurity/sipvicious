@@ -24,20 +24,18 @@ import random
 import select
 import pickle
 import socket
+import sys
 import time
 import dbm
 import os
-import re
 import traceback
 from sys import exit
 from optparse import OptionParser
 from datetime import datetime
-from socket import error as socketerror
-from base64 import b64decode, b64encode
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
-    createTag, check_ipv6, makeRequest, getTag, parseHeader, 
+    createTag, check_ipv6, makeRequest, getTag, parseHeader,
     getRealm, standardoptions, standardscanneroptions, calcloglevel,
     resumeFrom, getRange, reportBugToAuthor, packetcounter
 )
@@ -154,7 +152,7 @@ class TakeASip:
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
 
-    def createRequest(self, m, username=None, auth=None, cid=None, 
+    def createRequest(self, m, username=None, auth=None, cid=None,
                         cseq=1, fromaddr=None, toaddr=None, contact=None):
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
@@ -552,15 +550,18 @@ def main():
         host = args[0]
     if options.dictionary is not None:
         guessmode = 2
-        try:
-            dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
-        except IOError:
-            logging.error("could not open %s" % options.dictionary)
-            exit(1)
-        if options.resume is not None:
-            lastextensionsrc = os.path.join(exportpath, 'lastextension.pkl')
-            previousposition = pickle.load(open(lastextensionsrc, 'rb'), encoding='bytes')
-            dictionary.seek(previousposition)
+        if options.dictionary == "-":
+            dictionary = sys.stdin
+        else:
+            try:
+                dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
+            except IOError:
+                logging.error("could not open %s" % options.dictionary)
+                exit(1)
+            if options.resume is not None:
+                lastextensionsrc = os.path.join(exportpath, 'lastextension.pkl')
+                previousposition = pickle.load(open(lastextensionsrc, 'rb'), encoding='bytes')
+                dictionary.seek(previousposition)
         guessargs = dictionary
     else:
         guessmode = 1
@@ -669,7 +670,7 @@ def main():
                         rows.append((k.decode(), sipvicious.resultauth[k].decode()))
                 except AttributeError:
                     for k in sipvicious.resultauth.keys():
-                        rows.append((k, sipvicious.resultauth[k]))                    
+                        rows.append((k, sipvicious.resultauth[k]))
                 print(to_string(rows, header=labels))
             else:
                 logging.warning("too many to print - use svreport for this")
