@@ -329,7 +329,7 @@ def parseHeader(buff, type='response'):
             #if len(_t) == 3:
             #    method, uri, sipversion = _t
         else:
-            log.warn('Could not parse the first header line: %s' % _t.__repr__())
+            log.warn('Could not parse the first header line: %s' % headerlines[0])
             return r
         r['headers'] = dict()
         for headerline in headerlines[1:]:
@@ -429,11 +429,7 @@ def getToTag(buff):
 
 
 def challengeResponse(auth, method, uri):
-    try:
-        from hashlib import md5
-    except ImportError:
-        import md5 as md5sum
-        md5 = md5sum.new
+    from hashlib import md5
     username = auth["username"]
     realm = auth["realm"]
     passwd = auth["password"]
