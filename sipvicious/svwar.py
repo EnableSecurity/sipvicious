@@ -3,7 +3,7 @@
 __GPL__ = """
 
    Sipvicious extension line scanner scans SIP PaBXs for valid extension lines
-   Copyright (C) 2007-2020 Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2007-2021 Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,17 +27,14 @@ import socket
 import time
 import dbm
 import os
-import re
 import traceback
 from sys import exit
 from optparse import OptionParser
 from datetime import datetime
-from socket import error as socketerror
-from base64 import b64decode, b64encode
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
-    createTag, check_ipv6, makeRequest, getTag, parseHeader, 
+    createTag, check_ipv6, makeRequest, getTag, parseHeader,
     getRealm, standardoptions, standardscanneroptions, calcloglevel,
     resumeFrom, getRange, reportBugToAuthor, packetcounter
 )
@@ -154,7 +151,7 @@ class TakeASip:
     # try with the next one.
     SERVICEUN = 'SIP/2.0 503 '
 
-    def createRequest(self, m, username=None, auth=None, cid=None, 
+    def createRequest(self, m, username=None, auth=None, cid=None,
                         cseq=1, fromaddr=None, toaddr=None, contact=None):
         if cid is None:
             cid = '%s' % str(random.getrandbits(32))
@@ -669,7 +666,7 @@ def main():
                         rows.append((k.decode(), sipvicious.resultauth[k].decode()))
                 except AttributeError:
                     for k in sipvicious.resultauth.keys():
-                        rows.append((k, sipvicious.resultauth[k]))                    
+                        rows.append((k, sipvicious.resultauth[k]))
                 print(to_string(rows, header=labels))
             else:
                 logging.warning("too many to print - use svreport for this")

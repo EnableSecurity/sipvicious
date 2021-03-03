@@ -3,7 +3,7 @@
 #
 #       sipvicious/setup.py
 #
-#       Copyright (C) 2007-2020  Sandro Gauci <sandro@enablesecurity.com>
+#       Copyright (C) 2007-2021 Sandro Gauci <sandro@enablesecurity.com>
 #
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -28,11 +28,8 @@ if sys.version_info[0] < 3:
 
 
 from os import path
-
 from setuptools import find_packages, setup
-
 from sipvicious.libs.svhelper import __author__, __version__
-
 
 this_directory = path.abspath(path.dirname(__file__))
 with io.open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_file:

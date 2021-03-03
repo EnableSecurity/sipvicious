@@ -3,7 +3,7 @@ __GPL__ = """
 
    SIPVicious report engine manages sessions from previous scans with SIPVicious
    tools and allows you to export these scans.
-   Copyright (C) 2007-2020  Sandro Gauci <sandrogauc@gmail.com>
+   Copyright (C) 2007-2021 Sandro Gauci <sandrogauc@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@ import dbm
 import csv
 import logging
 import os
-import socket
 from optparse import OptionParser
 from sys import exit
 from datetime import datetime

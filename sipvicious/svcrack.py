@@ -3,7 +3,7 @@
 __GPL__ = """
 
    SIPvicious password cracker is an online password guessing tool for SIP devices
-   Copyright (C) 2007-2020  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2007-2021 Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@ __GPL__ = """
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import base64
 import logging
 import dbm
 import random
@@ -35,7 +34,7 @@ from optparse import OptionParser
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
-    createTag, makeRequest, getAuthHeader, getNonce, getOpaque, 
+    createTag, makeRequest, getAuthHeader, getNonce, getOpaque,
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
     standardscanneroptions, standardoptions, calcloglevel, resumeFrom
 )
@@ -114,7 +113,7 @@ class ASipOfRedWine:
         self.localport = localport
         self.requesturi = requesturi
         self.noncecount = 1
-        self.originallocalport = localport        
+        self.originallocalport = localport
         if self.sessionpath is not None:
             self.packetcount = packetcounter(50)
         if externalip is None:

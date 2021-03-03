@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #   Helper.py keeps the rest of the tools clean - part of SIPVicious tools
-#   Copyright (C) 2007-2020  Sandro Gauci <sandro@enablesecurity.com>
+#   Copyright (C) 2007-2021 Sandro Gauci <sandro@enablesecurity.com>
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -19,13 +19,12 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 
 import re
 import sys
 import uuid
-import base64
 import os
 import dbm
 import socket
@@ -33,8 +32,6 @@ import random
 import struct
 import shutil
 import logging
-import optparse
-from urllib.parse import quote
 from random import getrandbits
 from urllib.request import urlopen
 from urllib.error import URLError
@@ -443,7 +440,7 @@ def challengeResponse(auth, method, uri):
     opaque = auth["opaque"]
     algorithm = auth["algorithm"]
     cnonce = ""
-    qop = None  
+    qop = None
     if auth["qop"] != None:
         qop = auth["qop"].split(',')[0]
     result = 'Digest username="%s",realm="%s",nonce="%s",uri="%s"' % (

@@ -3,7 +3,7 @@
 __GPL__ = """
 
    SIPvicious SIP scanner searches for SIP devices on a given network
-   Copyright (C) 2007-2020  Sandro Gauci <sandro@enablesecurity.com>
+   Copyright (C) 2007-2021 Sandro Gauci <sandro@enablesecurity.com>
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,14 +27,13 @@ import random
 import select
 import socket
 import traceback
+from struct import pack
+from sys import exit
 from datetime import datetime
 from optparse import OptionParser
-from struct import pack, unpack
-from sys import exit
-
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
-    __version__, calcloglevel, createTag, fingerPrintPacket, getranges,  
+    __version__, calcloglevel, createTag, fingerPrintPacket, getranges,
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
     mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
     scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
@@ -236,10 +235,10 @@ class DrinkOrSip:
                 branchunique = '%s' % random.getrandbits(32)
                 if self.ipv6 and check_ipv6(dsthost[0]):
                     domain = '[' + dsthost[0] + ']'
-                    localtag = createTag('%s%s' % (''.join(map(lambda x: 
+                    localtag = createTag('%s%s' % (''.join(map(lambda x:
                         '%s' % x, dsthost[0].split(':'))), '%04x' % dsthost[1]))
                 else:
-                    localtag = createTag('%s%s' % (''.join(map(lambda x: 
+                    localtag = createTag('%s%s' % (''.join(map(lambda x:
                         '%02x' % int(x), dsthost[0].split('.'))),'%04x' % dsthost[1]))
                 if self.ipv6:
                     fromaddr = '"%s"<sip:100@%s>' % (self.fromname, domain)
@@ -543,7 +542,7 @@ def main():
                         rows.append((k.decode(),sipvicious.resultua[k].decode()))
                 except AttributeError:
                     for k in sipvicious.resultua.keys():
-                        rows.append((k,sipvicious.resultua[k]))  
+                        rows.append((k,sipvicious.resultua[k]))
                 print(to_string(rows, header=labels))
             else:
                 logging.warning("too many to print - use svreport for this")
