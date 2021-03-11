@@ -371,7 +371,7 @@ def main():
     parser.add_option("-u", "--username", dest="username",
                       help="username to try crack", metavar="USERNAME")
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with passwords",
+                      help="specify a dictionary file with passwords or - for stdin",
                       metavar="DICTIONARY")
     parser.add_option("-r", "--range", dest="range", default="100-999",
                       help="specify a range of numbers. example: 100-200,300-310,400",

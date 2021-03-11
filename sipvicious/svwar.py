@@ -473,7 +473,7 @@ def main():
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with possible extension names",
+                      help="specify a dictionary file with possible extension names or - for stdin",
                       metavar="DICTIONARY")
     parser.add_option("-m", "--method", dest="method", type="string",
                       help="specify a request method. The default is REGISTER. Other possible methods are OPTIONS and INVITE",
