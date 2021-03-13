@@ -24,7 +24,6 @@ __version__ = '0.3.2'
 
 import re
 import sys
-from urllib import parse
 import uuid
 import os
 import dbm

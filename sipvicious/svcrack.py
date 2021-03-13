@@ -31,7 +31,6 @@ import traceback
 from sys import exit
 from datetime import datetime
 from optparse import OptionParser
-from urllib import parse
 from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
