@@ -31,6 +31,8 @@ import traceback
 from sys import exit
 from datetime import datetime
 from optparse import OptionParser
+from urllib import parse
+from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6,
@@ -360,50 +362,46 @@ class ASipOfRedWine:
 def main():
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -u100 -d dictionary.txt 10.0.0.1\r\n"
+    usage += "%prog -u100 -d dictionary.txt udp://10.0.0.1:5060\r\n"
     usage += "%prog -u100 -r1-9999 -z4 10.0.0.1\r\n"
-    parser = OptionParser(usage, version="%prog v" +
-                          str(__version__) + __GPL__)
+    parser = OptionParser(usage, version="%prog v" + str(__version__) + __GPL__)
     parser.add_option("-p", "--port", dest="port", default="5060",
-                      help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
+        help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("-u", "--username", dest="username",
-                      help="username to try crack", metavar="USERNAME")
+        help="username to try crack", metavar="USERNAME")
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with passwords",
-                      metavar="DICTIONARY")
+        help="specify a dictionary file with passwords",
+        metavar="DICTIONARY")
     parser.add_option("-r", "--range", dest="range", default="100-999",
-                      help="specify a range of numbers. example: 100-200,300-310,400",
-                      metavar="RANGE")
+        help="specify a range of numbers. example: 100-200,300-310,400",
+        metavar="RANGE")
     parser.add_option("-e", "--extension", dest="extension",
-                      help="Extension to crack. Only specify this when the extension is different from the username.",
-                      metavar="EXTENSION")
+        help="Extension to crack. Only specify this when the extension is different from the username.",
+        metavar="EXTENSION")
     parser.add_option("-z", "--zeropadding", dest="zeropadding", type="int", default=0,
-                      help="""the number of zeros used to padd the password.
-                  the options "-r 1-9999 -z 4" would give 0001 0002 0003 ... 9999""",
-                      metavar="PADDING")
+        help="the number of zeros used to padd the password. the options \"-r 1-9999 -z 4\"" \
+            "would give 0001 0002 0003 ... 9999", metavar="PADDING")
     parser.add_option("-n", "--reusenonce", dest="reusenonce", default=False,
-                      help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making them vulnerable to replay attacks). Speeds up the cracking.",
-                      action="store_true",
-                      )
+        help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making them vulnerable to replay attacks). Speeds up the cracking.",
+        action="store_true")
     parser.add_option('--template', '-T', action="store", dest="template",
-                      help="""A format string which allows us to specify a template for the extensions
-                      example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
-                      """)
+        help="A format string which allows us to specify a template for the extensions" \
+            "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int", default=10,
-                      help="Maximum time in seconds to keep sending requests without receiving a response back")
-    parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
-                      default=False, help="""Scan for default / typical passwords such as
-                      1000,2000,3000 ... 1100, etc. This option is off by default.
-                      Use --enabledefaults to enable this functionality""")
+        help="Maximum time in seconds to keep sending requests without receiving a response back")
+    parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults", default=False,
+        help="Scan for default / typical passwords such as" \
+            "1000,2000,3000 ... 1100, etc. This option is off by default." \
+            "Use --enabledefaults to enable this functionality")
     parser.add_option('--domain', dest="domain",
-                      help="force a specific domain name for the SIP message, eg. example.org")
+         help="force a specific domain name for the SIP message, eg. example.org")
     parser.add_option('--requesturi', dest="requesturi",
-                        help="force the first line URI to a specific value; e.g. sip:999@example.org")
+        help="force the first line URI to a specific value; e.g. sip:999@example.org")
     parser.add_option('-6', dest="ipv6", action="store_true", help="Scan an IPv6 address")
     parser.add_option('-m','--method', dest='method', default='REGISTER', help="Specify a SIP method to use")
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
@@ -444,13 +442,30 @@ def main():
     elif options.save is not None:
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.save)
+
     if len(args) != 1:
-        parser.error("provide one hostname")
-    else:
+        parser.error("Please provide at least one hostname which talks SIP!")
+
+    destport = options.port
+    parsed = urlparse(args[0])
+    if not parsed.scheme:
+        logging.warning('No protocol scheme supplied. Using UDP for:' % args[0])
         host = args[0]
+    else:
+        if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
+            parser.error('Sorry, currently sipvicious OSS supports only UDP.')
+        if parsed.scheme != 'udp':
+            parser.error('Invalid protocol scheme: %s' % args[0])
+
+        if ':' not in parsed.netloc:
+            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.')
+        if int(destport) != 5060:
+            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.')
+        host = parsed.netloc.split(':')[0]
+        destport = parsed.netloc.split(':')[1]
 
     if options.username is None:
-        parser.error("provide one username to crack")
+        parser.error("Please provide at least one username to crack!")
 
     if options.dictionary is not None:
         crackmode = 2
@@ -512,7 +527,7 @@ def main():
         reusenonce=options.reusenonce,
         extension=options.extension,
         sessionpath=exportpath,
-        port=options.port,
+        port=destport,
         externalip=options.externalip,
         maxlastrecvtime=options.maximumtime,
         localport=options.localport,

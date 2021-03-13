@@ -24,6 +24,7 @@ __version__ = '0.3.2'
 
 import re
 import sys
+from urllib import parse
 import uuid
 import os
 import dbm
@@ -35,7 +36,7 @@ import logging
 from random import getrandbits
 from urllib.request import urlopen
 from urllib.error import URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 from binascii import Error as b2aerr
 from .pptable import to_string
 from binascii import b2a_hex, a2b_hex, hexlify
@@ -428,11 +429,7 @@ def getToTag(buff):
 
 
 def challengeResponse(auth, method, uri):
-    try:
-        from hashlib import md5
-    except ImportError:
-        import md5 as md5sum
-        md5 = md5sum.new
+    from hashlib import md5
     username = auth["username"]
     realm = auth["realm"]
     passwd = auth["password"]
@@ -1148,6 +1145,24 @@ def getAuthHeader(pkt):
         if len(_tmp) > 0:
             return(_tmp[0][1])
     return None
+
+
+def filterTargets(targets: list):
+    log = logging.getLogger('filterTargets')
+    newtargets = list()
+    for target in targets:
+        parsed = urlparse(target)
+        if parsed.scheme != '':
+            if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
+                log.fatal('CRITICAL: Unsupported protocol scheme: %s' % target)
+                exit(1)
+            if ':' in parsed.netloc:
+                log.fatal('CRITICAL: URI %s cannot contain port. Please use -p flag.' % target)
+                exit(1)
+            newtargets.append(parsed.netloc)
+        else:
+            newtargets.append(target)
+    return newtargets
 
 
 def check_ipv6(n):
