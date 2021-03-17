@@ -547,9 +547,9 @@ def main():
         host = args[0]
     else:
         if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-            parser.error('Sorry, currently sipvicious OSS supports only UDP.')
+            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme)
         if parsed.scheme != 'udp':
-            parser.error('Invalid protocol scheme: %s' % args[0])
+            parser.error('Invalid protocol scheme: %s' % parsed.scheme)
 
         if ':' not in parsed.netloc:
             parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.')
