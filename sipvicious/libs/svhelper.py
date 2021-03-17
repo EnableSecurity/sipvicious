@@ -1154,7 +1154,10 @@ def filterTargets(targets: list):
         parsed = urlparse(target)
         if parsed.scheme != '':
             if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-                log.fatal('CRITICAL: Unsupported protocol scheme: %s' % target)
+                log.fatal('CRITICAL: Protocol scheme %s is not supported in SIPVicious OSS', parsed.scheme)
+                exit(1)
+            if parsed.scheme != 'udp':
+                log.fatal('CRITICAL: Unsupported protocol scheme: %s', target)
                 exit(1)
             if ':' in parsed.netloc:
                 log.fatal('CRITICAL: URI %s cannot contain port. Please use -p flag.' % target)
