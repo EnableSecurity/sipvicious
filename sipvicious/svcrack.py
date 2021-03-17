@@ -428,22 +428,6 @@ def main():
             '~'), '.sipvicious', __prog__, options.save)
         logging.debug('Session path: %s' % exportpath)
 
-    if options.resume is not None:
-        exportpath = os.path.join(os.path.expanduser(
-            '~'), '.sipvicious', __prog__, options.resume)
-        if not os.path.exists(exportpath):
-            logging.critical(
-                'A session with the name %s was not found' % options.resume)
-            exit(1)
-        optionssrc = os.path.join(exportpath, 'options.pkl')
-        previousresume = options.resume
-        previousverbose = options.verbose
-        options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
-        options.resume = previousresume
-        options.verbose = previousverbose
-    elif options.save is not None:
-        exportpath = os.path.join(os.path.expanduser(
-            '~'), '.sipvicious', __prog__, options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:
