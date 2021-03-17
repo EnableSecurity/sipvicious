@@ -35,7 +35,7 @@ from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
-    mysendto, packetcounter, reportBugToAuthor, dbexists, filterTargets, check_ipv6,
+    mysendto, packetcounter, reportBugToAuthor, dbexists, check_ipv6,
     scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
 )
 
@@ -293,7 +293,7 @@ def main():
     usage += 'Scans for SIP devices on a given network\r\n\r\n'
     usage += "examples:\r\n\r\n"
     usage += "%prog 10.0.0.1-10.0.0.255 "
-    usage += "udp://172.16.131.1 sipvicious.org/22 10.0.1.1/24"
+    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24"
     usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*\r\n\r\n"
     usage += "%prog -s session1 --randomize 10.0.0.1/8\r\n\r\n"
     usage += "%prog --resume session1 -v\r\n\r\n"
@@ -327,7 +327,6 @@ def main():
                       help="specify a name for the from header")
     parser.add_option('-6', '--ipv6', dest="ipv6", action='store_true', help="scan an IPv6 address")
     options, args = parser.parse_args()
-    args = filterTargets(args)
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)

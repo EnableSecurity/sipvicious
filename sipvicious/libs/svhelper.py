@@ -35,7 +35,7 @@ import logging
 from random import getrandbits
 from urllib.request import urlopen
 from urllib.error import URLError
-from urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode
 from binascii import Error as b2aerr
 from .pptable import to_string
 from binascii import b2a_hex, a2b_hex, hexlify
@@ -1146,26 +1146,6 @@ def getAuthHeader(pkt):
             return(_tmp[0][1])
     return None
 
-
-def filterTargets(targets: list):
-    log = logging.getLogger('filterTargets')
-    newtargets = list()
-    for target in targets:
-        parsed = urlparse(target)
-        if parsed.scheme != '':
-            if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-                log.fatal('CRITICAL: Protocol scheme %s is not supported in SIPVicious OSS', parsed.scheme)
-                exit(1)
-            if parsed.scheme != 'udp':
-                log.fatal('CRITICAL: Unsupported protocol scheme: %s', target)
-                exit(1)
-            if ':' in parsed.netloc:
-                log.fatal('CRITICAL: URI %s cannot contain port. Please use -p flag.' % target)
-                exit(1)
-            newtargets.append(parsed.netloc)
-        else:
-            newtargets.append(target)
-    return newtargets
 
 
 def check_ipv6(n):
