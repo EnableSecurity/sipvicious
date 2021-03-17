@@ -179,6 +179,7 @@ def dictionaryattack(dictionaryfile):
         if len(r) == 0:
             break
         yield(r.strip())
+    dictionaryfile.flush()
     dictionaryfile.close()
 
 
@@ -328,7 +329,7 @@ def parseHeader(buff, type='response'):
             #if len(_t) == 3:
             #    method, uri, sipversion = _t
         else:
-            log.warn('Could not parse the first header line: %s' % _t.__repr__())
+            log.warn('Could not parse the first header line: %s' % headerlines[0])
             return r
         r['headers'] = dict()
         for headerline in headerlines[1:]:
