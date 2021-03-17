@@ -361,7 +361,7 @@ class ASipOfRedWine:
 def main():
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -u100 -d dictionary.txt udp://10.0.0.1:5060\r\n"
+    usage += "%prog -u100 -d dictionary.txt udp://10.0.0.1:5080\r\n"
     usage += "%prog -u100 -r1-9999 -z4 10.0.0.1\r\n"
     parser = OptionParser(usage, version="%prog v" + str(__version__) + __GPL__)
     parser.add_option("-p", "--port", dest="port", default="5060",

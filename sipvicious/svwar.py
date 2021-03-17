@@ -465,7 +465,7 @@ class TakeASip:
 def main():
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -e100-999 udp://10.0.0.1:5060\r\n"
+    usage += "%prog -e100-999 udp://10.0.0.1:5080\r\n"
     usage += "%prog -d dictionary.txt 10.0.0.2\r\n"
     parser = OptionParser(usage, version="%prog v" +
         str(__version__) + __GPL__)
