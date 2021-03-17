@@ -24,6 +24,7 @@ import dbm
 import random
 import select
 import socket
+import sys
 import time
 import os
 import pickle
@@ -43,8 +44,7 @@ __prog__ = 'svcrack'
 
 class ASipOfRedWine:
 
-    def __init__(self, host='localhost', bindingip='', localport=5060, port=5060,
-                 externalip=None,
+    def __init__(self, host='localhost', bindingip='', localport=5060, port=5060, externalip=None,
                  username=None, crackmode=1, crackargs=None, realm=None, sessionpath=None,
                  selecttime=0.005, compact=False, reusenonce=False, extension=None,
                  maxlastrecvtime=10, domain=None, requesturi=None, method='REGISTER', ipv6=False):
@@ -371,7 +371,7 @@ def main():
     parser.add_option("-u", "--username", dest="username",
                       help="username to try crack", metavar="USERNAME")
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with passwords",
+                      help="specify a dictionary file with passwords or - for stdin",
                       metavar="DICTIONARY")
     parser.add_option("-r", "--range", dest="range", default="100-999",
                       help="specify a range of numbers. example: 100-200,300-310,400",
@@ -428,22 +428,6 @@ def main():
             '~'), '.sipvicious', __prog__, options.save)
         logging.debug('Session path: %s' % exportpath)
 
-    if options.resume is not None:
-        exportpath = os.path.join(os.path.expanduser(
-            '~'), '.sipvicious', __prog__, options.resume)
-        if not os.path.exists(exportpath):
-            logging.critical(
-                'A session with the name %s was not found' % options.resume)
-            exit(1)
-        optionssrc = os.path.join(exportpath, 'options.pkl')
-        previousresume = options.resume
-        previousverbose = options.verbose
-        options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
-        options.resume = previousresume
-        options.verbose = previousverbose
-    elif options.save is not None:
-        exportpath = os.path.join(os.path.expanduser(
-            '~'), '.sipvicious', __prog__, options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
     else:
@@ -454,14 +438,17 @@ def main():
 
     if options.dictionary is not None:
         crackmode = 2
-        try:
-            dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
-        except IOError:
-            logging.error("could not open %s" % options.dictionary)
-        if options.resume is not None:
-            lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
-            previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
-            dictionary.seek(previousposition)
+        if options.dictionary == "-":
+            dictionary = sys.stdin
+        else:
+            try:
+                dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
+            except IOError:
+                logging.error("could not open %s" % options.dictionary)
+            if options.resume is not None:
+                lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
+                previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
+                dictionary.seek(previousposition)
         crackargs = dictionary
     else:
         crackmode = 1

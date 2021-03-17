@@ -24,6 +24,7 @@ import random
 import select
 import pickle
 import socket
+import sys
 import time
 import dbm
 import os
@@ -472,7 +473,7 @@ def main():
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with possible extension names",
+                      help="specify a dictionary file with possible extension names or - for stdin",
                       metavar="DICTIONARY")
     parser.add_option("-m", "--method", dest="method", type="string",
                       help="specify a request method. The default is REGISTER. Other possible methods are OPTIONS and INVITE",
@@ -549,15 +550,18 @@ def main():
         host = args[0]
     if options.dictionary is not None:
         guessmode = 2
-        try:
-            dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
-        except IOError:
-            logging.error("could not open %s" % options.dictionary)
-            exit(1)
-        if options.resume is not None:
-            lastextensionsrc = os.path.join(exportpath, 'lastextension.pkl')
-            previousposition = pickle.load(open(lastextensionsrc, 'rb'), encoding='bytes')
-            dictionary.seek(previousposition)
+        if options.dictionary == "-":
+            dictionary = sys.stdin
+        else:
+            try:
+                dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
+            except IOError:
+                logging.error("could not open %s" % options.dictionary)
+                exit(1)
+            if options.resume is not None:
+                lastextensionsrc = os.path.join(exportpath, 'lastextension.pkl')
+                previousposition = pickle.load(open(lastextensionsrc, 'rb'), encoding='bytes')
+                dictionary.seek(previousposition)
         guessargs = dictionary
     else:
         guessmode = 1
