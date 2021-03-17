@@ -82,8 +82,10 @@ class ASipOfRedWine:
         self.crackmode = crackmode
         self.crackargs = crackargs
         try:
-            if int(port) > 1 and int(port) <= 65535:
+            if int(port) >= 1 and int(port) <= 65535:
                 self.dsthost, self.dstport = host, int(port)
+            else:
+                raise ValueError
         except (ValueError, TypeError):
             self.log.error('port should strictly be an integer between 1 and 65535')
             exit(1)
@@ -448,7 +450,6 @@ def main():
     destport = options.port
     parsed = urlparse(args[0])
     if not parsed.scheme:
-        logging.warning('No protocol scheme supplied. Using UDP for:' % args[0])
         host = args[0]
     else:
         if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
