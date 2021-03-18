@@ -32,6 +32,7 @@ import traceback
 from sys import exit
 from optparse import OptionParser
 from datetime import datetime
+from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
@@ -81,8 +82,10 @@ class TakeASip:
         self.challenges = list()
         self.realm = None
         try:
-            if int(port) > 1 and int(port) <= 65535:
+            if int(port) >= 1 and int(port) <= 65535:
                 self.dsthost, self.dstport = host, int(port)
+            else:
+                raise ValueError
         except (ValueError, TypeError):
             self.log.error('port should strictly be an integer between 1 and 65535')
             exit(1)
@@ -464,52 +467,44 @@ class TakeASip:
 def main():
     usage = "usage: %prog [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -e100-999 10.0.0.1\r\n"
+    usage += "%prog -e100-999 udp://10.0.0.1:5080\r\n"
     usage += "%prog -d dictionary.txt 10.0.0.2\r\n"
     parser = OptionParser(usage, version="%prog v" +
-                          str(__version__) + __GPL__)
+        str(__version__) + __GPL__)
     parser.add_option("-p", "--port", dest="port", default="5060",
-                      help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
+        help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
                       help="specify a dictionary file with possible extension names or - for stdin",
                       metavar="DICTIONARY")
     parser.add_option("-m", "--method", dest="method", type="string",
-                      help="specify a request method. The default is REGISTER. Other possible methods are OPTIONS and INVITE",
-                      default="REGISTER",
-                      metavar="OPTIONS")
+        help="specify a request method. The default is REGISTER. Other possible methods are OPTIONS and INVITE",
+        default="REGISTER",	metavar="OPTIONS")
     parser.add_option("-e", "--extensions", dest="range", default='100-999',
-                      help="specify an extension or extension range\r\nexample: -e 100-999,1000-1500,9999",
-                      metavar="RANGE")
+        help="specify an extension or extension range\r\nexample: -e 100-999,1000-1500,9999",
+        metavar="RANGE")
     parser.add_option("-z", "--zeropadding", dest="zeropadding", type="int",
-                      help="""the number of zeros used to padd the username.
-                  the options "-e 1-9999 -z 4" would give 0001 0002 0003 ... 9999""",
-                      default=0,
-                      metavar="PADDING")
+        help="the number of zeros used to padd the username." \
+            "the options \"-e 1-9999 -z 4\" would give 0001 0002 0003 ... 9999",
+          default=0, metavar="PADDING")
     parser.add_option('--force', dest="force", action="store_true",
-                      default=False,
-                      help="Force scan, ignoring initial sanity checks.")
+        default=False, help="Force scan, ignoring initial sanity checks.")
     parser.add_option('--template', '-T', action="store", dest="template",
-                      help="""A format string which allows us to specify a template for the extensions
-                      example svwar.py -e 1-999 --template="123%#04i999" would scan between 1230001999 to 1230999999"
-                      """)
+        help="A format string which allows us to specify a template for the extensions" \
+            "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
-                      default=False, help="""Scan for default / typical extensions such as
-                      1000,2000,3000 ... 1100, etc. This option is off by default.
-                      Use --enabledefaults to enable this functionality""")
+        default=False, help="Scan for default / typical extensions such as" \
+            "1000,2000,3000 ... 1100, etc. This option is off by default." \
+            "Use --enabledefaults to enable this functionality")
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
-                      default=10,
-                      help="""Maximum time in seconds to keep sending requests without
-                      receiving a response back""")
+        default=10, help="Maximum time in seconds to keep sending requests without receiving a response back")
     parser.add_option('--domain', dest="domain",
-                      help="force a specific domain name for the SIP message, eg. -d example.org")
+        help="force a specific domain name for the SIP message, eg. -d example.org")
     parser.add_option("--debug", dest="printdebug",
-                      help="Print SIP messages received",
-                      default=False, action="store_true"
-                      )
+        help="Print SIP messages received", default=False, action="store_true")
     parser.add_option('-6', dest="ipv6", action="store_true", help="scan an IPv6 address")
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     global exportpath
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
@@ -546,8 +541,24 @@ def main():
             '~'), '.sipvicious', __prog__, options.save)
     if len(args) != 1:
         parser.error("provide one hostname")
-    else:
+
+    destport = options.port
+    parsed = urlparse(args[0])
+    if not parsed.scheme:
         host = args[0]
+    else:
+        if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
+            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme)
+        if parsed.scheme != 'udp':
+            parser.error('Invalid protocol scheme: %s' % parsed.scheme)
+
+        if ':' not in parsed.netloc:
+            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.')
+        if int(destport) != 5060:
+            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.')
+        host = parsed.netloc.split(':')[0]
+        destport = parsed.netloc.split(':')[1]
+
     if options.dictionary is not None:
         guessmode = 2
         if options.dictionary == "-":
@@ -597,17 +608,19 @@ def main():
             optionsdst = os.path.join(exportpath, 'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
             pickle.dump([options, args], open(optionsdst, 'wb+'))
+
     if options.autogetip:
         tmpsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tmpsocket.connect(("msn.com", 80))
         options.externalip = tmpsocket.getsockname()[0]
         tmpsocket.close()
+
     enableack = False
     if options.method.upper() == 'INVITE':
         enableack = True
     sipvicious = TakeASip(
         host,
-        port=options.port,
+        port=destport,
         selecttime=options.selecttime,
         method=options.method,
         compact=options.enablecompact,
@@ -624,7 +637,7 @@ def main():
         ipv6=options.ipv6,
     )
     start_time = datetime.now()
-    #logging.info("scan started at %s" % str(start_time))
+    logging.info("scan started at %s" % str(start_time))
     logging.info("start your engines")
     try:
         sipvicious.start()
@@ -653,8 +666,7 @@ def main():
             elif guessmode == 2:
                 pickle.dump(sipvicious.guessargs.tell(), open(
                     os.path.join(exportpath, 'lastextension.pkl'), 'wb'))
-                logging.debug('logged last position %s' %
-                              sipvicious.guessargs.tell())
+                logging.debug('logged last position %s' % sipvicious.guessargs.tell())
         except IOError:
             logging.warning('could not log the last extension scanned')
     # display results

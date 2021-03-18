@@ -1147,6 +1147,7 @@ def getAuthHeader(pkt):
     return None
 
 
+
 def check_ipv6(n):
     log = logging.getLogger('check_ipv6')
     if '/' in n:

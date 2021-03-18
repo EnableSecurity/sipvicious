@@ -35,7 +35,7 @@ from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, calcloglevel, createTag, fingerPrintPacket, getranges,
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
-    mysendto, packetcounter, reportBugToAuthor, dbexists, scanfromfile, check_ipv6,
+    mysendto, packetcounter, reportBugToAuthor, dbexists, check_ipv6,
     scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
 )
 
@@ -304,8 +304,7 @@ def main():
     parser = standardoptions(parser)
     parser = standardscanneroptions(parser)
     parser.add_option("--randomscan", dest="randomscan", action="store_true",
-                      default=False,
-                  help="Scan random IP addresses")
+                      default=False, help="Scan random IP addresses")
     parser.add_option("-i", "--input", dest="input",
                   help="Scan IPs which were found in a previous scan. Pass the session name as the argument", metavar="scan1")
     parser.add_option("-I", "--inputtext", dest="inputtext",
@@ -327,7 +326,7 @@ def main():
     parser.add_option('--fromname',dest="fromname", default="sipvicious",
                       help="specify a name for the from header")
     parser.add_option('-6', '--ipv6', dest="ipv6", action='store_true', help="scan an IPv6 address")
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)
@@ -376,12 +375,12 @@ def main():
             scanrandomstore = os.path.join(exportpath,'random')
             resumescan = True
         scaniter = scanrandom(
-                        internetranges,
-                        portrange,
-                        options.method.split(','),
-                        randomstore=scanrandomstore,
-                        resume=resumescan
-                        )
+            internetranges,
+            portrange,
+            options.method.split(','),
+            randomstore=scanrandomstore,
+            resume=resumescan
+        )
     elif options.inputtext:
         logging.debug('Using IP addresses from input text file')
         try:
@@ -534,7 +533,6 @@ def main():
         if lenres > 0:
             logging.info("we have %s devices" % lenres)
             if (lenres < 400 and options.save is not None) or options.save is None:
-                width = 60
                 labels = ('SIP Device','User Agent')
                 rows = list()
                 try:
