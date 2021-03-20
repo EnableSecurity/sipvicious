@@ -1,12 +1,12 @@
-.TH SVWAR.PY "1" "June 2020" "svwar.py v0.3.2" "User Commands"
+.TH SVWAR.PY "1" "June 2020" "svwar.py v0.3.3" "User Commands"
 .SH NAME
-svwar.py \- manual page for svwar.py v0.3.2
+svwar.py \- manual page for svwar.py v0.3.3
 .SH SYNOPSIS
 .B svwar.py
 [\fIoptions\fR] \fItarget\fR
 .SH DESCRIPTION
 examples:
-svwar.py \fB\-e100\-999\fR 10.0.0.1
+svwar.py \fB\-e100\-999\fR udp://10.0.0.1:5080
 svwar.py \fB\-d\fR dictionary.txt 10.0.0.2
 .SH OPTIONS
 .TP
@@ -64,7 +64,7 @@ possibly less compatible
 .TP
 \fB\-d\fR DICTIONARY, \fB\-\-dictionary\fR=\fIDICTIONARY\fR
 specify a dictionary file with possible extension
-names
+names or - for stdin
 .TP
 \fB\-m\fR OPTIONS, \fB\-\-method\fR=\fIOPTIONS\fR
 specify a request method. The default is REGISTER.
