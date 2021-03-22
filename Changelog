@@ -1,7 +1,7 @@
 v0.3.3 (20210325)
 * Feature: Input via STDIN for svcrack and svwar
 * Feature: Full URL format support for svwar and svcrack
-* other code refactors
+* Further code refactoring
 
 v0.3.2 (20210303)
 * Feature: IPv6 support to svmap
