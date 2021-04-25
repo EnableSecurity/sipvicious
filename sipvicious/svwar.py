@@ -567,7 +567,7 @@ def main():
             try:
                 dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
             except IOError:
-                logging.error("could not open %s" % options.dictionary)
+                logging.fatal("could not open %s" % options.dictionary)
                 exit(1)
             if options.resume is not None:
                 lastextensionsrc = os.path.join(exportpath, 'lastextension.pkl')
