@@ -4,6 +4,7 @@ build
 dist
 include
 lib
+__pycache__
 distribute.egg-info
 setuptools.egg-info
 .coverage
