@@ -386,6 +386,7 @@ class TakeASip:
                         print(buff)
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
+                    __exitcode__ = resolveexitcode(30, __exitcode__)
                     return
 
                 buff = buff.decode('utf-8', 'ignore')
