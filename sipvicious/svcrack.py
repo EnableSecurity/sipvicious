@@ -244,6 +244,7 @@ class ASipOfRedWine:
         while 1:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
+                __exitcode__ = resolveexitcode(30, __exitcode__)
                 return
             try:
                 self.sock.bind((self.bindingip, self.localport))
