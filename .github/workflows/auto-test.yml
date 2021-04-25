@@ -1,0 +1,53 @@
+name: Automatic +ve/-ve Testing
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Python 3.9
+    - uses: actions/checkout@v2
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install the package
+      run: |
+        python setup.py install
+
+    - name: +ve tests for svmap
+      run: |
+        sipvicious_svmap demo.sipvicious.pro -p 5060
+        sipvicious_svmap 172.104.142.43 -p 5060 -e 1000
+
+    - name: -ve tests for svmap
+      run: |
+        sipvicious_svmap test@pew.pew udp://demo.sipvicious.pro || true
+
+    - name: +ve tests for svwar
+      run: |
+        sipvicious_svwar udp://demo.sipvicious.pro:5060 -e 1000-2000
+        sipvicious_svwar demo.sipvicious.pro -p 5060 -e 1-10
+
+    - name: -ve tests for svwar
+      run: |
+        sipvicious_svwar tcp://pew.pew tls://pew.pew wss://pew.pew || true
+        sipvicious_svwar udp://demo.sipvicious.pro || true
+
+    - name: +ve tests for svcrack
+      run: |
+        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -u 1000 -r 1400-1600
+        sipvicious_svcrack demo.sipvicious.pro -p 5060 -u 1000 -r 100-200
+        seq 1400 1550 >> pass.txt; sipvicious_svcrack demo.sipvicious.pro -p 5060 -u 1000 -d pass.txt
+
+    - name: -ve tests for svcrack
+      run: |
+        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -u 1000 -d notexistent.txt || true
+        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -p 5080 || true
