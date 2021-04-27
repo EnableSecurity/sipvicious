@@ -33,31 +33,27 @@ from sipvicious.libs.svhelper import (
     dbexists, createReverseLookup, getasciitable, outputtoxml, outputtopdf
 )
 
-
 __prog__ = 'svreport'
 
-
 def main():
-    commandsusage = """Supported commands:\r\n
-                - list:\tlists all scans\r\n
-                - export:\texports the given scan to a given format\r\n
-                - delete:\tdeletes the scan\r\n
-                - stats:\tprint out some statistics of interest\r\n
-                - search:\tsearch for a specific string in the user agent (svmap)\r\n
+    commandsusage = """Supported commands:
+    - list:\tlists all scans
+    - export:\texports the given scan to a given formats
+    - delete:\tdeletes the scan
+    - stats:\tprint out some statistics of interest
+    - search:\tsearch for a specific string in the user agent (svmap)\r\n
 """
-    commandsusage += "examples:\r\n\r\n"
-    commandsusage += "      %s.py list\r\n\r\n" % __prog__
-    commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n\r\n" % __prog__
-    commandsusage += "      %s.py delete -s scan1\r\n\r\n" % __prog__
+    commandsusage += "examples:\r\n"
+    commandsusage += "      %s.py list\r\n" % __prog__
+    commandsusage += "      %s.py export -f pdf -o scan1.pdf -s scan1\r\n" % __prog__
+    commandsusage += "      %s.py delete -s scan1\r\n" % __prog__
     usage = "%prog [command] [options]\r\n\r\n"
     usage += commandsusage
-    parser = OptionParser(usage=usage, version="%prog v" +
-                          str(__version__) + __GPL__)
+    parser = OptionParser(usage=usage, version="%prog v" + str(__version__) + __GPL__)
     parser.add_option('-v', '--verbose', dest="verbose", action="count",
                       help="Increase verbosity")
     parser.add_option('-q', '--quiet', dest="quiet", action="store_true",
-                      default=False,
-                      help="Quiet mode")
+                      default=False, help="Quiet mode")
     parser.add_option("-t", "--type", dest="sessiontype",
                       help="Type of session. This is usually either svmap, svwar or svcrack. If not set I will try to find the best match")
     parser.add_option("-s", "--session", dest="session",
@@ -70,7 +66,7 @@ def main():
                       action="store_false", help="Do not resolve the ip address")
     parser.add_option("-c", "--count", dest="count", default=False,
                       action="store_true", help="Used togather with 'list' command to count the number of entries")
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     if len(args) < 1:
         parser.error("Please specify a command.\r\n")
         exit(1)
@@ -110,7 +106,6 @@ def main():
                 'Session could not be found. Make sure it exists by making use of %s list' % __prog__)
             exit(1)
         sessionpath, sessiontype = tmp
-        resolve = False
         resdb = None
         if sessiontype == 'svmap':
             dbloc = os.path.join(sessionpath, 'resultua')
@@ -124,10 +119,10 @@ def main():
         if not dbexists(dbloc):
             logging.error('The database could not be found: %s' % dbloc)
             exit(1)
+
         db = dbm.open(dbloc, 'r')
 
         if options.resolve and sessiontype == 'svmap':
-            resolve = True
             labels.append('Resolved')
             resdbloc = os.path.join(sessionpath, 'resolved')
             if not dbexists(resdbloc):
@@ -158,14 +153,15 @@ def main():
         elif options.format == 'csv':
             writer = csv.writer(open(options.outputfile, "w"))
             for k in db.keys():
-                row = [k, db[k]]
+                row = [k.decode(), db[k].decode()]
                 if resdb is not None:
                     if k in resdb:
-                        row.append(resdb[k])
+                        row.append(resdb[k].decode())
                     else:
                         row.append('N/A')
                 writer.writerow(row)
         logging.info("That took %s" % (datetime.now() - start_time))
+
     elif command == 'stats':
         if options.session is None:
             parser.error("Please specify a valid session")
@@ -217,6 +213,7 @@ def main():
         print('\r\n'.join(suseragentsnames[:30]), '\r\n\r\n')
         print("Most unpopular top 30 useragent names:\r\n\t")
         print('\r\n'.join(suseragentsnames[-30:]), '\r\n\r\n')
+
     elif command == 'search':
         if options.session is None:
             parser.error("Please specify a valid session")
