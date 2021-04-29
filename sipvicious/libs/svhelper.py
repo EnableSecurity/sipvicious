@@ -948,13 +948,13 @@ def outputtoxml(title, labels, db, resdb=None, xsl='resources/sv.xsl'):
     for k in db.keys():
         o += '<result>\r\n'
         o += '<%s><value>%s</value></%s>\r\n' % (labels[0].replace(
-            ' ', '').lower(), k, escape(labels[0]).replace(' ', '').lower())
+            ' ', '').lower(), k.decode(), escape(labels[0]).replace(' ', '').lower())
         o += '<%s><value>%s</value></%s>\r\n' % (labels[1].replace(
-            ' ', '').lower(), escape(db[k]), labels[1].replace(' ', '').lower())
+            ' ', '').lower(), escape(db[k].decode()), labels[1].replace(' ', '').lower())
         if resdb is not None:
             if k in resdb:
                 o += '<%s><value>%s</value></%s>\r\n' % (labels[2].replace(
-                    ' ', '').lower(), escape(resdb[k]), labels[2].replace(' ', '').lower())
+                    ' ', '').lower(), escape(resdb[k].decode()), labels[2].replace(' ', '').lower())
             else:
                 o += '<%s><value>N/A</value></%s>\r\n' % (labels[2].replace(
                     ' ', '').lower(), labels[2].replace(' ', '').lower())
