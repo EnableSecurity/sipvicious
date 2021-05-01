@@ -179,13 +179,13 @@ class DrinkOrSip:
         while 1:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
+                __exitcode__ = resolveexitcode(30, __exitcode__)
                 return
             try:
                 self.sock.bind((self.bindingip,self.localport))
                 break
             except socket.error:
                 self.log.debug("could not bind to %s" % self.localport)
-                __exitcode__ = resolveexitcode(30, __exitcode__)
                 self.localport += 1
 
         if self.originallocalport != self.localport:
@@ -228,7 +228,6 @@ class DrinkOrSip:
                                 print(buff)
                             self.getResponse(buff,srcaddr)
                     except socket.error:
-                        __exitcode__ = resolveexitcode(30, __exitcode__)
                         break
 
                 try:
@@ -346,7 +345,7 @@ def main():
     options, args = parser.parse_args()
     exportpath = None
     if options.resume is not None:
-        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.resume)
+        exportpath = os.path.join(os.path.expanduser('~'), '.sipvicious', __prog__, options.resume)
 
         if os.path.exists(os.path.join(exportpath,'closed')):
             parser.error("Cannot resume a session that is complete", 20)
@@ -363,7 +362,7 @@ def main():
         options.verbose = previousverbose
 
     elif options.save is not None:
-        exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
+        exportpath = os.path.join(os.path.expanduser('~'), '.sipvicious', __prog__, options.save)
 
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
@@ -541,7 +540,7 @@ def main():
             logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
         logging.exception("Exception")
-        __exitcode__ = resolveexitcode(30, __exitcode__)
+        __exitcode__ = resolveexitcode(20, __exitcode__)
 
     if options.save is not None and sipvicious.nextip is not None and options.randomize is False and options.randomscan is False:
         lastipdst = os.path.join(exportpath,'lastip.pkl')
