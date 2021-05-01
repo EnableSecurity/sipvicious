@@ -29,19 +29,18 @@ import time
 import os
 import pickle
 import traceback
-from sys import exit
 from datetime import datetime
-from optparse import OptionParser
 from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
-    numericbrute, dictionaryattack, packetcounter, check_ipv6,
-    createTag, makeRequest, getAuthHeader, getNonce, getOpaque,
+    numericbrute, dictionaryattack, packetcounter, check_ipv6, resolveexitcode,
+    createTag, makeRequest, getAuthHeader, getNonce, getOpaque, ArgumentParser,
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
     standardscanneroptions, standardoptions, calcloglevel, resumeFrom
 )
 
 __prog__ = 'svcrack'
+__exitcode__ = 0
 
 class ASipOfRedWine:
 
@@ -88,7 +87,7 @@ class ASipOfRedWine:
                 raise ValueError
         except (ValueError, TypeError):
             self.log.error('port should strictly be an integer between 1 and 65535')
-            exit(1)
+            sys.exit(10)
         self.domain = self.dsthost
         if domain:
             self.domain = domain
@@ -165,8 +164,7 @@ class ASipOfRedWine:
         register = makeRequest(
             m,
             '"%s" <sip:%s@%s>' % (extension, extension, domain),
-            '"%s" <sip:%s@%s>' % (
-                extension, extension, domain),
+            '"%s" <sip:%s@%s>' % (extension, extension, domain),
             domain,
             self.dstport,
             callid=cid,
@@ -174,6 +172,7 @@ class ASipOfRedWine:
             branchunique=branchunique,
             cseq=cseq,
             auth=auth,
+            contact=contact,
             localtag=localtag,
             compact=self.compact,
             localport=self.localport,
@@ -235,14 +234,17 @@ class ASipOfRedWine:
             self.nomore = True
 
     def start(self):
+        global __exitcode__
         if self.bindingip == '':
             bindingip = 'any'
         else:
             bindingip = self.bindingip
         self.log.debug("binding to %s:%s" % (bindingip, self.localport))
+
         while 1:
             if self.localport > 65535:
                 self.log.critical("Could not bind to any port")
+                __exitcode__ = resolveexitcode(30, __exitcode__)
                 return
             try:
                 self.sock.bind((self.bindingip, self.localport))
@@ -250,6 +252,7 @@ class ASipOfRedWine:
             except socket.error:
                 self.log.debug("could not bind to %s" % self.localport)
                 self.localport += 1
+
         if self.originallocalport != self.localport:
             self.log.warning("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" %
                           (self.bindingip, self.originallocalport, self.localport))
@@ -262,18 +265,24 @@ class ASipOfRedWine:
             mysendto(self.sock, data, (self.dsthost, self.dstport))
         except socket.error as err:
             self.log.error("socket error: %s" % err)
+            __exitcode__ = resolveexitcode(30, __exitcode__)
             return
+
         try:
             self.getResponse()
             self.lastrecvtime = time.time()
         except socket.timeout:
             self.log.error("no server response")
+            __exitcode__ = resolveexitcode(30, __exitcode__)
             return
         except socket.error as err:
             self.log.error("socket error:%s" % err)
+            __exitcode__ = resolveexitcode(30, __exitcode__)
             return
+
         if self.noauth is True:
             return
+
         while 1:
             r, _, _ = select.select(
                 self.rlist,
@@ -290,6 +299,7 @@ class ASipOfRedWine:
                     self.lastrecvtime = time.time()
                 except socket.error as err:
                     self.log.warning("socket error: %s" % err)
+                    __exitcode__ = resolveexitcode(30, __exitcode__)
             else:
                 # check if its been a while since we had a response to prevent
                 # flooding - otherwise stop
@@ -298,8 +308,11 @@ class ASipOfRedWine:
                     self.nomore = True
                     self.log.warning(
                         'It has been %s seconds since we last received a response - stopping' % timediff)
+
                 if self.passwordcracked:
+                    __exitcode__ = resolveexitcode(40, __exitcode__)
                     break
+
                 if self.nomore is True:
                     try:
                         while not self.passwordcracked:
@@ -347,25 +360,30 @@ class ASipOfRedWine:
                                         os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'wb+'))
                                     self.log.debug(
                                         'logged last extension %s' % self.previouspassword)
+
                                 elif self.crackmode == 2:
                                     pickle.dump(self.crackargs.tell(), open(
                                         os.path.join(self.sessionpath, 'lastpasswd.pkl'), 'wb+'))
                                     self.log.debug(
                                         'logged last position %s' % self.crackargs.tell())
+
                             except IOError:
-                                self.log.warning(
-                                    'could not log the last extension scanned')
+                                self.log.warning('could not log the last extension scanned')
+                                __exitcode__ = resolveexitcode(20, __exitcode__)
+
                 except socket.error as err:
                     self.log.error("socket error: %s" % err)
+                    __exitcode__ = resolveexitcode(30, __exitcode__)
                     break
 
 
 def main():
+    global __exitcode__
     usage = "usage: %prog -u username [options] target\r\n"
     usage += "examples:\r\n"
-    usage += "%prog -u100 -d dictionary.txt udp://10.0.0.1:5080\r\n"
-    usage += "%prog -u100 -r1-9999 -z4 10.0.0.1\r\n"
-    parser = OptionParser(usage, version="%prog v" + str(__version__) + __GPL__)
+    usage += "\t%prog -u 100 -d dictionary.txt udp://10.0.0.1:5080\r\n"
+    usage += "\t%prog -u 100 -r1-9999 -z4 10.0.0.1\r\n"
+    parser = ArgumentParser(usage, version="%prog v" + str(__version__) + __GPL__)
     parser.add_option("-p", "--port", dest="port", default="5060",
         help="Destination port of the SIP device - eg -p 5060", metavar="PORT")
     parser = standardoptions(parser)
@@ -402,26 +420,29 @@ def main():
         help="force the first line URI to a specific value; e.g. sip:999@example.org")
     parser.add_option('-6', dest="ipv6", action="store_true", help="Scan an IPv6 address")
     parser.add_option('-m','--method', dest='method', default='REGISTER', help="Specify a SIP method to use")
+
     options, args = parser.parse_args()
+
     exportpath = None
     logging.basicConfig(level=calcloglevel(options))
     logging.debug('started logging')
+
     if options.resume is not None:
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.resume)
         if os.path.exists(os.path.join(exportpath, 'closed')):
-            logging.error("Cannot resume a session that is complete")
-            exit(1)
+            parser.error("Cannot resume a session that is complete", 20)
+
         if not os.path.exists(exportpath):
-            logging.critical(
-                'A session with the name %s was not found' % options.resume)
-            exit(1)
+            parser.error('A session with the name %s was not found' % options.resume, 20)
+
         optionssrc = os.path.join(exportpath, 'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
         options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
+
     elif options.save is not None:
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.save)
@@ -431,21 +452,22 @@ def main():
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.resume)
         if not os.path.exists(exportpath):
-            logging.critical(
-                'A session with the name %s was not found' % options.resume)
-            exit(1)
+            parser.error('A session with the name %s was not found' % options.resume, 20)
+
         optionssrc = os.path.join(exportpath, 'options.pkl')
         previousresume = options.resume
         previousverbose = options.verbose
+
         options, args = pickle.load(open(optionssrc, 'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
+
     elif options.save is not None:
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.save)
 
     if len(args) != 1:
-        parser.error("Please provide at least one hostname which talks SIP!")
+        parser.error("Please provide at least one hostname which talks SIP!", 10)
 
     destport = options.port
     parsed = urlparse(args[0])
@@ -453,19 +475,22 @@ def main():
         host = args[0]
     else:
         if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme)
+            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme, 10)
+
         if parsed.scheme != 'udp':
-            parser.error('Invalid protocol scheme: %s' % parsed.scheme)
+            parser.error('Invalid protocol scheme: %s' % parsed.scheme, 10)
 
         if ':' not in parsed.netloc:
-            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.')
+            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.', 10)
+
         if int(destport) != 5060:
-            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.')
+            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.', 10)
+
         host = parsed.netloc.split(':')[0]
         destport = parsed.netloc.split(':')[1]
 
     if options.username is None:
-        parser.error("Please provide at least one username to crack!")
+        parser.error("Please provide at least one username to crack!", 10)
 
     if options.dictionary is not None:
         crackmode = 2
@@ -475,12 +500,14 @@ def main():
             try:
                 dictionary = open(options.dictionary, 'r', encoding='utf-8', errors='ignore')
             except IOError:
-                logging.error("could not open %s" % options.dictionary)
+                parser.error("could not open %s" % options.dictionary, 20)
+
             if options.resume is not None:
                 lastpasswdsrc = os.path.join(exportpath, 'lastpasswd.pkl')
                 previousposition = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
                 dictionary.seek(previousposition)
         crackargs = dictionary
+
     else:
         crackmode = 1
         if options.resume is not None:
@@ -488,38 +515,42 @@ def main():
             try:
                 previouspasswd = pickle.load(open(lastpasswdsrc, 'rb'), encoding='bytes')
             except IOError:
-                logging.critical('Could not read from %s' % lastpasswdsrc)
-                exit(1)
+                parser.error('Could not read from %s' % lastpasswdsrc, 20)
+
             logging.debug('Previous range: %s' % options.range)
             options.range = resumeFrom(previouspasswd, options.range)
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previouspasswd)
+
         rangelist = getRange(options.range)
         crackargs = (rangelist, options.zeropadding,
                      options.template, options.defaults, [options.username])
+
     if options.save is not None:
         if options.resume is None:
             exportpath = os.path.join(os.path.expanduser(
                 '~'), '.sipvicious', __prog__, options.save)
+
             if os.path.exists(exportpath):
-                logging.warning(
-                    'we found a previous scan with the same name. Please choose a new session name')
-                exit(1)
+                parser.error('we found a previous scan with the same name. Please choose a new session name', 20)
+
             logging.debug('creating an export location %s' % exportpath)
+
             try:
                 os.makedirs(exportpath, mode=0o700)
             except OSError:
-                logging.critical(
-                    'could not create the export location %s' % exportpath)
-                exit(1)
+                parser.error('could not create the export location %s' % exportpath, 20)
+
             optionsdst = os.path.join(exportpath, 'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
             pickle.dump([options, args], open(optionsdst, 'wb+'))
+
     if options.autogetip:
         tmpsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tmpsocket.connect(("msn.com", 80))
         options.externalip = tmpsocket.getsockname()[0]
         tmpsocket.close()
+
     sipvicious = ASipOfRedWine(
         host,
         username=options.username,
@@ -546,8 +577,11 @@ def main():
         sipvicious.start()
         if exportpath is not None:
             open(os.path.join(exportpath, 'closed'), 'w').close()
+
     except KeyboardInterrupt:
         logging.warning('caught your control^c - quiting')
+        __exitcode__ = resolveexitcode(30, __exitcode__)
+
     except Exception as err:
         if options.reportBack:
             logging.critical(
@@ -558,6 +592,8 @@ def main():
                 "Unhandled exception - please run same command with the -R option to send me an automated report")
             pass
         logging.exception("Exception")
+        __exitcode__ = resolveexitcode(20, __exitcode__)
+
     if options.save is not None and sipvicious.previouspassword is not None:
         lastextensiondst = os.path.join(exportpath, 'lastpasswd.pkl')
         logging.debug('saving state to %s' % lastextensiondst)
@@ -574,6 +610,8 @@ def main():
                               sipvicious.crackargs.tell())
         except IOError:
             logging.warning('could not log the last tried password')
+            __exitcode__ = resolveexitcode(20, __exitcode__)
+
     # display results
     if not options.quiet:
         lenres = len(sipvicious.resultpasswd)
@@ -593,9 +631,11 @@ def main():
                 logging.warning("too many to print - use svreport for this")
         else:
             logging.warning("found nothing")
+
     end_time = datetime.now()
     total_time = end_time - start_time
     logging.info("Total time: %s" % total_time)
+    sys.exit(__exitcode__)
 
 if __name__ == '__main__':
     main()

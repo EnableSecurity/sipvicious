@@ -31,6 +31,7 @@ import socket
 import random
 import struct
 import shutil
+import optparse
 import logging
 from random import getrandbits
 from urllib.request import urlopen
@@ -44,6 +45,13 @@ if sys.hexversion < 0x03060000:
     sys.stderr.write(
         "Please update to python 3.6 or greater to run SIPVicious\r\n")
     sys.exit(1)
+
+
+class ArgumentParser(optparse.OptionParser):
+    def error(self, message, code):
+        print(self.get_usage())
+        sys.stderr.write('error: %s\r\n' % message)
+        sys.exit(code)
 
 
 def standardoptions(parser):
@@ -75,6 +83,12 @@ def standardscanneroptions(parser):
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, action="store_true",
                       help="enable compact mode. Makes packets smaller but possibly less compatible")
     return parser
+
+
+def resolveexitcode(newint, existingcode):
+    if existingcode > newint:
+        return existingcode
+    return newint
 
 
 def calcloglevel(options):
