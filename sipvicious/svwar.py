@@ -688,8 +688,10 @@ def main():
         sipvicious.start()
         if exportpath is not None:
             open(os.path.join(exportpath, 'closed'), 'w').close()
+
     except KeyboardInterrupt:
         logging.warning('caught your control^c - quiting')
+
     except Exception as err:
         if options.reportBack:
             logging.critical(

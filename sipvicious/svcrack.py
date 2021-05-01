@@ -580,7 +580,6 @@ def main():
 
     except KeyboardInterrupt:
         logging.warning('caught your control^c - quiting')
-        __exitcode__ = resolveexitcode(30, __exitcode__)
 
     except Exception as err:
         if options.reportBack:
