@@ -23,14 +23,11 @@ jobs:
       run: |
         python setup.py install
 
-    - name: +ve tests for svmap
+    - name: svmap tests
       run: |
-        sipvicious_svmap demo.sipvicious.pro -p 5060
-        sipvicious_svmap 172.104.142.43 -p 5060 -e 1000
-
-    - name: -ve tests for svmap
-      run: |
-        sipvicious_svmap test@pew.pew udp://demo.sipvicious.pro || true
+        pushd autotest
+        ./svmap.sh
+        popd
 
     - name: +ve tests for svwar
       run: |
