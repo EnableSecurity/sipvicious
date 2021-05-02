@@ -23,29 +23,20 @@ jobs:
       run: |
         python setup.py install
 
+    - name: svwar tests
+      run: |
+        pushd autotest
+        ./svwar.sh
+        popd
+
+    - name: svcrack tests
+      run: |
+        pushd autotest
+        ./svcrack.sh
+        popd
+
     - name: svmap tests
       run: |
         pushd autotest
         ./svmap.sh
         popd
-
-    - name: +ve tests for svwar
-      run: |
-        sipvicious_svwar udp://demo.sipvicious.pro:5060 -e 1000-2000
-        sipvicious_svwar demo.sipvicious.pro -p 5060 -e 1-10
-
-    - name: -ve tests for svwar
-      run: |
-        sipvicious_svwar tcp://pew.pew tls://pew.pew wss://pew.pew || true
-        sipvicious_svwar udp://demo.sipvicious.pro || true
-
-    - name: +ve tests for svcrack
-      run: |
-        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -u 1000 -r 1400-1600
-        sipvicious_svcrack demo.sipvicious.pro -p 5060 -u 1000 -r 100-200
-        seq 1400 1550 >> pass.txt; sipvicious_svcrack demo.sipvicious.pro -p 5060 -u 1000 -d pass.txt
-
-    - name: -ve tests for svcrack
-      run: |
-        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -u 1000 -d notexistent.txt || true
-        sipvicious_svcrack udp://demo.sipvicious.pro:5060 -p 5080 || true
