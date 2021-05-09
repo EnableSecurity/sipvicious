@@ -747,7 +747,13 @@ def getranges(ipstring):
             log.error('Could not resolve %s' % ipstring)
             svmap.__exitcode__ = 30  # network error
             return
-    return((naddr1, naddr2))
+        # UnicodeError is raised by the idna library when a malformed IP
+        # is passed to socket.gethostbyname(). e.g. gethostbyname('1.1..1')
+        except UnicodeError:
+            log.error('Malformed target supplied: %s' % ipstring)
+            svmap.__exitcode__ = resolveexitcode(10, svmap.__exitcode__)
+            return
+    return naddr1, naddr2
 
 
 def getranges2(ipstring):
