@@ -42,10 +42,10 @@ __prog__ = "svmap"
 __exitcode__ = 0
 
 class DrinkOrSip:
-    def __init__(self,scaniter,selecttime=0.005,compact=False, bindingip='',
-                 fromname='sipvicious',fromaddr='sip:100@1.1.1.1', extension=None,
-                 sessionpath=None,socktimeout=3,externalip=None,localport=5060,
-                 printdebug=False,first=None,fpworks=False,ipv6=False):
+    def __init__(self, scaniter, selecttime=0.005, compact=False, bindingip='',
+                 fromname='sipvicious', fromaddr='sip:100@1.1.1.1', extension=None,
+                 sessionpath=None, socktimeout=3, externalip=None, localport=5060,
+                 printdebug=False, first=None, fpworks=False, ipv6=False):
         self.log = logging.getLogger('DrinkOrSip')
         family = socket.AF_INET
         if ipv6:
@@ -97,12 +97,12 @@ class DrinkOrSip:
         else:
             self.log.debug("external ip was set")
             self.externalip = externalip
-        self.log.debug("External ip: %s:%s" % (self.externalip,localport) )
+        self.log.debug("External ip: %s:%s" % (self.externalip, localport) )
         self.compact = compact
         self.log.debug("Compact mode: %s" % self.compact)
         self.fromname = fromname
         self.fromaddr = fromaddr
-        self.log.debug("From: %s <%s>" % (self.fromname,self.fromaddr))
+        self.log.debug("From: %s <%s>" % (self.fromname, self.fromaddr))
         self.nomoretoscan = False
         self.originallocalport = self.localport
         self.nextip = None
@@ -114,7 +114,7 @@ class DrinkOrSip:
             self.packetcount = packetcounter(50)
         self.sentpackets = 0
 
-    def getResponse(self,buff,srcaddr):
+    def getResponse(self, buff, srcaddr):
         srcip, srcport, *_ = srcaddr
         uaname = 'unknown'
         buff = buff.decode('utf-8', 'ignore')
@@ -124,7 +124,7 @@ class DrinkOrSip:
             if self.externalip == srcip:
                 self.log.debug("We received our own packet from %s:%s" % (str(srcip), srcport))
             else:
-                self.log.info("Looks like we received a SIP request from %s:%s"% (str(srcip), srcport))
+                self.log.info("Looks like we received a SIP request from %s:%s" % (str(srcip), srcport))
                 self.log.debug(buff.__repr__())
             return
         self.log.debug("running fingerPrintPacket()")
@@ -151,18 +151,18 @@ class DrinkOrSip:
             try:
                 dstip = socket.inet_ntoa(pack('!L',int(originaldst[:8],16)))
                 dstport = int(originaldst[8:12],16)
-            except (ValueError,TypeError,socket.error):
+            except (ValueError, TypeError, socket.error):
                 self.log.debug("original destination could not be decoded: %s" % (originaldst))
-                dstip,dstport = 'unknown','unknown'
-            resultstr = '%s:%s\t->\t%s:%s\t->\t%s' % (dstip,dstport,srcip,srcport,uaname)
+                dstip, dstport = 'unknown','unknown'
+            resultstr = '%s:%s\t->\t%s:%s\t->\t%s' % (dstip, dstport, srcip, srcport, uaname)
             self.log.info( resultstr )
-            self.resultip['%s:%s' % (srcip,srcport)] = '%s:%s' % (dstip,dstport)
-            self.resultua['%s:%s' % (srcip,srcport)] = uaname
+            self.resultip['%s:%s' % (srcip, srcport)] = '%s:%s' % (dstip, dstport)
+            self.resultua['%s:%s' % (srcip, srcport)] = uaname
             if self.sessionpath is not None and self.dbsyncs:
                 self.resultip.sync()
                 self.resultua.sync()
         else:
-            self.log.info('Packet from %s:%s did not contain a SIP msg'%srcaddr)
+            self.log.info('Packet from %s:%s did not contain a SIP msg' % srcaddr)
             self.log.debug('Packet: %s' % buff.__repr__())
 
     def start(self):
@@ -182,14 +182,15 @@ class DrinkOrSip:
                 __exitcode__ = resolveexitcode(30, __exitcode__)
                 return
             try:
-                self.sock.bind((self.bindingip,self.localport))
+                self.sock.bind((self.bindingip, self.localport))
                 break
             except socket.error:
                 self.log.debug("could not bind to %s" % self.localport)
                 self.localport += 1
 
         if self.originallocalport != self.localport:
-            self.log.warning("could not bind to %s:%s - some process might already be listening on this port. Listening on port %s instead" % (self.bindingip,self.originallocalport, self.localport))
+            self.log.warning("could not bind to %s:%s - some process might already be listening on this port." \
+                "Listening on port %s instead" % (self.bindingip, self.originallocalport, self.localport))
             self.log.info("Make use of the -P option to specify a port to bind to yourself")
 
         while 1:
@@ -202,7 +203,7 @@ class DrinkOrSip:
             if r:
                 # we got stuff to read off the socket
                 try:
-                    buff,srcaddr = self.sock.recvfrom(8192)
+                    buff, srcaddr = self.sock.recvfrom(8192)
                     host, port, *_ = srcaddr
                     self.log.debug('got data from %s:%s' % (str(host), str(port)))
                     self.log.debug('data: %s' % buff.__repr__())
@@ -212,7 +213,7 @@ class DrinkOrSip:
                 except socket.error:
                     __exitcode__ = resolveexitcode(30, __exitcode__)
                     continue
-                self.getResponse(buff,srcaddr)
+                self.getResponse(buff, srcaddr)
 
             else:
                 # no stuff to read .. its our turn to send back something
@@ -222,11 +223,11 @@ class DrinkOrSip:
                         self.log.debug("Making sure that no packets get lost")
                         self.log.debug("Come to daddy")
                         while 1:
-                            buff,srcaddr = self.sock.recvfrom(8192)
+                            buff, srcaddr = self.sock.recvfrom(8192)
                             if self.printdebug:
                                 print(srcaddr)
                                 print(buff)
-                            self.getResponse(buff,srcaddr)
+                            self.getResponse(buff, srcaddr)
                     except socket.error:
                         break
 
@@ -237,9 +238,9 @@ class DrinkOrSip:
                     self.nomoretoscan = True
                     continue
 
-                dstip,dstport,method = nextscan
+                dstip, dstport, method = nextscan
                 self.nextip = dstip
-                dsthost = (dstip,dstport)
+                dsthost = (dstip, dstport)
                 domain = dsthost[0]
                 branchunique = '%s' % random.getrandbits(32)
 
@@ -260,7 +261,7 @@ class DrinkOrSip:
                 callid = '%s' % random.getrandbits(80)
                 contact = None
                 if method != 'REGISTER':
-                    contact = 'sip:%s@%s:%s' % (self.extension,self.externalip,self.localport)
+                    contact = 'sip:%s@%s:%s' % (self.extension, self.externalip, self.localport)
                 data = makeRequest(
                     method,
                     fromaddr,
@@ -281,14 +282,14 @@ class DrinkOrSip:
                 try:
                     self.log.debug("sending packet to %s:%s" % dsthost)
                     self.log.debug("packet: %s" % data.__repr__())
-                    mysendto(self.sock,data,dsthost)
+                    mysendto(self.sock, data, dsthost)
                     self.sentpackets += 1
 
                     if self.sessionpath is not None:
                         if next(self.packetcount):
                             try:
                                 f = open(os.path.join(self.sessionpath,'lastip.pkl'),'wb+')
-                                pickle.dump(self.nextip,f)
+                                pickle.dump(self.nextip, f)
                                 f.close()
                                 self.log.debug('logged last ip %s' % self.nextip)
                             except IOError:
@@ -304,6 +305,11 @@ class DrinkOrSip:
                     self.log.error("socket error while sending to %s:%s -> %s" % (dsthost[0], dsthost[1], err))
                     __exitcode__ = resolveexitcode(30, __exitcode__)
                     pass
+
+        # if the number of sentpackets is not equal to the ones we received, then we know that
+        # there were packet drops, i.e. network errors :D one hack to rule 'em all ;P
+        if self.sentpackets != len(self.resultua):
+            __exitcode__ = resolveexitcode(30, __exitcode__)
 
 def main():
     global __exitcode__
@@ -357,7 +363,7 @@ def main():
         previousresume = options.resume
         previousverbose = options.verbose
 
-        options,args = pickle.load(open(optionssrc,'rb'), encoding='bytes')
+        options, args = pickle.load(open(optionssrc,'rb'), encoding='bytes')
         options.resume = previousresume
         options.verbose = previousverbose
 
@@ -369,9 +375,9 @@ def main():
     scanrandomstore = None
 
     if options.input is not None:
-        db = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.input,'resultua')
+        db = os.path.join(os.path.expanduser('~'), '.sipvicious',__prog__, options.input,'resultua')
         if dbexists(db):
-            scaniter = scanfromdb(db,options.method.split(','))
+            scaniter = scanfromdb(db, options.method.split(','))
         else:
             parser.error("the session name does not exist. Please use svreport to list existing scans", 20)
 
@@ -380,16 +386,16 @@ def main():
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)
         internetranges = [
-            [16777216,167772159],
-            [184549376,234881023],
-            [251658240,2130706431],
-            [2147549184,2851995647],
-            [2852061184,2886729727],
-            [2886795264,3221159935],
-            [3221226240,3227017983],
-            [3227018240,3232235519],
-            [3232301056,3323068415],
-            [3323199488,3758096127]
+            [16777216, 167772159],
+            [184549376, 234881023],
+            [251658240, 2130706431],
+            [2147549184, 2851995647],
+            [2852061184, 2886729727],
+            [2886795264, 3221159935],
+            [3221226240, 3227017983],
+            [3227018240, 3232235519],
+            [3232301056, 3323068415],
+            [3323199488, 3758096127]
         ]
 
         scanrandomstore = '.sipviciousrandomtmp'
@@ -408,7 +414,7 @@ def main():
     elif options.inputtext:
         logging.debug('Using IP addresses from input text file')
         try:
-            f = open(options.inputtext,'r')
+            f = open(options.inputtext, 'r')
             args = f.readlines()
             f.close()
         except IOError:
@@ -430,7 +436,7 @@ def main():
             if options.save is not None:
                 scanrandomstore = os.path.join(exportpath,'random')
                 resumescan = True
-            scaniter = scanrandom(list(map(getranges,args)), portrange,
+            scaniter = scanrandom(list(map(getranges, args)), portrange,
                 options.method.split(','), randomstore=scanrandomstore, resume=resumescan)
         else:
             scaniter = scanlist(iprange, portrange, options.method.split(','))
@@ -447,12 +453,12 @@ def main():
             if options.save is not None:
                 scanrandomstore = os.path.join(exportpath,'random')
                 resumescan = True
-            scaniter = scanrandom(list(map(getranges,args)),portrange,
-                options.method.split(','),randomstore=scanrandomstore,resume=resumescan)
+            scaniter = scanrandom(list(map(getranges, args)), portrange,
+                options.method.split(','), randomstore=scanrandomstore, resume=resumescan)
 
         elif options.srvscan:
             logging.debug("making use of SRV records")
-            scaniter = getTargetFromSRV(args,options.method.split(','))
+            scaniter = getTargetFromSRV(args, options.method.split(','))
 
         else:
             if options.resume is not None:
@@ -478,23 +484,23 @@ def main():
                 except ValueError as err:
                     parser.error(err, 20)
 
-                scaniter = scanlist(iprange,portrange,options.method.split(','))
+                scaniter = scanlist(iprange, portrange, options.method.split(','))
 
     if options.save is not None:
         if options.resume is None:
-            exportpath = os.path.join(os.path.expanduser('~'),'.sipvicious',__prog__,options.save)
+            exportpath = os.path.join(os.path.expanduser('~'), '.sipvicious', __prog__, options.save)
             if os.path.exists(exportpath):
                 parser.error('we found a previous scan with the same name. Please choose a new session name', 20)
 
             logging.debug('creating an export location %s' % exportpath)
             try:
-                os.makedirs(exportpath,mode=0o700)
+                os.makedirs(exportpath, mode=0o700)
             except OSError:
                 parser.error('could not create the export location %s' % exportpath, 20)
 
-            optionsdst = os.path.join(exportpath,'options.pkl')
+            optionsdst = os.path.join(exportpath, 'options.pkl')
             logging.debug('saving options to %s' % optionsdst)
-            pickle.dump([options,args],open(optionsdst,'wb+'))
+            pickle.dump([options, args], open(optionsdst, 'wb+'))
 
     try:
         options.extension
@@ -547,7 +553,7 @@ def main():
         logging.debug('saving state to %s' % lastipdst)
         try:
             f = open(lastipdst,'wb+')
-            pickle.dump(sipvicious.nextip,f)
+            pickle.dump(sipvicious.nextip, f)
             f.close()
         except OSError:
             logging.warning('Could not save state to %s' % lastipdst)
@@ -574,7 +580,7 @@ def main():
                         rows.append((k.decode(),sipvicious.resultua[k].decode()))
                 except AttributeError:
                     for k in sipvicious.resultua.keys():
-                        rows.append((k,sipvicious.resultua[k]))
+                        rows.append((k, sipvicious.resultua[k]))
                 print(to_string(rows, header=labels))
             else:
                 logging.warning("too many to print - use svreport for this")

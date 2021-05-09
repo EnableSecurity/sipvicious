@@ -718,6 +718,7 @@ def ip6range(*args):
 
 
 def getranges(ipstring):
+    from sipvicious import svmap
     log = logging.getLogger('getranges')
     if re.match(
         r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',
@@ -744,6 +745,7 @@ def getranges(ipstring):
             naddr2 = naddr1
         except socket.error:
             log.error('Could not resolve %s' % ipstring)
+            svmap.__exitcode__ = 30  # network error
             return
     return((naddr1, naddr2))
 
@@ -1017,7 +1019,6 @@ def outputtopdf(outputfile, title, labels, db, resdb):
         from reportlab.platypus import TableStyle, Table, SimpleDocTemplate, Paragraph
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.pdfgen import canvas
     except ImportError:
         log.error(
             'Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')
