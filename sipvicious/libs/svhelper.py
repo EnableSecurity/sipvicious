@@ -1017,7 +1017,6 @@ def outputtopdf(outputfile, title, labels, db, resdb):
         from reportlab.platypus import TableStyle, Table, SimpleDocTemplate, Paragraph
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.pdfgen import canvas
     except ImportError:
         log.error(
             'Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')

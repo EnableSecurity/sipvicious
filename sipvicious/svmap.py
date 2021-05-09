@@ -305,6 +305,11 @@ class DrinkOrSip:
                     __exitcode__ = resolveexitcode(30, __exitcode__)
                     pass
 
+        # if the number of sentpackets is not equal to the ones we received, then we know that
+        # there were packet drops, i.e. network errors :D one hack to rule 'em all ;P
+        if self.sentpackets != len(self.resultua):
+            __exitcode__ = resolveexitcode(30, __exitcode__)
+
 def main():
     global __exitcode__
     usage = "usage: %prog [options] host1 host2 hostrange\r\n"
