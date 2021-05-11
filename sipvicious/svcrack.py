@@ -292,6 +292,7 @@ class ASipOfRedWine:
             )
             if r:
                 if self.passwordcracked:
+                    __exitcode__ = resolveexitcode(40, __exitcode__)
                     break
                 # we got stuff to read off the socket
                 try:
