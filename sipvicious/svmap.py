@@ -317,7 +317,7 @@ def main():
     usage += 'Scans for SIP devices on a given network\r\n\r\n'
     usage += "examples:\r\n"
     usage += "\t%prog 10.0.0.1-10.0.0.255 "
-    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24"
+    usage += "172.16.131.1 sipvicious.org/22 10.0.1.1/24 "
     usage += "1.1.1.1-20 1.1.2-20.* 4.1.*.*\r\n"
     usage += "\t%prog -s session1 --randomize 10.0.0.1/8\r\n"
     usage += "\t%prog --resume session1 -v\r\n"
