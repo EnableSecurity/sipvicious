@@ -48,7 +48,7 @@ if sys.hexversion < 0x03060000:
 
 
 class ArgumentParser(optparse.OptionParser):
-    def error(self, message, code):
+    def error(self, message, code=10):
         print(self.get_usage())
         sys.stderr.write('error: %s\r\n' % message)
         sys.exit(code)
