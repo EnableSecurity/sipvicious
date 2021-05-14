@@ -467,8 +467,10 @@ def main():
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.save)
 
-    if len(args) != 1:
+    if len(args) < 1:
         parser.error("Please provide at least one hostname which talks SIP!", 10)
+    elif len(args) > 1:
+        parser.error("Currently svcrack supports exactly one hostname.", 10)
 
     destport = options.port
     parsed = urlparse(args[0])
