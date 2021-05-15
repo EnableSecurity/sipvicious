@@ -309,6 +309,7 @@ class ASipOfRedWine:
                     self.nomore = True
                     self.log.warning(
                         'It has been %s seconds since we last received a response - stopping' % timediff)
+                    __exitcode__ = resolveexitcode(30, __exitcode__)
 
                 if self.passwordcracked:
                     __exitcode__ = resolveexitcode(40, __exitcode__)
@@ -395,7 +396,7 @@ def main():
         help="specify a dictionary file with passwords or - for stdin",
         metavar="DICTIONARY")
     parser.add_option("-r", "--range", dest="range", default="100-999",
-        help="specify a range of numbers. example: 100-200,300-310,400",
+        help="specify a range of numbers, can be a comma separated list. example: 100-200,300-310,400",
         metavar="RANGE")
     parser.add_option("-e", "--extension", dest="extension",
         help="Extension to crack. Only specify this when the extension is different from the username.",
@@ -552,6 +553,9 @@ def main():
         tmpsocket.connect(("msn.com", 80))
         options.externalip = tmpsocket.getsockname()[0]
         tmpsocket.close()
+
+    if options.maximumtime < 0:
+        parser.error('looks like you passed a negative value to --maximumtime!', 10)
 
     sipvicious = ASipOfRedWine(
         host,
