@@ -392,8 +392,8 @@ def main():
     parser.add_option("-u", "--username", dest="username",
         help="username to try crack", metavar="USERNAME")
     parser.add_option("-d", "--dictionary", dest="dictionary", type="string",
-                      help="specify a dictionary file with passwords or - for stdin",
-                      metavar="DICTIONARY")
+        help="specify a dictionary file with passwords or - for stdin",
+        metavar="DICTIONARY")
     parser.add_option("-r", "--range", dest="range", default="100-999",
         help="specify a range of numbers. example: 100-200,300-310,400",
         metavar="RANGE")
@@ -401,20 +401,19 @@ def main():
         help="Extension to crack. Only specify this when the extension is different from the username.",
         metavar="EXTENSION")
     parser.add_option("-z", "--zeropadding", dest="zeropadding", type="int", default=0,
-        help="the number of zeros used to padd the password. the options \"-r 1-9999 -z 4\"" \
+        help="the number of zeros used to padd the password. the options \"-r 1-9999 -z 4\" " \
             "would give 0001 0002 0003 ... 9999", metavar="PADDING")
-    parser.add_option("-n", "--reusenonce", dest="reusenonce", default=False,
-        help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making them vulnerable to replay attacks). Speeds up the cracking.",
-        action="store_true")
+    parser.add_option("-n", "--reusenonce", dest="reusenonce", default=False, action="store_true",
+        help="Reuse nonce. Some SIP devices don't mind you reusing the nonce (making " \
+            "them vulnerable to replay attacks). Speeds up the cracking.",)
     parser.add_option('--template', '-T', action="store", dest="template",
-        help="A format string which allows us to specify a template for the extensions" \
+        help="A format string which allows us to specify a template for the extensions. " \
             "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int", default=10,
         help="Maximum time in seconds to keep sending requests without receiving a response back")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults", default=False,
-        help="Scan for default / typical passwords such as" \
-            "1000,2000,3000 ... 1100, etc. This option is off by default." \
-            "Use --enabledefaults to enable this functionality")
+        help="Scan for default / typical passwords such as " \
+            "1000,2000,3000 ... 1100, etc. This option is off by default.")
     parser.add_option('--domain', dest="domain",
          help="force a specific domain name for the SIP message, eg. example.org")
     parser.add_option('--requesturi', dest="requesturi",
