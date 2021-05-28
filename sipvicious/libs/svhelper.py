@@ -31,6 +31,7 @@ import socket
 import random
 import struct
 import shutil
+import optparse
 import logging
 from random import getrandbits
 from urllib.request import urlopen
@@ -44,6 +45,13 @@ if sys.hexversion < 0x03060000:
     sys.stderr.write(
         "Please update to python 3.6 or greater to run SIPVicious\r\n")
     sys.exit(1)
+
+
+class ArgumentParser(optparse.OptionParser):
+    def error(self, message, code):
+        print(self.get_usage())
+        sys.stderr.write('error: %s\r\n' % message)
+        sys.exit(code)
 
 
 def standardoptions(parser):
@@ -75,6 +83,12 @@ def standardscanneroptions(parser):
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, action="store_true",
                       help="enable compact mode. Makes packets smaller but possibly less compatible")
     return parser
+
+
+def resolveexitcode(newint, existingcode):
+    if existingcode > newint:
+        return existingcode
+    return newint
 
 
 def calcloglevel(options):
@@ -704,6 +718,7 @@ def ip6range(*args):
 
 
 def getranges(ipstring):
+    from sipvicious import svmap
     log = logging.getLogger('getranges')
     if re.match(
         r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}-\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$',
@@ -730,6 +745,7 @@ def getranges(ipstring):
             naddr2 = naddr1
         except socket.error:
             log.error('Could not resolve %s' % ipstring)
+            svmap.__exitcode__ = 30  # network error
             return
     return((naddr1, naddr2))
 
@@ -1003,7 +1019,6 @@ def outputtopdf(outputfile, title, labels, db, resdb):
         from reportlab.platypus import TableStyle, Table, SimpleDocTemplate, Paragraph
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.pdfgen import canvas
     except ImportError:
         log.error(
             'Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')
