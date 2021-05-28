@@ -1,0 +1,42 @@
+name: Automatic +ve/-ve Testing
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install the package
+      run: |
+        python setup.py install
+
+    - name: svwar tests
+      run: |
+        pushd autotest
+        ./svwar.sh
+        popd
+
+    - name: svcrack tests
+      run: |
+        pushd autotest
+        ./svcrack.sh
+        popd
+
+    - name: svmap tests
+      run: |
+        pushd autotest
+        ./svmap.sh
+        popd

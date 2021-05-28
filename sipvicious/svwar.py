@@ -526,10 +526,10 @@ def main():
     parser.add_option('--force', dest="force", action="store_true",
         default=False, help="Force scan, ignoring initial sanity checks.")
     parser.add_option('--template', '-T', action="store", dest="template",
-        help="A format string which allows us to specify a template for the extensions" \
+        help="A format string which allows us to specify a template for the extensions. " \
             "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
-        default=False, help="Scan for default / typical extensions such as" \
+        default=False, help="Scan for default / typical extensions such as " \
             "1000,2000,3000 ... 1100, etc. This option is off by default." \
             "Use --enabledefaults to enable this functionality")
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int",
@@ -577,8 +577,10 @@ def main():
         exportpath = os.path.join(os.path.expanduser(
             '~'), '.sipvicious', __prog__, options.save)
 
-    if len(args) != 1:
-        parser.error("Please provide one hostname", 10)
+    if len(args) < 1:
+        parser.error("Please provide at least one hostname which talks SIP!", 10)
+    elif len(args) > 1:
+        parser.error("Currently svwar supports exactly one hostname.", 10)
 
     destport = options.port
     parsed = urlparse(args[0])
@@ -594,7 +596,7 @@ def main():
             parser.error('Invalid protocol scheme: %s' % parsed.scheme, 20)
 
         if ':' not in parsed.netloc:
-            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.', 20)
+            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.', 10)
 
         if int(destport) != 5060:
             parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.', 20)
