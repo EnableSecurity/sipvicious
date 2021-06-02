@@ -50,7 +50,7 @@ setup(name='sipvicious',
     },
     download_url=f'https://github.com/EnableSecurity/sipvicious/archive/v{__version__}.zip',
     packages=find_packages(),
-    data_files = [("man/man1", [
+    data_files = [("share/man/man1", [
         "man1/svcrack.1",
         "man1/svcrash.1",
         "man1/svmap.1",
