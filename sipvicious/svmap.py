@@ -26,7 +26,6 @@ import pickle
 import random
 import select
 import socket
-import traceback
 from struct import pack
 from sys import exit
 from datetime import datetime
@@ -529,7 +528,6 @@ def main():
     )
     start_time = datetime.now()
     logging.info("start your engines")
-
     try:
         sipvicious.start()
         if exportpath is not None:
@@ -539,12 +537,8 @@ def main():
         logging.warning( 'caught your control^c - quiting' )
 
     except Exception as err:
-        if options.reportBack:
-            logging.critical( "Got unhandled exception : sending report to author" )
-            reportBugToAuthor(traceback.format_exc())
-        else:
-            logging.critical( "Unhandled exception - please run same command with the -R option to send me an automated report")
-            pass
+        logging.critical( "Got unhandled exception" )
+        reportBugToAuthor(err)
         logging.exception("Exception")
         __exitcode__ = resolveexitcode(20, __exitcode__)
 

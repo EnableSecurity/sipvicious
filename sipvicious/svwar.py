@@ -28,7 +28,6 @@ import sys
 import time
 import dbm
 import os
-import traceback
 from datetime import datetime
 from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
@@ -695,15 +694,9 @@ def main():
         logging.warning('caught your control^c - quiting')
 
     except Exception as err:
-        if options.reportBack:
-            logging.critical(
-                "Got unhandled exception : %s\nSending report to author" % err.__str__())
-            reportBugToAuthor(traceback.format_exc())
-        else:
-            logging.critical(
-                "Unhandled exception - please run same command with the -R option to send me an automated report")
-            pass
-        logging.exception("Exception")
+        logging.critical(
+            "Got unhandled exception : %s", err.__str__())
+        reportBugToAuthor(err)
     if options.save is not None and sipvicious.nextuser is not None:
         lastextensiondst = os.path.join(exportpath, 'lastextension.pkl')
         logging.debug('saving state to %s' % lastextensiondst)

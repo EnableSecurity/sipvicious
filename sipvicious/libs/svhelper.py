@@ -24,6 +24,7 @@ __version__ = '0.3.4'
 
 import re
 import sys
+import traceback
 import uuid
 import os
 import dbm
@@ -34,9 +35,7 @@ import shutil
 import optparse
 import logging
 from random import getrandbits
-from urllib.request import urlopen
-from urllib.error import URLError
-from urllib.parse import urlencode
+from urllib.parse import quote
 from binascii import Error as b2aerr
 from .pptable import to_string
 from binascii import b2a_hex, a2b_hex, hexlify
@@ -580,36 +579,17 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
     return(r)
 
 
-def reportBugToAuthor(trace):
-    log = logging.getLogger('reportBugToAuthor')
-    data = str()
-    data += "Command line parameters:\r\n"
-    data += str(sys.argv)
-    data += '\r\n'
-    data += 'version: %s' % __version__
-    data += '\r\n'
-    data += 'email: <%s>' % input("Your email address (optional): ")
-    data += '\r\n'
-    data += 'msg: %s' % input("Extra details (optional): ")
-    data += '\r\n'
-    data += "python version: \r\n"
-    data += "%s\r\n" % sys.version
-    data += "osname: %s" % os.name
-    data += '\r\n'
+def reportBugToAuthor(err):    
+    print('Make sure you are running the latest version of SIPVicious by running "git pull" in the current directory and then python setup.py install')
+    print('Please visit the following URL to open a bug report: https://github.com/EnableSecurity/sipvicious/issues/new?assignees=&labels=bug&template=bug-report.md&title='+ quote("SIPVicious "+__version__+" crashing on "+ err.__str__()))
+    print('Include the following information:')
+    print('CLI params:', ' '.join(sys.argv))
+    print('Python version:', sys.version)
+    print('OS:', os.name)
     if os.name == 'posix':
-        data += "uname: %s" % str(os.uname())
-        data += '\r\n'
-    data += '\r\n\r\n'
-    data += "Trace:\r\n"
-    data += str(trace)
-    try:
-        urlopen('https://comms.enablesecurity.com/hello.php',
-                urlencode({'message': data}).encode('utf-8'))
-        log.warn('Thanks for the bug report! We will be working on it soon')
-    except URLError as err:
-        log.error(err)
-    log.warn('Make sure you are running the latest version of SIPVicious \
-                 by running "git pull" in the current directory')
+        print('uname:', os.uname())
+    print('Full trace:') 
+    print(traceback.format_exc())
 
 
 def scanlist(iprange, portranges, methods):
