@@ -457,7 +457,7 @@ def challengeResponse(auth, method, uri):
         username, realm, nonce, uri)
     if algorithm == "md5-sess" or qop == "auth":
         cnonce = uuid.uuid4().hex
-        nonceCount = "%08d" % auth["noncecount"]
+        nonceCount = "%08d" % auth["noncecount"] if 'noncecount' in auth else '00000001'
         result += ',cnonce="%s",nc=%s' % (cnonce, nonceCount)
     if algorithm is None or algorithm == "md5":
         ha1 = md5(('%s:%s:%s' % (username, realm, passwd)).encode('utf-8')).hexdigest()
