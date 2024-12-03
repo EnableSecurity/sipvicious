@@ -13,8 +13,7 @@ For usage help make use of `-h` or `--help` switch.
 
 ## A note to vendors and service providers
 
-If you are looking for a professional grade toolset to test your RTC systems, please consider [SIPVicious PRO](https://www.sipvicious.pro).
-
+If you are looking for professional VoIP and WebRTC penetration testing services, please check out our offerings at [Enable Security](https://www.enablesecurity.com/).
 
 ## The tools
 
