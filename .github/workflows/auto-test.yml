@@ -22,6 +22,7 @@ jobs:
 
     - name: Install the package
       run: |
+        pip install setuptools
         python setup.py install
 
     - name: svwar tests
