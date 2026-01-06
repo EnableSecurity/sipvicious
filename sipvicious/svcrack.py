@@ -106,6 +106,9 @@ class ASipOfRedWine:
         self.reusenonce = reusenonce
         self.staticnonce = None
         self.staticcid = None
+        self.staticqop = None
+        self.staticalgorithm = None
+        self.staticopaque = None
         if extension is not None:
             self.extension = extension
         else:
@@ -184,6 +187,7 @@ class ASipOfRedWine:
         # we got stuff to read off the socket
         buff, _ = self.sock.recvfrom(8192)
         buff = buff.decode('utf-8', 'ignore')
+        self.log.debug("Received response: %s" % buff.split('\r\n')[0])
         if buff.startswith(self.PROXYAUTHREQ):
             self.dstisproxy = True
         elif buff.startswith(self.AUTHREQ):
@@ -205,6 +209,9 @@ class ASipOfRedWine:
                         else:
                             self.staticnonce = nonce
                             self.staticcid = cid
+                            self.staticqop = qop
+                            self.staticalgorithm = algorithm
+                            self.staticopaque = opaque
                     self.challenges.append([nonce, cid, qop, algorithm, opaque])
         elif buff.startswith(self.OKEY):
             self.passwordcracked = True
@@ -260,6 +267,7 @@ class ASipOfRedWine:
 
         # perform a test 1st ..
         data = self.Register(self.extension, self.domain)
+        self.log.debug("Initial REGISTER:\n%s" % data.decode() if isinstance(data, bytes) else data)
         try:
             mysendto(self.sock, data, (self.dsthost, self.dstport))
         except socket.error as err:
@@ -270,6 +278,7 @@ class ASipOfRedWine:
         try:
             self.getResponse()
             self.lastrecvtime = time.time()
+            self.log.debug("Got initial response, challenges: %d" % len(self.challenges))
         except socket.timeout:
             self.log.error("no server response")
             __exitcode__ = resolveexitcode(30, __exitcode__)
@@ -280,6 +289,7 @@ class ASipOfRedWine:
             return
 
         if self.noauth is True:
+            self.log.debug("noauth is True, returning")
             return
 
         while 1:
@@ -323,12 +333,16 @@ class ASipOfRedWine:
                 # no stuff to read .. its our turn to send back something
                 if len(self.challenges) > 0:
                     # we have challenges to take care of
+                    self.log.debug("Processing challenge, challenges=%d" % len(self.challenges))
                     self.auth = dict()
                     self.auth['username'] = self.username
                     self.auth['realm'] = self.realm
                     if self.reusenonce:
                         self.auth['nonce'] = self.staticnonce
                         cid = self.staticcid
+                        self.auth['qop'] = self.staticqop
+                        self.auth['algorithm'] = self.staticalgorithm
+                        self.auth['opaque'] = self.staticopaque
                     else:
                         self.auth['nonce'], cid, self.auth['qop'], self.auth[
                             'algorithm'], self.auth['opaque'] = self.challenges.pop()
@@ -350,6 +364,7 @@ class ASipOfRedWine:
                     cid = None
                 data = self.Register(
                     self.extension, self.domain, self.auth, cid)
+                self.log.debug("Sending REGISTER with auth=%s" % (self.auth is not None))
                 try:
                     mysendto(self.sock, data, (self.dsthost, self.dstport))
                     # self.sock.sendto(data,(self.dsthost,self.dstport))
