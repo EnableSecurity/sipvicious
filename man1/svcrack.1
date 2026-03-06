@@ -8,6 +8,8 @@ svcrack.py \- manual page for svcrack.py v0.3.4
 examples:
 svcrack.py \fB\-u100\fR \fB\-d\fR dictionary.txt udp://10.0.0.1:5080
 svcrack.py \fB\-u100\fR \fB\-r1\-9999\fR \fB\-z4\fR 10.0.0.1
+svcrack.py \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR 2001:db8::10
+svcrack.py \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR udp://[2001:db8::10]:5060
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -112,6 +114,10 @@ Force the first line URI to a specific value; e.g. sip:999@example.org
 .TP
 \fB\-6\fR
 Scan an IPv6 address
+.IP
+With \fB\-6\fR, targets may be given as bare IPv6 literals such as
+\fB2001:db8::10\fR or as UDP URIs such as
+\fBudp://[2001:db8::10]:5060\fR.
 .IP
 SIPvicious password cracker is an online password guessing tool for SIP devices.
 

@@ -8,6 +8,8 @@ svwar.py \- manual page for svwar.py v0.3.4
 examples:
 svwar.py \fB\-e100\-999\fR udp://10.0.0.1:5080
 svwar.py \fB\-d\fR dictionary.txt 10.0.0.2
+svwar.py \fB\-6\fR \fB\-e2000\fR 2001:db8::10
+svwar.py \fB\-6\fR \fB\-e2000\fR udp://[2001:db8::10]:5060
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -108,6 +110,10 @@ Print SIP messages received
 .TP
 \fB\-6\fR
 Scan an IPv6 address
+.IP
+With \fB\-6\fR, targets may be given as bare IPv6 literals such as
+\fB2001:db8::10\fR or as UDP URIs such as
+\fBudp://[2001:db8::10]:5060\fR.
 .IP
 Sipvicious extension line scanner scans SIP PaBXs for valid extension lines.
 

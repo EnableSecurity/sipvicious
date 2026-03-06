@@ -51,6 +51,12 @@ The SIPVicious OSS toolset consists of the following tools:
 
 	Usage: <https://github.com/EnableSecurity/sipvicious/wiki/SVCrack-Usage>
 
+## IPv6 target syntax
+
+- `svwar` and `svcrack` accept `-6` with either a bare IPv6 literal such as `2001:db8::10` or a URI such as `udp://[2001:db8::10]:5060`.
+- `svmap` accepts `-6` with bare or bracketed IPv6 literals such as `2001:db8::10` or `[2001:db8::10]`.
+- `svmap` does not accept URI syntax for IPv6 targets. Use `-p` to choose the destination port, for example `sipvicious_svmap -6 -p 5060 [2001:db8::10]`.
+
 ### svreport
 
 	able to manage sessions created by the rest of the tools
@@ -73,4 +79,3 @@ Please refer to the [installation documentation](https://github.com/EnableSecuri
 ## Further information
 
 Check out the [wiki](https://github.com/enablesecurity/sipvicious/wiki) for documentation.
-

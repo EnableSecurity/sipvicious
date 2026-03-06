@@ -29,13 +29,13 @@ import time
 import dbm
 import os
 from datetime import datetime
-from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
     __version__, numericbrute, dictionaryattack, mysendto,
     createTag, check_ipv6, makeRequest, getTag, parseHeader, resolveexitcode,
     getRealm, standardoptions, standardscanneroptions, calcloglevel,
-    resumeFrom, getRange, reportBugToAuthor, packetcounter, ArgumentParser
+    resumeFrom, getRange, reportBugToAuthor, packetcounter, ArgumentParser,
+    parse_scan_target,
 )
 
 __prog__ = 'svwar'
@@ -582,26 +582,10 @@ def main():
         parser.error("Currently svwar supports exactly one hostname.", 10)
 
     destport = options.port
-    parsed = urlparse(args[0])
-
-    if not parsed.scheme:
-        host = args[0]
-
-    else:
-        if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme, 20)
-
-        if parsed.scheme != 'udp':
-            parser.error('Invalid protocol scheme: %s' % parsed.scheme, 20)
-
-        if ':' not in parsed.netloc:
-            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.', 10)
-
-        if int(destport) != 5060:
-            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.', 20)
-
-        host = parsed.netloc.split(':')[0]
-        destport = parsed.netloc.split(':')[1]
+    try:
+        host, destport = parse_scan_target(args[0], destport)
+    except ValueError as exc:
+        parser.error(str(exc), 20)
 
     if options.dictionary is not None:
         guessmode = 2

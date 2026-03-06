@@ -23,6 +23,12 @@ svmap.py \fB\-\-resume\fR session1 \fB\-v\fR
 svmap.py \fB\-p5060\-5062\fR 10.0.0.3\-20 \fB\-m\fR INVITE
 .PP
 
+svmap.py \fB\-6\fR \fB\-p5060\fR 2001:db8::10
+.PP
+
+svmap.py \fB\-6\fR \fB\-p5060\fR [2001:db8::10]
+.PP
+
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -117,6 +123,14 @@ Specify a name for the from header in requests
 .TP
 \fB\-6\fR, \fB\-\-ipv6\fR
 Scan an IPv6 address
+.IP
+With \fB\-6\fR, \fBsvmap\fR expects bare or bracketed IPv6 literals such as
+\fB2001:db8::10\fR or \fB[2001:db8::10]\fR.
+.IP
+URI syntax such as \fBudp://[2001:db8::10]:5060\fR is not supported in
+\fBsvmap\fR. Use \fB\-p\fR to choose the destination port instead.
+.IP
+Randomized IPv6 scans are not supported.
 .IP
 SIPvicious SIP scanner searches for SIP devices on a given network.
 

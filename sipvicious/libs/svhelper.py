@@ -35,7 +35,7 @@ import shutil
 import optparse
 import logging
 from random import getrandbits
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from binascii import Error as b2aerr
 from .pptable import to_string
 from binascii import b2a_hex, a2b_hex, hexlify
@@ -82,6 +82,78 @@ def standardscanneroptions(parser):
     parser.add_option("-c", "--enablecompact", dest="enablecompact", default=False, action="store_true",
                       help="enable compact mode. Makes packets smaller but possibly less compatible")
     return parser
+
+
+def _split_plain_target(target):
+    if target.startswith('['):
+        end = target.find(']')
+        if end == -1:
+            raise ValueError('You have to supply IPv6 hosts in the format of [host] or [host]:port.')
+        host = target[1:end]
+        if not check_ipv6(host):
+            raise ValueError('Invalid IPv6 address: %s' % host)
+        remainder = target[end + 1:]
+        if not remainder:
+            return host, None
+        if not remainder.startswith(':'):
+            raise ValueError('You have to supply IPv6 hosts in the format of [host] or [host]:port.')
+        port = remainder[1:]
+        return host, port or None
+
+    if check_ipv6(target):
+        return target, None
+
+    if target.count(':') == 1:
+        host, port = target.rsplit(':', 1)
+        if port.isdigit():
+            return host, port
+
+    return target, None
+
+
+def parse_scan_target(target, default_port):
+    target = target.strip()
+    if '://' not in target:
+        host, explicit_port = _split_plain_target(target)
+        if explicit_port is None:
+            return host, int(default_port)
+        if int(default_port) != 5060:
+            raise ValueError('You cannot supply additional -p when already including a port in URI. Please use only one.')
+        return host, int(explicit_port)
+
+    parsed = urlparse(target)
+
+    if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
+        raise ValueError('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme)
+
+    if parsed.scheme != 'udp':
+        raise ValueError('Invalid protocol scheme: %s' % parsed.scheme)
+
+    if not parsed.netloc or parsed.hostname is None or parsed.port is None:
+        raise ValueError('You have to supply hosts in format of scheme://host:port when using newer convention.')
+
+    if int(default_port) != 5060:
+        raise ValueError('You cannot supply additional -p when already including a port in URI. Please use only one.')
+
+    return parsed.hostname, int(parsed.port)
+
+
+def normalize_svmap_ipv6_target(target):
+    target = target.strip()
+
+    if '://' in target:
+        raise ValueError('URI syntax is not supported in svmap. Use -6 with a bare IPv6 address and -p for ports.')
+
+    if target.startswith('['):
+        host, explicit_port = _split_plain_target(target)
+        if explicit_port is not None:
+            raise ValueError('Port numbers are not supported in svmap IPv6 targets. Use -p to set the destination port.')
+        return host
+
+    if check_ipv6(target):
+        return target
+
+    raise ValueError('Please provide IPv6 targets to svmap as bare or bracketed IPv6 addresses.')
 
 
 def resolveexitcode(newint, existingcode):

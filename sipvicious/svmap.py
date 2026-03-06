@@ -34,7 +34,8 @@ from sipvicious.libs.svhelper import (
     ArgumentParser, __version__, calcloglevel, createTag, fingerPrintPacket, getranges,
     getTag, getTargetFromSRV, ip4range, makeRequest, getRange, scanlist, ip6range,
     mysendto, packetcounter, reportBugToAuthor, dbexists, check_ipv6, resolveexitcode,
-    scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb
+    scanrandom, standardoptions, standardscanneroptions, resumeFromIP, scanfromdb,
+    normalize_svmap_ipv6_target,
 )
 
 __prog__ = "svmap"
@@ -348,6 +349,9 @@ def main():
     parser.add_option('-6', '--ipv6', dest="ipv6", action='store_true', help="scan an IPv6 address")
 
     options, args = parser.parse_args()
+    if options.ipv6 and (options.randomize or options.randomscan):
+        parser.error('Randomized IPv6 scans are not supported in svmap.', 20)
+
     exportpath = None
     if options.resume is not None:
         exportpath = os.path.join(os.path.expanduser('~'), '.sipvicious', __prog__, options.resume)
@@ -421,15 +425,17 @@ def main():
 
         args = list(map(lambda x: x.strip(), args))
         args = [x for x in args if len(x) > 0]
+        if options.ipv6:
+            try:
+                args = [normalize_svmap_ipv6_target(arg) for arg in args]
+            except ValueError as err:
+                parser.error(err, 20)
 
         logging.debug('ip addresses %s' % args)
-        try:
-            iprange = ip4range(*args)
-        except ValueError as err:
-            parser.error(err, 20)
-
         portrange = getRange(options.port)
-        if options.randomize:
+        if options.ipv6:
+            scaniter = scanlist(ip6range(*args), portrange, options.method.split(','))
+        elif options.randomize:
             scanrandomstore = '.sipviciousrandomtmp'
             resumescan = False
             if options.save is not None:
@@ -438,11 +444,20 @@ def main():
             scaniter = scanrandom(list(map(getranges, args)), portrange,
                 options.method.split(','), randomstore=scanrandomstore, resume=resumescan)
         else:
+            try:
+                iprange = ip4range(*args)
+            except ValueError as err:
+                parser.error(err, 20)
             scaniter = scanlist(iprange, portrange, options.method.split(','))
 
     else:
         if len(args) < 1:
             parser.error('Please provide at least one target', 10)
+        if options.ipv6 and not options.srvscan:
+            try:
+                args = [normalize_svmap_ipv6_target(arg) for arg in args]
+            except ValueError as err:
+                parser.error(err, 20)
 
         logging.debug('parsing range of ports: %s' % options.port)
         portrange = getRange(options.port)

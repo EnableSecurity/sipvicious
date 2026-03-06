@@ -29,13 +29,13 @@ import time
 import os
 import pickle
 from datetime import datetime
-from urllib.parse import urlparse
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import ( __version__, mysendto, reportBugToAuthor,
     numericbrute, dictionaryattack, packetcounter, check_ipv6, resolveexitcode,
     createTag, makeRequest, getAuthHeader, getNonce, getOpaque, ArgumentParser,
     getAlgorithm, getQop, getCID, getRealm, getCredentials, getRange,
-    standardscanneroptions, standardoptions, calcloglevel, resumeFrom
+    standardscanneroptions, standardoptions, calcloglevel, resumeFrom,
+    parse_scan_target,
 )
 
 __prog__ = 'svcrack'
@@ -487,24 +487,10 @@ def main():
         parser.error("Currently svcrack supports exactly one hostname.", 10)
 
     destport = options.port
-    parsed = urlparse(args[0])
-    if not parsed.scheme:
-        host = args[0]
-    else:
-        if any(parsed.scheme == i for i in ('tcp', 'tls', 'ws', 'wss')):
-            parser.error('Protocol scheme %s is not supported in SIPVicious OSS' % parsed.scheme, 10)
-
-        if parsed.scheme != 'udp':
-            parser.error('Invalid protocol scheme: %s' % parsed.scheme, 10)
-
-        if ':' not in parsed.netloc:
-            parser.error('You have to supply hosts in format of scheme://host:port when using newer convention.', 10)
-
-        if int(destport) != 5060:
-            parser.error('You cannot supply additional -p when already including a port in URI. Please use only one.', 10)
-
-        host = parsed.netloc.split(':')[0]
-        destport = parsed.netloc.split(':')[1]
+    try:
+        host, destport = parse_scan_target(args[0], destport)
+    except ValueError as exc:
+        parser.error(str(exc), 10)
 
     if options.username is None:
         parser.error("Please provide at least one username to crack!", 10)
