@@ -1,3 +1,9 @@
+v0.3.5 (20260306)
+* Bug fix: accept IPv6 literals and bracketed IPv6 URIs consistently in svwar and svcrack
+* Bug fix: accept bracketed IPv6 literals and reject URI syntax cleanly in svmap
+* Tests: add target parsing coverage for IPv6 input forms
+* Documentation: clarify IPv6 target syntax across README and man pages
+
 v0.3.4 (20210601)
 * Feature: Exit codes implementation
 * Automated positive/negative testing with GitHub Actions

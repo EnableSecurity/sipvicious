@@ -19,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.3.4'
+__version__ = '0.3.5'
 
 
 import re
