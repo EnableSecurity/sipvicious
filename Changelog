@@ -1,3 +1,8 @@
+v0.3.7 (20260410)
+* Tests: switch SIP autotest defaults from demo.sipvicious.pro to pbx1.dvrtc.net
+* Tests: allow overriding autotest SIP host, IP, and CIDR for local DVRTC validation
+* Tests: make autotest shell scripts resolve common.sh relative to the script path
+
 v0.3.6 (20260410)
 * Bug fix: stabilize svwar INVITE enumeration by tracking dialogs, ACK/BYE handling and CANCEL cleanup
 * Bug fix: retry transient INVITE failures without classifying extensions prematurely
