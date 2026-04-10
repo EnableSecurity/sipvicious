@@ -19,7 +19,7 @@
 
 
 __author__ = "Sandro Gauci <sandro@enablesecurity.com>"
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 
 import re
@@ -425,7 +425,10 @@ def parseHeader(buff, type='response'):
                 val = list(map(lambda x: x.strip(), tmpval.split(',')))
             else:
                 name, val = headerline.lower(), None
-            r['headers'][name] = val
+            if name in r['headers'] and r['headers'][name] is not None and val is not None:
+                r['headers'][name].extend(val)
+            else:
+                r['headers'][name] = val
         r['body'] = body
         return r
 
@@ -577,7 +580,8 @@ def makeRedirect(previousHeaders, rediraddr):
 
 def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', branchunique=None, cseq=1,
     auth=None, localtag=None, compact=False, contact='sip:123@1.1.1.1', accept='application/sdp', contentlength=None,
-    localport=5060, extension=None, contenttype=None, body='', useragent='friendly-scanner', requesturi=None):
+    localport=5060, extension=None, contenttype=None, body='', useragent='friendly-scanner', requesturi=None,
+    additional_headers=None):
     """makeRequest builds up a SIP request
     method - OPTIONS / INVITE etc
     toaddr = to address
@@ -605,8 +609,8 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
         if localtag is not None:
             headers['f'] += ';tag=%s' % localtag.decode('utf-8', 'ignore')
         headers['i'] = callid
-        # if contact is not None:
-        headers['m'] = contact
+        if contact is not None:
+            headers['m'] = contact
     else:
         superheaders[
             'Via'] = 'SIP/2.0/UDP %s:%s;branch=z9hG4bK-%s;rport' % (srchost, localport, branchunique)
@@ -617,11 +621,12 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
         if localtag is not None:
             headers['From'] += ';tag=%s' % localtag.decode('utf-8', 'ignore')
         headers['Call-ID'] = callid
-        # if contact is not None:
-        headers['Contact'] = contact
+        if contact is not None:
+            headers['Contact'] = contact
     headers['CSeq'] = '%s %s' % (cseq, method)
     headers['Max-Forwards'] = 70
-    headers['Accept'] = accept
+    if accept is not None:
+        headers['Accept'] = accept
     if contentlength is None:
         headers['Content-Length'] = len(body)
     else:
@@ -644,6 +649,9 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
         r += '%s: %s\r\n' % h
     for h in headers.items():
         r += '%s: %s\r\n' % h
+    if additional_headers is not None:
+        for h in additional_headers:
+            r += '%s: %s\r\n' % h
     for h in finalheaders.items():
         r += '%s: %s\r\n' % h
     r += '\r\n'

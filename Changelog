@@ -1,3 +1,8 @@
+v0.3.6 (20260410)
+* Bug fix: stabilize svwar INVITE enumeration by tracking dialogs, ACK/BYE handling and CANCEL cleanup
+* Bug fix: retry transient INVITE failures without classifying extensions prematurely
+* Tests: add svwar coverage for INVITE dialog state, route sets and incoming request handling
+
 v0.3.5 (20260306)
 * Bug fix: accept IPv6 literals and bracketed IPv6 URIs consistently in svwar and svcrack
 * Bug fix: accept bracketed IPv6 literals and reject URI syntax cleanly in svmap

@@ -28,6 +28,7 @@ import sys
 import time
 import dbm
 import os
+from collections import deque
 from datetime import datetime
 from sipvicious.libs.pptable import to_string
 from sipvicious.libs.svhelper import (
@@ -46,13 +47,27 @@ class TakeASip:
     def __init__(self, host='localhost', bindingip='', externalip=None, localport=5060,
                  method='REGISTER', guessmode=1, guessargs=None, selecttime=0.005,
                  sessionpath=None, compact=False, socktimeout=3, initialcheck=True,
-                 enableack=False, maxlastrecvtime=15, domain=None, printdebug=False,
+                 enableack=False, enablecancel=None, maxlastrecvtime=15, domain=None, printdebug=False,
                  ipv6=False, port=5060):
         self.log = logging.getLogger('TakeASip')
         self.maxlastrecvtime = maxlastrecvtime
         self.sessionpath = sessionpath
         self.dbsyncs = False
+        self.method = method.upper()
         self.enableack = enableack
+        if enablecancel is None:
+            self.enablecancel = self.method == 'INVITE'
+        else:
+            self.enablecancel = enablecancel
+        self.cancelled = set()
+        self.invite_transactions = dict()
+        self.seen_final_invites = set()
+        self.pending_invites = set()
+        self.max_pending_invites = 32
+        self.retry_extensions = deque()
+        self.retry_counts = dict()
+        self.retry_backoff_until = 0
+        self.max_retries = 2
         if self.sessionpath is not None:
             self.resultauth = dbm.open(os.path.join(
                 self.sessionpath, 'resultauth'), 'c')
@@ -100,7 +115,6 @@ class TakeASip:
         self.compact = compact
         self.nomore = False
         self.BADUSER = None
-        self.method = method.upper()
         if self.method == 'INVITE':
             self.log.warning(
                 'using an INVITE scan on an endpoint (i.e. SIP phone) may cause it to ring and wake up people in the middle of the night')
@@ -151,7 +165,333 @@ class TakeASip:
     # 42 (Switching equipment congestion), 47 (Resource unavailable)
     # Should be handled in the very same way as SIP response code 404 - the prefix is not correct and we should
     # try with the next one.
+    INTERNALERROR = 'SIP/2.0 500 '
     SERVICEUN = 'SIP/2.0 503 '
+
+    def _parse_response(self, buff):
+        parsed = parseHeader(buff)
+        if parsed and 'code' in parsed:
+            return parsed
+        return dict()
+
+    def _parse_request(self, buff):
+        try:
+            firstline = buff.splitlines()[0]
+        except (ValueError, IndexError, AttributeError):
+            return dict()
+        if firstline.startswith('SIP/2.0'):
+            return dict()
+        parsed = parseHeader(buff, type='request')
+        if not parsed or 'headers' not in parsed:
+            return dict()
+        parts = firstline.split(' ', 2)
+        if len(parts) != 3:
+            return dict()
+        parsed['method'] = parts[0]
+        parsed['uri'] = parts[1]
+        return parsed
+
+    def _is_provisional(self, parsed):
+        try:
+            return 100 <= parsed['code'] < 200
+        except (KeyError, TypeError):
+            return False
+
+    def _response_fingerprint(self, buff, parsed=None):
+        if parsed is None:
+            parsed = self._parse_response(buff)
+        try:
+            firstline = buff.splitlines()[0]
+        except (ValueError, IndexError, AttributeError):
+            return None
+
+        if self.method == 'INVITE' and parsed.get('code', 0) >= 200:
+            headers = parsed.get('headers', dict())
+            reason = ''
+            if 'reason' in headers and headers['reason']:
+                reason = headers['reason'][0]
+            return (firstline, reason)
+        return (firstline,)
+
+    def _response_cseq_method(self, parsed):
+        try:
+            return parsed['headers']['cseq'][0].split()[1]
+        except (KeyError, IndexError, AttributeError, TypeError):
+            return None
+
+    def _response_call_id(self, parsed):
+        try:
+            return parsed['headers']['call-id'][0]
+        except (KeyError, IndexError, AttributeError, TypeError):
+            return None
+
+    def _final_drain_timeout(self):
+        socktimeout = self.sock.gettimeout()
+        if socktimeout is None:
+            socktimeout = 3
+        return min(socktimeout, max(self.selecttime * 20, 0.5))
+
+    def _invite_body(self):
+        addrtype = 'IP6' if self.ipv6 else 'IP4'
+        mediaport = self.localport + 1000
+        body = (
+            'v=0\r\n'
+            'o=- %s %s IN %s %s\r\n'
+            's=svwar\r\n'
+            'c=IN %s %s\r\n'
+            't=0 0\r\n'
+            'm=audio %s RTP/AVP 0 8\r\n'
+            'a=rtpmap:0 PCMU/8000\r\n'
+            'a=rtpmap:8 PCMA/8000\r\n'
+            'a=sendrecv\r\n'
+        ) % (
+            random.randint(1000000, 9999999),
+            random.randint(1000000, 9999999),
+            addrtype,
+            self.externalip,
+            addrtype,
+            self.externalip,
+            mediaport,
+        )
+        return body
+
+    def _via_branch(self, viaheader):
+        if viaheader is None:
+            return None
+        try:
+            branchpart = viaheader.split('branch=', 1)[1]
+        except IndexError:
+            return None
+        branch = branchpart.split(';', 1)[0].strip()
+        if branch.startswith('z9hG4bK-'):
+            branch = branch[len('z9hG4bK-'):]
+        return branch
+
+    def _tagged_header(self, header_value, localtag):
+        if localtag is None or ';tag=' in header_value.lower():
+            return header_value
+        return '%s;tag=%s' % (header_value, localtag.decode('utf-8', 'ignore'))
+
+    def _request_uri(self, extension, domain=None):
+        if domain is None:
+            domain = self.domain
+            if self.ipv6 and check_ipv6(domain):
+                domain = '[' + self.domain + ']'
+        if extension is None:
+            return 'sip:%s' % domain
+        return 'sip:%s@%s' % (extension, domain)
+
+    def _extract_uri(self, header_value):
+        if header_value is None:
+            return None
+        header_value = header_value.strip()
+        if '<' in header_value and '>' in header_value:
+            return header_value.split('<', 1)[1].split('>', 1)[0].strip()
+        return header_value.split(';', 1)[0].strip()
+
+    def _dialog_route_headers(self, parsed):
+        headers = parsed.get('headers', dict())
+        record_route = headers.get('record-route', list())
+        return list(reversed(record_route))
+
+    def _cache_invite_route_headers(self, parsed):
+        response_call_id = self._response_call_id(parsed)
+        if response_call_id not in self.invite_transactions:
+            return None
+        route_headers = self._dialog_route_headers(parsed)
+        if route_headers:
+            self.invite_transactions[response_call_id]['route_headers'] = route_headers
+        return response_call_id
+
+    def _send_dialog_request(self, method, requesturi, callid, fromaddr, toaddr,
+                             cseq, branchunique=None, route_headers=None, contact=None):
+        additional_headers = None
+        if route_headers:
+            additional_headers = [('Route', route_header) for route_header in route_headers]
+        request = makeRequest(
+            method,
+            fromaddr,
+            toaddr,
+            self.domain,
+            self.dstport,
+            callid,
+            self.externalip,
+            branchunique,
+            cseq,
+            None,
+            None,
+            self.compact,
+            contact=contact,
+            accept=None,
+            localport=self.localport,
+            extension=None,
+            requesturi=requesturi,
+            additional_headers=additional_headers,
+        )
+        mysendto(self.sock, request, (self.dsthost, self.dstport))
+        return request
+
+    def _send_simple_response(self, parsed, srcaddr, code, reason):
+        headers = parsed.get('headers', dict())
+        required = ('via', 'to', 'from', 'call-id', 'cseq')
+        if any(header not in headers or not headers[header] for header in required):
+            return
+        response = 'SIP/2.0 %s %s\r\n' % (code, reason)
+        for via in headers['via']:
+            response += 'Via: %s\r\n' % via
+        response += 'To: %s\r\n' % headers['to'][0]
+        response += 'From: %s\r\n' % headers['from'][0]
+        response += 'Call-ID: %s\r\n' % headers['call-id'][0]
+        response += 'CSeq: %s\r\n' % headers['cseq'][0]
+        response += 'Content-Length: 0\r\n'
+        response += '\r\n'
+        mysendto(self.sock, response, srcaddr)
+
+    def _handle_incoming_request(self, parsed, srcaddr):
+        method = parsed.get('method')
+        if method == 'ACK':
+            return True
+        if method in ('BYE', 'CANCEL'):
+            self._send_simple_response(parsed, srcaddr, 200, 'OK')
+            return True
+        if method is not None:
+            self._send_simple_response(parsed, srcaddr, 481, 'Call/Transaction Does Not Exist')
+            return True
+        return False
+
+    def _send_cancel(self, parsed, extension):
+        headers = parsed.get('headers', dict())
+        if 'call-id' not in headers or 'via' not in headers or 'cseq' not in headers:
+            return
+        cid = headers['call-id'][0]
+        if cid in self.cancelled:
+            return
+        transaction = self.invite_transactions.get(cid)
+        if transaction is None:
+            return
+        cancelreq = self._send_dialog_request(
+            'CANCEL',
+            transaction['requesturi'],
+            cid,
+            transaction['fromaddr'],
+            transaction['toaddr'],
+            transaction['cseq'],
+            branchunique=transaction['branchunique'],
+            route_headers=transaction['route_headers'],
+            contact=None,
+        )
+        self.log.debug('sending a CANCEL to the INVITE transaction')
+        self.cancelled.add(cid)
+
+    def _record_extension_result(self, extension, classification, log_method, message):
+        existing = self.resultauth.get(extension)
+        if existing == classification:
+            return
+        self.retry_counts.pop(extension, None)
+        log_method(message)
+        self.resultauth[extension] = classification
+        if self.sessionpath is not None and self.dbsyncs:
+            self.resultauth.sync()
+
+    def _queue_retry(self, extension, backoff=0.05):
+        if extension is None or extension in self.resultauth:
+            return False
+        retries = self.retry_counts.get(extension, 0)
+        if retries >= self.max_retries:
+            return False
+        self.retry_counts[extension] = retries + 1
+        self.retry_extensions.append(extension)
+        self.retry_backoff_until = max(self.retry_backoff_until, time.time() + backoff)
+        return True
+
+    def _drain_responses(self):
+        quiet_period = self._final_drain_timeout()
+        deadline = time.time() + quiet_period
+        while 1:
+            remaining = deadline - time.time()
+            if remaining <= 0:
+                return
+            r, _, _ = select.select(
+                self.rlist,
+                self.wlist,
+                self.xlist,
+                remaining
+            )
+            if not r:
+                return
+            self.getResponse()
+            self.lastrecvtime = time.time()
+            deadline = self.lastrecvtime + quiet_period
+
+    def _handle_invite_final_response(self, parsed):
+        response_method = self._response_cseq_method(parsed)
+        if response_method not in (None, 'INVITE'):
+            return True
+        if parsed.get('code', 0) < 200:
+            return False
+
+        cid = self._cache_invite_route_headers(parsed)
+        self.pending_invites.discard(cid)
+        if cid in self.seen_final_invites:
+            return True
+        if not self.enableack:
+            self.seen_final_invites.add(cid)
+            return False
+
+        headers = parsed.get('headers', dict())
+        transaction = self.invite_transactions.get(cid)
+        if transaction is None:
+            return True
+        if 'to' not in headers or 'cseq' not in headers:
+            return True
+
+        response_to = headers['to'][0]
+        cseq = headers['cseq'][0]
+        cseqnum = cseq.split()[0]
+        if parsed['code'] < 300:
+            requesturi = self._extract_uri(
+                headers.get('contact', [None])[0]
+            ) or transaction['requesturi']
+            route_headers = self._dialog_route_headers(parsed)
+            ackreq = self._send_dialog_request(
+                'ACK',
+                requesturi,
+                cid,
+                transaction['fromaddr'],
+                response_to,
+                cseqnum,
+                route_headers=route_headers,
+                contact=None,
+            )
+        else:
+            requesturi = transaction['requesturi']
+            route_headers = self._dialog_route_headers(parsed) or transaction['route_headers']
+            ackreq = self._send_dialog_request(
+                'ACK',
+                requesturi,
+                cid,
+                transaction['fromaddr'],
+                response_to,
+                cseqnum,
+                branchunique=transaction['branchunique'],
+                route_headers=route_headers,
+                contact=None,
+            )
+        self.log.debug('here is your ack request: %s' % ackreq)
+        if parsed['code'] == 200:
+            byemsg = self._send_dialog_request(
+                'BYE',
+                requesturi,
+                cid,
+                transaction['fromaddr'],
+                response_to,
+                str(int(transaction['cseq']) + 1),
+                route_headers=route_headers,
+                contact=None,
+            )
+            self.log.debug('sending a BYE to the 200 OK for the INVITE')
+        self.seen_final_invites.add(cid)
+        return False
 
     def createRequest(self, m, username=None, auth=None, cid=None,
                         cseq=1, fromaddr=None, toaddr=None, contact=None):
@@ -168,6 +508,12 @@ class TakeASip:
             fromaddr = '"%s"<sip:%s@%s>' % (username, username, domain)
         if not toaddr:
             toaddr = '"%s"<sip:%s@%s>' % (username, username, domain)
+        body = ''
+        contenttype = None
+        if m == 'INVITE':
+            body = self._invite_body()
+            contenttype = 'application/sdp'
+        requesturi = self._request_uri(username, domain)
         request = makeRequest(
             m,
             fromaddr,
@@ -183,8 +529,20 @@ class TakeASip:
             self.compact,
             contact=contact,
             localport=self.localport,
-            extension=username
+            extension=username,
+            body=body,
+            contenttype=contenttype,
         )
+        if m == 'INVITE':
+            self.invite_transactions[cid] = {
+                'requesturi': requesturi,
+                'branchunique': branchunique,
+                'cseq': str(cseq),
+                'fromaddr': self._tagged_header(fromaddr, localtag),
+                'toaddr': toaddr,
+                'route_headers': list(),
+            }
+            self.pending_invites.add(cid)
         return request
 
     def getResponse(self):
@@ -195,6 +553,10 @@ class TakeASip:
             print(srcaddr)
             print(buff)
         buff = buff.decode('utf-8')
+        request = self._parse_request(buff)
+        if self._handle_incoming_request(request, srcaddr):
+            return
+        _tmp = self._parse_response(buff)
         try:
             extension = getTag(buff).decode('utf-8', 'ignore')
         except (TypeError, AttributeError):
@@ -204,98 +566,59 @@ class TakeASip:
         if extension is None:
             self.nomore = True
             return
+        if self._is_provisional(_tmp):
+            self._cache_invite_route_headers(_tmp)
+            if self.enablecancel and _tmp.get('code') == 180:
+                self._send_cancel(_tmp, extension)
+            return
+        if self.method == 'INVITE' and _tmp and 'headers' in _tmp and 'cseq' in _tmp['headers']:
+            if self._handle_invite_final_response(_tmp):
+                return
         try:
             firstline = buff.splitlines()[0]
         except (ValueError, IndexError, AttributeError):
             self.log.error("could not get the 1st line")
             __exitcode__ = resolveexitcode(20, __exitcode__)
             return
-        if self.enableack:
-            # send an ack to any responses which match
-            _tmp = parseHeader(buff)
-            if not (_tmp and 'code' in _tmp):
-                return
-            if 699 > _tmp['code'] >= 200:
-                self.log.debug('will try to send an ACK response')
-                if 'headers' not in _tmp:
-                    self.log.debug('no headers?')
-                    __exitcode__ = resolveexitcode(20, __exitcode__)
-                    return
-                if 'from' not in _tmp['headers']:
-                    self.log.debug('no from?')
-                    __exitcode__ = resolveexitcode(20, __exitcode__)
-                    return
-                if 'cseq' not in _tmp['headers']:
-                    self.log.debug('no cseq')
-                    __exitcode__ = resolveexitcode(20, __exitcode__)
-                    return
-                if 'call-id' not in _tmp['headers']:
-                    self.log.debug('no caller id')
-                    __exitcode__ = resolveexitcode(20, __exitcode__)
-                    return
 
-                try:
-                    # _tmp['headers']['from'][0].split('"')[1]
-                    getTag(buff)
-                except IndexError:
-                    self.log.warning('could not parse the from address %s' % _tmp['headers']['from'])
-                    __exitcode__ = resolveexitcode(20, __exitcode__)
-
-                cseq = _tmp['headers']['cseq'][0]
-                cseqmethod = cseq.split()[1]
-                if 'INVITE' == cseqmethod:
-                    cid = _tmp['headers']['call-id'][0]
-                    fromaddr = _tmp['headers']['from'][0]
-                    toaddr = _tmp['headers']['to'][0]
-                    ackreq = self.createRequest(
-                        'ACK',
-                        cid=cid,
-                        cseq=cseq.replace(cseqmethod, ''),
-                        fromaddr=fromaddr,
-                        toaddr=toaddr,
-                    )
-                    self.log.debug('here is your ack request: %s' % ackreq)
-                    mysendto(self.sock, ackreq, (self.dsthost, self.dstport))
-                    # self.sock.sendto(ackreq,(self.dsthost,self.dstport))
-                    if _tmp['code'] == 200:
-                        byemsg = self.createRequest(
-                            'BYE',
-                            cid=cid,
-                            cseq='2',
-                            fromaddr=fromaddr,
-                            toaddr=toaddr,
-                        )
-                        self.log.debug('sending a BYE to the 200 OK for the INVITE')
-                        mysendto(self.sock, byemsg,(self.dsthost, self.dstport))
-
-        if firstline != self.BADUSER:
+        response_fingerprint = self._response_fingerprint(buff, _tmp)
+        if response_fingerprint != self.BADUSER:
             __exitcode__ = resolveexitcode(40, __exitcode__)
             if buff.startswith(self.PROXYAUTHREQ) \
                     or buff.startswith(self.INVALIDPASS) \
                     or buff.startswith(self.AUTHREQ):
                 if self.realm is None:
                     self.realm = getRealm(buff)
-                self.log.info("extension '%s' exists - requires authentication" % extension)
-                self.resultauth[extension] = 'reqauth'
-                if self.sessionpath is not None and self.dbsyncs:
-                    self.resultauth.sync()
+                self._record_extension_result(
+                    extension,
+                    'reqauth',
+                    self.log.info,
+                    "extension '%s' exists - requires authentication" % extension,
+                )
             elif buff.startswith(self.TRYING):
                 pass
             elif buff.startswith(self.RINGING):
                 pass
             elif buff.startswith(self.OKEY):
-                self.log.info(
-                    "extension '%s' exists - authentication not required" % extension)
-                self.resultauth[extension] = 'noauth'
-                if self.sessionpath is not None and self.dbsyncs:
-                    self.resultauth.sync()
+                self._record_extension_result(
+                    extension,
+                    'noauth',
+                    self.log.info,
+                    "extension '%s' exists - authentication not required" % extension,
+                )
+            elif buff.startswith(self.INTERNALERROR):
+                if self._queue_retry(extension):
+                    self.log.debug("Transient server error for '%s': %s" % (extension, firstline))
+                else:
+                    self.log.debug("Transient server error for '%s' after retries exhausted: %s" % (extension, firstline))
             else:
-                self.log.warning(
-                    "extension '%s' probably exists but the response is unexpected" % extension)
+                self._record_extension_result(
+                    extension,
+                    'weird',
+                    self.log.warning,
+                    "extension '%s' probably exists but the response is unexpected" % extension,
+                )
                 self.log.debug("response: %s" % firstline)
-                self.resultauth[extension] = 'weird'
-                if self.sessionpath is not None and self.dbsyncs:
-                    self.resultauth.sync()
 
         elif buff.startswith(self.NOTFOUND):
             self.log.debug("User '%s' not found" % extension)
@@ -315,6 +638,9 @@ class TakeASip:
             pass
 
         elif buff.startswith(self.OKEY):
+            pass
+
+        elif buff.startswith(self.UNAVAILABLE):
             pass
 
         elif buff.startswith(self.DECLINED):
@@ -389,9 +715,19 @@ class TakeASip:
                     return
 
                 buff = buff.decode('utf-8', 'ignore')
-                if buff.startswith(self.TRYING) \
-                        or buff.startswith(self.RINGING) \
-                        or buff.startswith(self.UNAVAILABLE):
+                parsed = self._parse_response(buff)
+                if self._is_provisional(parsed):
+                    self._cache_invite_route_headers(parsed)
+                    if self.enablecancel and parsed.get('code') == 180 and self.method == 'INVITE':
+                        self._send_cancel(parsed, str(self.nextuser))
+                    gotbadresponse = True
+                    continue
+                if self.method == 'INVITE' and parsed and 'headers' in parsed and 'cseq' in parsed['headers']:
+                    if self._handle_invite_final_response(parsed):
+                        continue
+                if self.enableack and self._response_cseq_method(parsed) not in (None, 'INVITE'):
+                    continue
+                elif buff.startswith(self.UNAVAILABLE) and self.method != 'INVITE':
                     gotbadresponse = True
 
                 elif (buff.startswith(self.PROXYAUTHREQ)
@@ -403,8 +739,8 @@ class TakeASip:
                     return
 
                 else:
-                    self.BADUSER = buff.splitlines()[0]
-                    self.log.debug("Bad user = %s" % self.BADUSER)
+                    self.BADUSER = self._response_fingerprint(buff, parsed)
+                    self.log.debug("Bad user = %r" % (self.BADUSER,))
                     gotbadresponse = False
                     break
 
@@ -425,18 +761,15 @@ class TakeASip:
             __exitcode__ = resolveexitcode(30, __exitcode__)
             return
 
-        if self.BADUSER.startswith(self.AUTHREQ):
+        if self.BADUSER is not None and self.BADUSER[0].startswith(self.AUTHREQ):
             self.log.warning(
                 "Bad user = %s - svwar will probably not work!" % self.AUTHREQ)
         # let the fun commence
         self.log.info('Ok SIP device found')
         while 1:
             if self.nomore:
-                while 1:
-                    try:
-                        self.getResponse()
-                    except socket.timeout:
-                        return
+                self._drain_responses()
+                return
             r, _, _ = select.select(
                 self.rlist,
                 self.wlist,
@@ -459,8 +792,15 @@ class TakeASip:
                     continue
 
                 # no stuff to read .. its our turn to send back something
+                if self.method == 'INVITE' and time.time() < self.retry_backoff_until:
+                    continue
+                if self.method == 'INVITE' and len(self.pending_invites) >= self.max_pending_invites:
+                    continue
                 try:
-                    self.nextuser = next(self.usernamegen)
+                    if self.retry_extensions:
+                        self.nextuser = self.retry_extensions.popleft()
+                    else:
+                        self.nextuser = next(self.usernamegen)
                 except StopIteration:
                     self.nomore = True
                     continue
@@ -524,6 +864,8 @@ def main():
           default=0, metavar="PADDING")
     parser.add_option('--force', dest="force", action="store_true",
         default=False, help="Force scan, ignoring initial sanity checks.")
+    parser.add_option('--disablecancel', dest="disablecancel", action="store_true",
+        default=False, help="For INVITE scans, do not send CANCEL after 180 Ringing")
     parser.add_option('--template', '-T', action="store", dest="template",
         help="A format string which allows us to specify a template for the extensions. " \
             "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
@@ -645,8 +987,10 @@ def main():
         tmpsocket.close()
 
     enableack = False
+    enablecancel = False
     if options.method.upper() == 'INVITE':
         enableack = True
+        enablecancel = not options.disablecancel
 
     sipvicious = TakeASip(
         host,
@@ -660,6 +1004,7 @@ def main():
         initialcheck=initialcheck,
         externalip=options.externalip,
         enableack=enableack,
+        enablecancel=enablecancel,
         maxlastrecvtime=options.maximumtime,
         localport=options.localport,
         domain=options.domain,
