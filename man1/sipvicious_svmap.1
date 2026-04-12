@@ -1,15 +1,34 @@
-.TH SVCRACK.PY "1" "April 2026" "svcrack.py v0.3.7" "User Commands"
+.TH SIPVICIOUS_SVMAP "1" "April 2026" "sipvicious_svmap v0.3.7" "User Commands"
 .SH NAME
-svcrack.py \- manual page for svcrack.py v0.3.7
+sipvicious_svmap \- manual page for sipvicious_svmap v0.3.7
 .SH SYNOPSIS
-.B svcrack.py
-\fI-u username \fR[\fIoptions\fR] \fItarget\fR
+.B sipvicious_svmap
+[\fIoptions\fR] \fIhost1 host2 hostrange\fR
 .SH DESCRIPTION
+Scans for SIP devices on a given network
+.PP
+
 examples:
-svcrack.py \fB\-u100\fR \fB\-d\fR dictionary.txt udp://10.0.0.1:5080
-svcrack.py \fB\-u100\fR \fB\-r1\-9999\fR \fB\-z4\fR 10.0.0.1
-svcrack.py \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR 2001:db8::10
-svcrack.py \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR udp://[2001:db8::10]:5060
+.PP
+
+sipvicious_svmap 10.0.0.1\-10.0.0.255 172.16.131.1 sipvicious.org/22 10.0.1.1/241.1.1.1\-20 1.1.2\-20.* 4.1.*.*
+.PP
+
+sipvicious_svmap \fB\-s\fR session1 \fB\-\-randomize\fR 10.0.0.1/8
+.PP
+
+sipvicious_svmap \fB\-\-resume\fR session1 \fB\-v\fR
+.PP
+
+sipvicious_svmap \fB\-p5060\-5062\fR 10.0.0.3\-20 \fB\-m\fR INVITE
+.PP
+
+sipvicious_svmap \fB\-6\fR \fB\-p5060\fR 2001:db8::10
+.PP
+
+sipvicious_svmap \fB\-6\fR \fB\-p5060\fR [2001:db8::10]
+.PP
+
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -64,62 +83,56 @@ resume a previous scan
 enable compact mode. Makes packets smaller but
 possibly less compatible
 .TP
-\fB\-u\fR USERNAME, \fB\-\-username\fR=\fIUSERNAME\fR
-username to try crack
+\fB\-\-randomscan\fR
+Scan random IP addresses
 .TP
-\fB\-d\fR DICTIONARY, \fB\-\-dictionary\fR=\fIDICTIONARY\fR
-specify a dictionary file with passwords or - for stdin
+\fB\-i\fR scan1, \fB\-\-input\fR=\fIscan1\fR
+Scan IPs which were found in a previous scan. Pass the
+session name as the argument
 .TP
-\fB\-r\fR RANGE, \fB\-\-range\fR=\fIRANGE\fR
-specify a range of numbers. example:
-100\-200,300\-310,400
+\fB\-I\fR scan1, \fB\-\-inputtext\fR=\fIscan1\fR
+Scan IPs from a text file \- use the same syntax as
+command line but with new lines instead of commas.
+Pass the file name as the argument
+.TP
+\fB\-m\fR METHOD, \fB\-\-method\fR=\fIMETHOD\fR
+Specify the request method \- by default this is
+OPTIONS.
+.TP
+\fB\-d\fR, \fB\-\-debug\fR
+Print SIP messages received
+.TP
+\fB\-\-first\fR=\fIFIRST\fR
+Only send the first given number of messages (i.e.
+usually used to scan only X IPs)
 .TP
 \fB\-e\fR EXTENSION, \fB\-\-extension\fR=\fIEXTENSION\fR
-Extension to crack. Only specify this when the
-extension is different from the username.
+Specify an extension \- by default this is not set
 .TP
-\fB\-z\fR PADDING, \fB\-\-zeropadding\fR=\fIPADDING\fR
-the number of zeros used to padd the password.
-the options "\-r 1\-9999 \fB\-z\fR 4" would give 0001 0002 0003
-\&... 9999
+\fB\-\-randomize\fR
+Randomize scanning instead of scanning consecutive ip
+addresses
 .TP
-\fB\-n\fR, \fB\-\-reusenonce\fR
-Reuse nonce. Some SIP devices don't mind you reusing
-the nonce (making them vulnerable to replay attacks).
-Speeds up the cracking.
+\fB\-\-srv\fR
+Scan the SRV records for SIP on the destination domain
+name.The targets have to be domain names \- example.org
+domain1.com
 .TP
-\fB\-T\fR TEMPLATE, \fB\-\-template\fR=\fITEMPLATE\fR
-A format string which allows us to specify a template
-for the extensions                       example
-svwar.py \fB\-e\fR 1\-999 \fB\-\-template=\fR"123%#04i999" would scan
-between 1230001999 to 1230999999"
+\fB\-\-fromname\fR=\fIFROMNAME\fR
+Specify a name for the from header in requests
 .TP
-\fB\-\-maximumtime\fR=\fIMAXIMUMTIME\fR
-Maximum time in seconds to keep sending requests
-without                       receiving a response
-back
-.TP
-\fB\-D\fR, \fB\-\-enabledefaults\fR
-Scan for default / typical passwords such as
-1000,2000,3000 ... 1100, etc. This option is off by
-default.                       Use \fB\-\-enabledefaults\fR to
-enable this functionality
-.TP
-\fB\-\-domain\fR=\fIDOMAIN\fR
-force a specific domain name for the SIP message, eg.
-\fB\-d\fR example.org
-.TP
-\fB\-\-requesturi\fR=\fIREQUESTURI\fR
-Force the first line URI to a specific value; e.g. sip:999@example.org
-.TP
-\fB\-6\fR
+\fB\-6\fR, \fB\-\-ipv6\fR
 Scan an IPv6 address
 .IP
-With \fB\-6\fR, targets may be given as bare IPv6 literals such as
-\fB2001:db8::10\fR or as UDP URIs such as
-\fBudp://[2001:db8::10]:5060\fR.
+With \fB\-6\fR, \fBsvmap\fR expects bare or bracketed IPv6 literals such as
+\fB2001:db8::10\fR or \fB[2001:db8::10]\fR.
 .IP
-SIPvicious password cracker is an online password guessing tool for SIP devices.
+URI syntax such as \fBudp://[2001:db8::10]:5060\fR is not supported in
+\fBsvmap\fR. Use \fB\-p\fR to choose the destination port instead.
+.IP
+Randomized IPv6 scans are not supported.
+.IP
+SIPvicious SIP scanner searches for SIP devices on a given network.
 
 Copyright (C) 2026 Sandro Gauci <sandro@enablesecurity.com>
 .IP
@@ -137,5 +150,5 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .SH "SEE ALSO"
 The full documentation for
-.B svcrack.py
+.B sipvicious_svmap
 can be found on GitHub at <https://github.com/enablesecurity/sipvicious/wiki>.

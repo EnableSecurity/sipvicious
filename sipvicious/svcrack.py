@@ -423,7 +423,7 @@ def main():
             "them vulnerable to replay attacks). Speeds up the cracking.",)
     parser.add_option('--template', '-T', action="store", dest="template",
         help="A format string which allows us to specify a template for the extensions. " \
-            "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
+            "example sipvicious_svwar -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--maximumtime', action='store', dest='maximumtime', type="int", default=10,
         help="Maximum time in seconds to keep sending requests without receiving a response back")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults", default=False,

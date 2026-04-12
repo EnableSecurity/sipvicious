@@ -1,8 +1,8 @@
-# svcrash.py - SIPvicious crash breaks svwar and svcrack
+# svcrash.py - SIPvicious crash breaks sipvicious_svwar and sipvicious_svcrack
 
 __GPL__ = """
 
-   Sipvicious crash exploits a bug in svwar/svcrack.py to stop unauthorized
+   Sipvicious crash exploits a bug in sipvicious_svwar/sipvicious_svcrack to stop unauthorized
    scans from flooding the network.
    Copyright (C) 2007-2026 Sandro Gauci <sandro@enablesecurity.com>
 

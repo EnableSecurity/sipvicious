@@ -1,34 +1,15 @@
-.TH SVMAP.PY "1" "April 2026" "svmap.py v0.3.7" "User Commands"
+.TH SIPVICIOUS_SVWAR "1" "April 2026" "sipvicious_svwar v0.3.7" "User Commands"
 .SH NAME
-svmap.py \- manual page for svmap.py v0.3.7
+sipvicious_svwar \- manual page for sipvicious_svwar v0.3.7
 .SH SYNOPSIS
-.B svmap.py
-[\fIoptions\fR] \fIhost1 host2 hostrange\fR
+.B sipvicious_svwar
+[\fIoptions\fR] \fItarget\fR
 .SH DESCRIPTION
-Scans for SIP devices on a given network
-.PP
-
 examples:
-.PP
-
-svmap.py 10.0.0.1\-10.0.0.255 172.16.131.1 sipvicious.org/22 10.0.1.1/241.1.1.1\-20 1.1.2\-20.* 4.1.*.*
-.PP
-
-svmap.py \fB\-s\fR session1 \fB\-\-randomize\fR 10.0.0.1/8
-.PP
-
-svmap.py \fB\-\-resume\fR session1 \fB\-v\fR
-.PP
-
-svmap.py \fB\-p5060\-5062\fR 10.0.0.3\-20 \fB\-m\fR INVITE
-.PP
-
-svmap.py \fB\-6\fR \fB\-p5060\fR 2001:db8::10
-.PP
-
-svmap.py \fB\-6\fR \fB\-p5060\fR [2001:db8::10]
-.PP
-
+sipvicious_svwar \fB\-e100\-999\fR udp://10.0.0.1:5080
+sipvicious_svwar \fB\-d\fR dictionary.txt 10.0.0.2
+sipvicious_svwar \fB\-6\fR \fB\-e2000\fR 2001:db8::10
+sipvicious_svwar \fB\-6\fR \fB\-e2000\fR udp://[2001:db8::10]:5060
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -83,56 +64,58 @@ resume a previous scan
 enable compact mode. Makes packets smaller but
 possibly less compatible
 .TP
-\fB\-\-randomscan\fR
-Scan random IP addresses
+\fB\-d\fR DICTIONARY, \fB\-\-dictionary\fR=\fIDICTIONARY\fR
+specify a dictionary file with possible extension
+names or - for stdin
 .TP
-\fB\-i\fR scan1, \fB\-\-input\fR=\fIscan1\fR
-Scan IPs which were found in a previous scan. Pass the
-session name as the argument
+\fB\-m\fR OPTIONS, \fB\-\-method\fR=\fIOPTIONS\fR
+specify a request method. The default is REGISTER.
+Other possible methods are OPTIONS and INVITE
 .TP
-\fB\-I\fR scan1, \fB\-\-inputtext\fR=\fIscan1\fR
-Scan IPs from a text file \- use the same syntax as
-command line but with new lines instead of commas.
-Pass the file name as the argument
+\fB\-e\fR RANGE, \fB\-\-extensions\fR=\fIRANGE\fR
+specify an extension or extension range  example: \fB\-e\fR
+100\-999,1000\-1500,9999
 .TP
-\fB\-m\fR METHOD, \fB\-\-method\fR=\fIMETHOD\fR
-Specify the request method \- by default this is
-OPTIONS.
+\fB\-z\fR PADDING, \fB\-\-zeropadding\fR=\fIPADDING\fR
+the number of zeros used to padd the username.
+the options "\-e 1\-9999 \fB\-z\fR 4" would give 0001 0002 0003
+\&... 9999
 .TP
-\fB\-d\fR, \fB\-\-debug\fR
+\fB\-\-force\fR
+Force scan, ignoring initial sanity checks.
+.TP
+\fB\-T\fR TEMPLATE, \fB\-\-template\fR=\fITEMPLATE\fR
+A format string which allows us to specify a template
+for the extensions                       example
+sipvicious_svwar \fB\-e\fR 1\-999 \fB\-\-template=\fR"123%#04i999" would scan
+between 1230001999 to 1230999999"
+.TP
+\fB\-D\fR, \fB\-\-enabledefaults\fR
+Scan for default / typical extensions such as
+1000,2000,3000 ... 1100, etc. This option is off by
+default.                       Use \fB\-\-enabledefaults\fR to
+enable this functionality
+.TP
+\fB\-\-maximumtime\fR=\fIMAXIMUMTIME\fR
+Maximum time in seconds to keep sending requests
+without                       receiving a response
+back
+.TP
+\fB\-\-domain\fR=\fIDOMAIN\fR
+force a specific domain name for the SIP message, eg.
+\fB\-d\fR example.org
+.TP
+\fB\-\-debug\fR
 Print SIP messages received
 .TP
-\fB\-\-first\fR=\fIFIRST\fR
-Only send the first given number of messages (i.e.
-usually used to scan only X IPs)
-.TP
-\fB\-e\fR EXTENSION, \fB\-\-extension\fR=\fIEXTENSION\fR
-Specify an extension \- by default this is not set
-.TP
-\fB\-\-randomize\fR
-Randomize scanning instead of scanning consecutive ip
-addresses
-.TP
-\fB\-\-srv\fR
-Scan the SRV records for SIP on the destination domain
-name.The targets have to be domain names \- example.org
-domain1.com
-.TP
-\fB\-\-fromname\fR=\fIFROMNAME\fR
-Specify a name for the from header in requests
-.TP
-\fB\-6\fR, \fB\-\-ipv6\fR
+\fB\-6\fR
 Scan an IPv6 address
 .IP
-With \fB\-6\fR, \fBsvmap\fR expects bare or bracketed IPv6 literals such as
-\fB2001:db8::10\fR or \fB[2001:db8::10]\fR.
+With \fB\-6\fR, targets may be given as bare IPv6 literals such as
+\fB2001:db8::10\fR or as UDP URIs such as
+\fBudp://[2001:db8::10]:5060\fR.
 .IP
-URI syntax such as \fBudp://[2001:db8::10]:5060\fR is not supported in
-\fBsvmap\fR. Use \fB\-p\fR to choose the destination port instead.
-.IP
-Randomized IPv6 scans are not supported.
-.IP
-SIPvicious SIP scanner searches for SIP devices on a given network.
+Sipvicious extension line scanner scans SIP PaBXs for valid extension lines.
 
 Copyright (C) 2026 Sandro Gauci <sandro@enablesecurity.com>
 .IP
@@ -150,5 +133,5 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .SH "SEE ALSO"
 The full documentation for
-.B svmap.py
+.B sipvicious_svwar
 can be found on GitHub at <https://github.com/enablesecurity/sipvicious/wiki>.

@@ -868,7 +868,7 @@ def main():
         default=False, help="For INVITE scans, do not send CANCEL after 180 Ringing")
     parser.add_option('--template', '-T', action="store", dest="template",
         help="A format string which allows us to specify a template for the extensions. " \
-            "example svwar.py -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
+            "example sipvicious_svwar -e 1-999 --template=\"123%#04i999\" would scan between 1230001999 to 1230999999\"")
     parser.add_option('--enabledefaults', '-D', action="store_true", dest="defaults",
         default=False, help="Scan for default / typical extensions such as " \
             "1000,2000,3000 ... 1100, etc. This option is off by default." \

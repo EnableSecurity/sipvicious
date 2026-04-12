@@ -1,15 +1,15 @@
-.TH SVWAR.PY "1" "April 2026" "svwar.py v0.3.7" "User Commands"
+.TH SIPVICIOUS_SVCRACK "1" "April 2026" "sipvicious_svcrack v0.3.7" "User Commands"
 .SH NAME
-svwar.py \- manual page for svwar.py v0.3.7
+sipvicious_svcrack \- manual page for sipvicious_svcrack v0.3.7
 .SH SYNOPSIS
-.B svwar.py
-[\fIoptions\fR] \fItarget\fR
+.B sipvicious_svcrack
+\fI-u username \fR[\fIoptions\fR] \fItarget\fR
 .SH DESCRIPTION
 examples:
-svwar.py \fB\-e100\-999\fR udp://10.0.0.1:5080
-svwar.py \fB\-d\fR dictionary.txt 10.0.0.2
-svwar.py \fB\-6\fR \fB\-e2000\fR 2001:db8::10
-svwar.py \fB\-6\fR \fB\-e2000\fR udp://[2001:db8::10]:5060
+sipvicious_svcrack \fB\-u100\fR \fB\-d\fR dictionary.txt udp://10.0.0.1:5080
+sipvicious_svcrack \fB\-u100\fR \fB\-r1\-9999\fR \fB\-z4\fR 10.0.0.1
+sipvicious_svcrack \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR 2001:db8::10
+sipvicious_svcrack \fB\-6\fR \fB\-u1000\fR \fB\-r1500\-1500\fR udp://[2001:db8::10]:5060
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -64,49 +64,53 @@ resume a previous scan
 enable compact mode. Makes packets smaller but
 possibly less compatible
 .TP
+\fB\-u\fR USERNAME, \fB\-\-username\fR=\fIUSERNAME\fR
+username to try crack
+.TP
 \fB\-d\fR DICTIONARY, \fB\-\-dictionary\fR=\fIDICTIONARY\fR
-specify a dictionary file with possible extension
-names or - for stdin
+specify a dictionary file with passwords or - for stdin
 .TP
-\fB\-m\fR OPTIONS, \fB\-\-method\fR=\fIOPTIONS\fR
-specify a request method. The default is REGISTER.
-Other possible methods are OPTIONS and INVITE
+\fB\-r\fR RANGE, \fB\-\-range\fR=\fIRANGE\fR
+specify a range of numbers. example:
+100\-200,300\-310,400
 .TP
-\fB\-e\fR RANGE, \fB\-\-extensions\fR=\fIRANGE\fR
-specify an extension or extension range  example: \fB\-e\fR
-100\-999,1000\-1500,9999
+\fB\-e\fR EXTENSION, \fB\-\-extension\fR=\fIEXTENSION\fR
+Extension to crack. Only specify this when the
+extension is different from the username.
 .TP
 \fB\-z\fR PADDING, \fB\-\-zeropadding\fR=\fIPADDING\fR
-the number of zeros used to padd the username.
-the options "\-e 1\-9999 \fB\-z\fR 4" would give 0001 0002 0003
+the number of zeros used to padd the password.
+the options "\-r 1\-9999 \fB\-z\fR 4" would give 0001 0002 0003
 \&... 9999
 .TP
-\fB\-\-force\fR
-Force scan, ignoring initial sanity checks.
+\fB\-n\fR, \fB\-\-reusenonce\fR
+Reuse nonce. Some SIP devices don't mind you reusing
+the nonce (making them vulnerable to replay attacks).
+Speeds up the cracking.
 .TP
 \fB\-T\fR TEMPLATE, \fB\-\-template\fR=\fITEMPLATE\fR
 A format string which allows us to specify a template
 for the extensions                       example
-svwar.py \fB\-e\fR 1\-999 \fB\-\-template=\fR"123%#04i999" would scan
+sipvicious_svwar \fB\-e\fR 1\-999 \fB\-\-template=\fR"123%#04i999" would scan
 between 1230001999 to 1230999999"
-.TP
-\fB\-D\fR, \fB\-\-enabledefaults\fR
-Scan for default / typical extensions such as
-1000,2000,3000 ... 1100, etc. This option is off by
-default.                       Use \fB\-\-enabledefaults\fR to
-enable this functionality
 .TP
 \fB\-\-maximumtime\fR=\fIMAXIMUMTIME\fR
 Maximum time in seconds to keep sending requests
 without                       receiving a response
 back
 .TP
+\fB\-D\fR, \fB\-\-enabledefaults\fR
+Scan for default / typical passwords such as
+1000,2000,3000 ... 1100, etc. This option is off by
+default.                       Use \fB\-\-enabledefaults\fR to
+enable this functionality
+.TP
 \fB\-\-domain\fR=\fIDOMAIN\fR
 force a specific domain name for the SIP message, eg.
 \fB\-d\fR example.org
 .TP
-\fB\-\-debug\fR
-Print SIP messages received
+\fB\-\-requesturi\fR=\fIREQUESTURI\fR
+Force the first line URI to a specific value; e.g. sip:999@example.org
 .TP
 \fB\-6\fR
 Scan an IPv6 address
@@ -115,7 +119,7 @@ With \fB\-6\fR, targets may be given as bare IPv6 literals such as
 \fB2001:db8::10\fR or as UDP URIs such as
 \fBudp://[2001:db8::10]:5060\fR.
 .IP
-Sipvicious extension line scanner scans SIP PaBXs for valid extension lines.
+SIPvicious password cracker is an online password guessing tool for SIP devices.
 
 Copyright (C) 2026 Sandro Gauci <sandro@enablesecurity.com>
 .IP
@@ -133,5 +137,5 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 .SH "SEE ALSO"
 The full documentation for
-.B svwar.py
+.B sipvicious_svcrack
 can be found on GitHub at <https://github.com/enablesecurity/sipvicious/wiki>.
