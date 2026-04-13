@@ -7,7 +7,9 @@ SIPVicious OSS is a set of security tools that can be used to audit SIP based Vo
 To get started read the following:
 
 - [Getting started on the Wiki](https://github.com/enablesecurity/sipvicious/wiki/Getting-Started)
-- Communication Breakdown blog: [Attacking a real VoIP System with SIPVicious OSS](https://www.rtcsec.com/2020/06/02-attacking-voip-system-with-sipvicious/).
+- Enable Security blog: [SIPVicious Tutorial: VoIP Security Testing with DVRTC](http://enablesecurity.com/blog/sipvicious-tutorial-voip-security-testing-with-dvrtc/).
+
+The GitHub wiki remains the primary home for SIPVicious OSS documentation.
 
 For usage help make use of `-h` or `--help` switch.
 
@@ -74,8 +76,24 @@ The SIPVicious OSS toolset consists of the following tools:
 
 ## Installation
 
-Please refer to the [installation documentation](https://github.com/EnableSecurity/sipvicious/wiki/Basics#installation).
+SIPVicious OSS requires Python 3.6 or newer.
+
+Install it from the repository root with:
+
+```bash
+python3 -m pip install .
+```
+
+This installs the following console scripts:
+
+- `sipvicious_svmap`
+- `sipvicious_svwar`
+- `sipvicious_svcrack`
+- `sipvicious_svreport`
+- `sipvicious_svcrash`
+
+For more installation details, see the [installation documentation](https://github.com/EnableSecurity/sipvicious/wiki/Basics#installation).
 
 ## Further information
 
-Check out the [wiki](https://github.com/enablesecurity/sipvicious/wiki) for documentation.
+Check out the [wiki](https://github.com/enablesecurity/sipvicious/wiki) for the full documentation set.
