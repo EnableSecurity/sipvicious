@@ -69,7 +69,7 @@ def getArgs():
             s.bind(('0.0.0.0', 5060))
         except socket.error:
             parser.error(
-                "You either need have port 5060 available or install scapy from http://www.secdev.org/projects/scapy/")
+                "You either need have port 5060 available or install scapy with: python3 -m pip install scapy.")
     return options, args
 
 class asteriskreadlognsend:

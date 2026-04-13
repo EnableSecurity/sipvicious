@@ -660,7 +660,7 @@ def makeRequest(method, fromaddr, toaddr, dsthost, port, callid, srchost='', bra
 
 
 def reportBugToAuthor(err):    
-    print('Make sure you are running the latest version of SIPVicious by running "git pull" in the current directory and then python setup.py install')
+    print('Make sure you are running the latest version of SIPVicious by running "git pull" in the current directory and then "python3 -m pip install ."')
     print('Please visit the following URL to open a bug report: https://github.com/EnableSecurity/sipvicious/issues/new?assignees=&labels=bug&template=bug-report.md&title='+ quote("SIPVicious "+__version__+" crashing on "+ err.__str__()))
     print('Include the following information:')
     print('CLI params:', ' '.join(sys.argv))
@@ -1087,7 +1087,7 @@ def outputtopdf(outputfile, title, labels, db, resdb):
         from reportlab.lib.styles import getSampleStyleSheet
     except ImportError:
         log.error(
-            'Reportlab was not found. To export to pdf you need to have reportlab installed. Check out www.reportlab.org')
+            'Reportlab was not found. To export to pdf you need to have reportlab installed: python3 -m pip install reportlab')
         return
     log.debug('ok reportlab library found')
     styles = getSampleStyleSheet()
@@ -1191,7 +1191,7 @@ def getTargetFromSRV(domainnames, methods):
         import dns.resolver
     except ImportError:
         log.critical(
-            'could not import the DNS library. Get it from http://www.dnspython.org/')
+            'could not import the DNS library. Install it with: python3 -m pip install dnspython')
         return
     for domainname in domainnames:
         for proto in ['udp', 'tcp']:

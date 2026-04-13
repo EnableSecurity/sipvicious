@@ -7,7 +7,7 @@ SIPVicious OSS is a set of security tools that can be used to audit SIP based Vo
 To get started read the following:
 
 - [Getting started on the Wiki](https://github.com/enablesecurity/sipvicious/wiki/Getting-Started)
-- Enable Security blog: [SIPVicious Tutorial: VoIP Security Testing with DVRTC](http://enablesecurity.com/blog/sipvicious-tutorial-voip-security-testing-with-dvrtc/).
+- Enable Security blog: [SIPVicious Tutorial: VoIP Security Testing with DVRTC](https://www.enablesecurity.com/blog/sipvicious-tutorial-voip-security-testing-with-dvrtc/).
 
 The GitHub wiki remains the primary home for SIPVicious OSS documentation.
 
