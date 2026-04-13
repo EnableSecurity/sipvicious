@@ -1,3 +1,9 @@
+v0.3.8 (20260413)
+* Documentation: refresh README links and installation notes for the current wiki and DVRTC tutorial
+* Documentation: rename installed man pages and examples to use the sipvicious_sv* console scripts
+* Documentation: sync wiki usage pages, installation guidance, optional dependencies, and FAQ links
+* Change: refresh copyright notices and related date metadata through 2026
+
 v0.3.7 (20260410)
 * Tests: switch SIP autotest defaults from demo.sipvicious.pro to pbx1.dvrtc.net
 * Tests: allow overriding autotest SIP host, IP, and CIDR for local DVRTC validation
