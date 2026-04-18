@@ -525,7 +525,14 @@ def main():
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previouspasswd)
 
-        rangelist = getRange(options.range)
+        try:
+            rangelist = getRange(options.range)
+        except ValueError:
+            parser.error(
+                "Invalid password range '%s'. Use -r for numeric passwords and ranges, or -d for dictionary input."
+                % options.range,
+                10,
+            )
         crackargs = (rangelist, options.zeropadding,
                      options.template, options.defaults, [options.username])
 

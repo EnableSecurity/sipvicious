@@ -960,7 +960,14 @@ def main():
             logging.debug('New range: %s' % options.range)
             logging.info('Resuming from %s' % previousextension)
 
-        extensionstotry = getRange(options.range)
+        try:
+            extensionstotry = getRange(options.range)
+        except ValueError:
+            parser.error(
+                "Invalid extension range '%s'. Use -e for numeric extensions and ranges, or -d for non-numeric/alphanumeric extension names."
+                % options.range,
+                10,
+            )
         guessargs = (extensionstotry, options.zeropadding, options.template, options.defaults)
 
     if options.save is not None:
